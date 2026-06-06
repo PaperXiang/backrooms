@@ -9,6 +9,7 @@ import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelListener;
 import org.monday.backrooms.player.PlayerLevelTracker;
 import org.monday.backrooms.resource.ResourceBlockService;
+import org.monday.backrooms.room.RoomGenerationService;
 import org.monday.backrooms.rule.LevelRuleListener;
 import org.monday.backrooms.transition.TransitionListener;
 import org.monday.backrooms.transition.TransitionService;
@@ -24,6 +25,7 @@ public final class Backrooms extends JavaPlugin {
     private PlayerLevelTracker playerLevelTracker;
     private ResourceBlockService resourceBlockService;
     private TransitionService transitionService;
+    private RoomGenerationService roomGenerationService;
 
     @Override
     public void onEnable() {
@@ -40,6 +42,7 @@ public final class Backrooms extends JavaPlugin {
         this.playerLevelTracker = new PlayerLevelTracker(this);
         this.resourceBlockService = new ResourceBlockService(this);
         this.transitionService = new TransitionService(this);
+        this.roomGenerationService = new RoomGenerationService(this);
         getLogger().info("Core services initialized.");
 
         reloadRuntimeConfig();
@@ -50,7 +53,8 @@ public final class Backrooms extends JavaPlugin {
                 + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
-                + ", transitions=" + transitionService.definitionCount() + ".");
+                + ", transitions=" + transitionService.definitionCount()
+                + ", rooms=" + roomGenerationService.definitionCount() + ".");
     }
 
     @Override
@@ -73,6 +77,7 @@ public final class Backrooms extends JavaPlugin {
         levelConfigLoader.loadInto(levelRegistry);
         resourceBlockService.reload();
         transitionService.reload();
+        roomGenerationService.reload();
         if (playerLevelTracker != null) {
             playerLevelTracker.reconcileOnlinePlayers(false);
         }
@@ -81,6 +86,7 @@ public final class Backrooms extends JavaPlugin {
                 + ", disabled=" + levelRegistry.disabledCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
+                + ", rooms=" + roomGenerationService.definitionCount()
                 + ", onlinePlayers=" + getServer().getOnlinePlayers().size() + ".");
     }
 
@@ -110,6 +116,10 @@ public final class Backrooms extends JavaPlugin {
 
     public TransitionService transitions() {
         return transitionService;
+    }
+
+    public RoomGenerationService rooms() {
+        return roomGenerationService;
     }
 
     private void registerListeners() {

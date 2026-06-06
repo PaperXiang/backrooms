@@ -447,7 +447,8 @@ plugins/BackroomsCore/
 - 已完成 Level 随机 spawn 点配置，先用于 `/br level tp` 和切层入口，避免所有玩家永远落在单一坐标。
 - 已实现正式 Transition/撤离点系统的 MVP：Level 0 -> Level 1，Level 1 -> lobby。
 - 已新增 Transition 触发指引命令 `/br transition guide <id>`，用于在地图中临时显示 region / block 触发位置，方便摆放 CraftEngine 楼梯井标记。
-- 下一阶段最高优先级：同步整理 devserver 运行配置并开始房间模板与生成原型；CE 楼梯井标记先用手动摆放和 guide 粒子辅助，不直接调用 CE Java API。
+- 已完成第一版 Room 生成原型：`rooms.yml` 配置 room/corridor 模板，`/br room generate <id> [level]` 可用 Bukkit 原生方块生成简单占位房间。
+- 下一阶段最高优先级：重启测试服实机验证 Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -477,3 +478,16 @@ plugins/BackroomsCore/
 - 已补充 help、tab completion、usage、权限和消息 key，避免 `transition-guide-shown` 缺失时显示原始 key。
 - 当前仍不直接通过 Java 调用 CraftEngine API 放置 `backrooms:stairwell_marker`；CE 方块先用 `/ce item get` 或 `/ce debug setblock` 手动摆放，BackroomsCore 只负责 Transition 判定和可视化指引。
 - 下一步进入房间/地图原型：需要确定 WorldEdit/FAWE schematic、marker 方块扫描和生成边界。
+
+### 12.6 Step 009 完成状态
+
+- 已新增 `rooms.yml`，用 `rooms.definitions` 配置最小 Room 模板，当前包含 `level0_basic_room`、`level0_corridor`、`level1_utility_room` 三个占位模板。
+- 已新增 Room 生成模型和服务：`RoomShape`、`RoomDefinition`、`RoomGenerationResult`、`RoomGenerationService`。
+- Room 服务已接入 `/br reload`，重载时会读取 `rooms.yml` 并在控制台输出模板数量。
+- 已新增管理命令：
+  - `/br rooms` / `/br room list` 查看模板列表。
+  - `/br room info <id>` 查看模板尺寸、适用 Level 和材质 palette。
+  - `/br room generate <id> [level]` 在玩家当前位置生成简单 room/corridor 原型。
+- 当前生成器只使用 Bukkit 原生 `Block#setType`，不引入 WorldEdit/FAWE API；这是为了先验证 Level/权限/配置/材质闭环，再升级到 schematic 粘贴和 marker 扫描。
+- 生成命令默认要求玩家站在目标 Level 对应世界内，避免把 Level 0 模板误生成到 lobby 或其他世界。
+- 下一步需要重启测试服加载新 jar，并在 `level_0`、`level_1` 世界实机测试 `/br rooms`、`/br room info level0_basic_room`、`/br room generate level0_basic_room level_0`。

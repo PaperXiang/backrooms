@@ -1,0 +1,57 @@
+rooms:
+  enabled: true
+  defaults:
+    max-blocks-per-generate: 5000
+    replace-air-only: false
+
+  definitions:
+    level0_basic_room:
+      enabled: true
+      display-name: "<yellow>Level 0 Basic Room</yellow>"
+      levels:
+        - level_0
+      shape: room
+      size:
+        width: 11
+        length: 11
+        height: 5
+      palette:
+        floor: YELLOW_CONCRETE_POWDER
+        wall: STRIPPED_BIRCH_WOOD
+        ceiling: SMOOTH_SANDSTONE
+        light: SEA_LANTERN
+        marker: YELLOW_CARPET
+
+    level0_corridor:
+      enabled: true
+      display-name: "<yellow>Level 0 Corridor</yellow>"
+      levels:
+        - level_0
+      shape: corridor
+      size:
+        width: 5
+        length: 21
+        height: 5
+      palette:
+        floor: YELLOW_CONCRETE_POWDER
+        wall: STRIPPED_BIRCH_WOOD
+        ceiling: SMOOTH_SANDSTONE
+        light: SEA_LANTERN
+        marker: YELLOW_CARPET
+
+    level1_utility_room:
+      enabled: true
+      display-name: "<gold>Level 1 Utility Room</gold>"
+      levels:
+        - level_1
+      shape: room
+      size:
+        width: 13
+        length: 13
+        height: 6
+      palette:
+        floor: STONE_BRICKS
+        wall: TUFF_BRICKS
+        ceiling: DEEPSLATE_TILES
+        light: LANTERN
+        marker: IRON_ORE

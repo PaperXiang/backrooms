@@ -15,6 +15,8 @@ import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
+import org.monday.backrooms.room.RoomDefinition;
+import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.TransitionDefinition;
 
 public final class BrCommand implements TabExecutor {
@@ -27,6 +29,9 @@ public final class BrCommand implements TabExecutor {
     private static final String TRANSITION_INFO_PERMISSION = "backrooms.command.transition.info";
     private static final String TRANSITION_TRIGGER_PERMISSION = "backrooms.command.transition.trigger";
     private static final String TRANSITION_GUIDE_PERMISSION = "backrooms.command.transition.guide";
+    private static final String ROOM_LIST_PERMISSION = "backrooms.command.room.list";
+    private static final String ROOM_INFO_PERMISSION = "backrooms.command.room.info";
+    private static final String ROOM_GENERATE_PERMISSION = "backrooms.command.room.generate";
 
     private final Backrooms plugin;
 
@@ -53,6 +58,44 @@ public final class BrCommand implements TabExecutor {
 
         if (is(args[0], "transitions")) {
             sendTransitions(sender);
+            return true;
+        }
+
+        if (is(args[0], "rooms")) {
+            sendRooms(sender);
+            return true;
+        }
+
+        if (is(args[0], "room")) {
+            if (args.length < 2) {
+                plugin.messages().send(sender, "unknown-command");
+                return true;
+            }
+
+            if (is(args[1], "list")) {
+                sendRooms(sender);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "room-info-usage");
+                    return true;
+                }
+                sendRoomInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "generate")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "room-generate-usage");
+                    return true;
+                }
+                generateRoom(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
             return true;
         }
 
@@ -141,7 +184,8 @@ public final class BrCommand implements TabExecutor {
             plugin.reloadRuntimeConfig();
             plugin.messages().send(sender, "reload",
                     plugin.messages().text("count", String.valueOf(plugin.levels().size())),
-                    plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount()))
+                    plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount())),
+                    plugin.messages().text("room_count", String.valueOf(plugin.rooms().definitionCount()))
             );
             return true;
         }
@@ -166,6 +210,14 @@ public final class BrCommand implements TabExecutor {
             }
             if (sender.hasPermission(TRANSITIONS_PERMISSION)) {
                 options.add("transitions");
+            }
+            if (sender.hasPermission(ROOM_LIST_PERMISSION)) {
+                options.add("rooms");
+            }
+            if (sender.hasPermission(ROOM_LIST_PERMISSION)
+                    || sender.hasPermission(ROOM_INFO_PERMISSION)
+                    || sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+                options.add("room");
             }
             if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
                     || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
@@ -195,6 +247,28 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "transition") && is(args[1], "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
             return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
+        }
+
+        if (args.length == 2 && is(args[0], "room")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(ROOM_LIST_PERMISSION)) {
+                options.add("list");
+            }
+            if (sender.hasPermission(ROOM_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+                options.add("generate");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "room") && canCompleteRoomIds(sender, args[1])) {
+            return filter(plugin.rooms().all().stream().map(RoomDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "room") && is(args[1], "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+            return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "debug") && sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
@@ -258,6 +332,109 @@ public final class BrCommand implements TabExecutor {
                     messages.bool("enabled", transition.enabled())
             );
         }
+    }
+
+    private void sendRooms(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ROOM_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.rooms().all().isEmpty()) {
+            messages.send(sender, "rooms-empty");
+            return;
+        }
+
+        messages.send(sender, "rooms-header");
+        for (RoomDefinition room : plugin.rooms().all()) {
+            messages.send(sender, "room-line",
+                    messages.text("id", room.id()),
+                    messages.mini("display", room.displayName()),
+                    messages.bool("enabled", room.enabled()),
+                    messages.text("shape", room.shape().name().toLowerCase(Locale.ROOT)),
+                    messages.text("size", room.sizeDescription()),
+                    messages.text("levels", room.levels().isEmpty() ? "any" : String.join(",", room.levels()))
+            );
+        }
+    }
+
+    private void sendRoomInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ROOM_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.rooms().get(id).ifPresentOrElse(room -> messages.send(sender, "room-info",
+                messages.text("id", room.id()),
+                messages.mini("display", room.displayName()),
+                messages.bool("enabled", room.enabled()),
+                messages.text("shape", room.shape().name().toLowerCase(Locale.ROOT)),
+                messages.text("size", room.sizeDescription()),
+                messages.text("levels", room.levels().isEmpty() ? "any" : String.join(",", room.levels())),
+                messages.text("floor", room.floor().name()),
+                messages.text("wall", room.wall().name()),
+                messages.text("ceiling", room.ceiling().name()),
+                messages.text("light", room.light().name()),
+                messages.text("marker", room.marker().name())
+        ), () -> messages.send(sender, "room-not-found", messages.text("id", id)));
+    }
+
+    private void generateRoom(CommandSender sender, String roomId, String levelId) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (!(sender instanceof Player player)) {
+            messages.send(sender, "player-only");
+            return;
+        }
+
+        plugin.rooms().get(roomId).ifPresentOrElse(room -> {
+            BackroomsLevel level = resolveRoomGenerationLevel(player, levelId);
+            if (level == null) {
+                messages.send(sender, "room-generate-level-required");
+                return;
+            }
+            if (!level.enabled()) {
+                messages.send(sender, "level-disabled", messages.text("id", level.id()));
+                return;
+            }
+            if (!player.getWorld().getName().equals(level.world())) {
+                messages.send(sender, "room-generate-wrong-world",
+                        messages.text("level", level.id()),
+                        messages.text("world", level.world())
+                );
+                return;
+            }
+
+            RoomGenerationResult result = plugin.rooms().generate(room, level, player.getLocation());
+            sendRoomGenerationResult(sender, result);
+        }, () -> messages.send(sender, "room-not-found", messages.text("id", roomId)));
+    }
+
+    private BackroomsLevel resolveRoomGenerationLevel(Player player, String levelId) {
+        if (levelId != null && !levelId.isBlank()) {
+            return plugin.levels().get(levelId).orElse(null);
+        }
+
+        return plugin.levels().getByWorld(player.getWorld().getName()).orElse(null);
+    }
+
+    private void sendRoomGenerationResult(CommandSender sender, RoomGenerationResult result) {
+        MessageService messages = plugin.messages();
+        messages.send(sender, result.messageKey(),
+                messages.text("id", result.roomId()),
+                messages.text("level", result.levelId()),
+                messages.text("world", result.world()),
+                messages.text("blocks", String.valueOf(result.blocksChanged())),
+                messages.text("x", String.valueOf(result.originX())),
+                messages.text("y", String.valueOf(result.originY())),
+                messages.text("z", String.valueOf(result.originZ()))
+        );
     }
 
     private void sendLevelInfo(CommandSender sender, String id) {
@@ -440,6 +617,11 @@ public final class BrCommand implements TabExecutor {
         return (is(subcommand, "info") && sender.hasPermission(TRANSITION_INFO_PERMISSION))
                 || (is(subcommand, "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION))
                 || (is(subcommand, "guide") && sender.hasPermission(TRANSITION_GUIDE_PERMISSION));
+    }
+
+    private boolean canCompleteRoomIds(CommandSender sender, String subcommand) {
+        return (is(subcommand, "info") && sender.hasPermission(ROOM_INFO_PERMISSION))
+                || (is(subcommand, "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION));
     }
 
     private List<String> filter(List<String> options, String prefix) {

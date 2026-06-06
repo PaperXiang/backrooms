@@ -452,3 +452,69 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
+## Step 009 - Room 模板与占位生成原型
+
+### 本次完成
+
+- 新增 `rooms.yml`，配置最小 room/corridor 模板：
+  - `level0_basic_room`
+  - `level0_corridor`
+  - `level1_utility_room`
+- 新增 Room 生成基础模型：
+  - `RoomShape`
+  - `RoomDefinition`
+  - `RoomGenerationResult`
+  - `RoomGenerationService`
+- `ConfigFileService` 新增 `rooms.yml` 默认保存、加载、热重载和 legacy section 提醒。
+- `Backrooms` 主类新增 `RoomGenerationService` 生命周期，并在启动与 `/br reload` 日志中输出 Room 模板数量。
+- 新增 Room 管理/调试命令：
+  - `/br rooms`
+  - `/br room list`
+  - `/br room info <id>`
+  - `/br room generate <id> [level]`
+- 新增 Room 命令权限：
+  - `backrooms.command.room.list`
+  - `backrooms.command.room.info`
+  - `backrooms.command.room.generate`
+- 补充 `messages.yml` 中 Room 列表、详情、生成成功/失败、usage 和 `/br reload` 计数文案。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/room/RoomDefinition.java`
+- `src/main/java/org/monday/backrooms/room/RoomGenerationResult.java`
+- `src/main/java/org/monday/backrooms/room/RoomGenerationService.java`
+- `src/main/java/org/monday/backrooms/room/RoomShape.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/rooms.yml`
+
+### 设计原因
+
+- 先用 Bukkit 原生 `Block#setType` 做最小占位生成，不直接引入 WorldEdit/FAWE API，降低依赖和实机排错成本。
+- `rooms.yml` 先采用单文件 `rooms.definitions`，方便 MVP 阶段热重载和快速调参；后续模板数量变多后可迁移到 `rooms/*.yml` 或 level 分目录。
+- `/br room generate` 要求玩家位于目标 Level 对应世界，避免误把 Level 0 / Level 1 模板生成到 lobby 或其他世界。
+- Room palette 暂时使用原版材质，既能和当前 resource block 材质触发闭环联动，也便于之后替换为 CraftEngine marker / schematic 方案。
+- 生成器提供 `max-blocks-per-generate` 和 `replace-air-only` 默认项，为后续测试服防误操作保留基础安全阀。
+
+### 下一步建议
+
+- 重启测试服加载新 jar，因为本次包含 Java 代码变更。
+- 重启后执行 `/br reload`，确认控制台和聊天显示 Room 数量。
+- 在 `level_0` 世界测试：
+  - `/br rooms`
+  - `/br room info level0_basic_room`
+  - `/br room generate level0_basic_room level_0`
+  - `/br room generate level0_corridor level_0`
+- 在 `level_1` 世界测试 `/br room generate level1_utility_room level_1`。
+- 实机验证后再决定是否引入 WorldEdit/FAWE schematic 粘贴、marker 扫描和 CraftEngine 方块替换流程。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
