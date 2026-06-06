@@ -79,7 +79,6 @@
 ### 测试与验证
 
 - 已运行 `./gradlew.bat build`，构建通过。
-- 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
 
 ## Step 003 - Level 传送与运行时状态
 
@@ -257,3 +256,75 @@
 ### 测试与验证
 
 - 已运行 `./gradlew.bat build`，构建通过。
+
+## Step 006 - 测试服配置、CraftEngine 资产与随机出生点
+
+### 本次完成
+
+- 将开发流程推进到 pursue-goal 模式，并在 `plan.md` 中记录持续推进规则：按最高优先级任务实现、检查、更新文档、commit 并 push。
+- 根据本地 CraftEngine 26.6 文档与默认资源示例，新增版本化 `server-configs/CraftEngine/resources/backrooms/`：
+  - `pack.yml` 定义 `backrooms` namespace。
+  - `materials.yml` 定义第一批测试物品：杏仁水、电池、废料、电线、发电机部件、MEG 芯片、钥匙卡、现场笔记。
+  - `mvp_blocks.yml` 定义第一批测试方块/容器：松动地毯缓存、废料堆、物资箱、尸体缓存、楼梯井标记。
+- CraftEngine 测试资产暂时复用 Minecraft 原版材质/model 生成方式，不引入自定义美术资源，方便后续替换。
+- 将 CraftEngine `backrooms` 资源包同步到测试服：`D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms`。
+- 新增版本化 TAB 配置 `server-configs/TAB/`，并同步到测试服：
+  - 移除默认演示 header/footer、动画占位符和不相关 Placeholder。
+  - 启用简洁的 Backrooms 测试服 header/footer 与 scoreboard。
+  - 使用静态测试前缀，避免早期过度依赖 LuckPerms 前后缀。
+- 为 Level 配置新增 `spawn.points`，支持多个随机出生点。
+- 调整 `LevelSpawn` 与 `LevelConfigLoader`：
+  - 兼容旧单点 `spawn.x/y/z/yaw/pitch`。
+  - 如果配置了 `spawn.points`，会加载所有有效点并在传送时随机选择。
+  - 启动/重载时输出随机出生点数量，便于实机确认配置是否生效。
+- `/br level info <id>` 新增随机出生点数量显示。
+- `/br level tp <id>` 增加控制台传送坐标日志，便于确认随机点选择。
+- 新增 Gradle `deployDevServer` task，用于将构建出的插件 jar 复制到 `../devserver/plugins`。
+
+### 修改文件
+
+- `build.gradle`
+- `plan.md`
+- `server-configs/README.md`
+- `server-configs/CraftEngine/resources/backrooms/pack.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml`
+- `server-configs/TAB/config.yml`
+- `server-configs/TAB/groups.yml`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/level/LevelConfigLoader.java`
+- `src/main/java/org/monday/backrooms/level/LevelSpawn.java`
+- `src/main/resources/levels/level_0.yml`
+- `src/main/resources/levels/level_1.yml`
+- `src/main/resources/messages.yml`
+- `step.md`
+- 同步修改测试服外部配置：
+  - `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms/**`
+  - `D:\dev\backrooms\devserver\plugins\TAB\config.yml`
+  - `D:\dev\backrooms\devserver\plugins\TAB\groups.yml`
+
+### 设计原因
+
+- 先写 CraftEngine 配置而不接入 CE Java API，是为了验证 CE 资源加载、物品/方块定义和资源包发送流程；BackroomsCore 的 CE Adapter 需要等实机行为稳定后再写，避免臆造 API。
+- 测试资产全部用原版材质/model，符合当前“后面再替换模型”的目标，也能降低资源包调试成本。
+- `spawn.points` 是切层系统的前置能力：玩家从楼梯井/维护门进入 Level 时应分散到多个入口或安全点，而不是固定堆叠在一个坐标。
+- 地图生成没有在本步骤实现，因为它依赖 Transition、marker 扫描、房间模板格式与 WorldEdit/FAWE schematic 验证；当前仍处于第一阶段 MVP 的基础设施闭环。
+- 外部插件配置保存在 `server-configs/`，是为了让 devserver 的配置可追踪、可回滚、可复用，而不是只改本地测试服文件。
+
+### 下一步建议
+
+- 在服务器控制台/游戏内执行：
+  - `/ce reload all`
+  - `/tab reload`
+  - `/br reload`
+- 若 jar 已被服务端锁定或代码未生效，重启测试服后再验证。
+- 用 CraftEngine 命令测试物品/方块，例如 `/ce item give <player> backrooms:almond_water 1`、`/ce item give <player> backrooms:supply_crate 1`。
+- 用 `/br level tp level_0` 与 `/br level tp level_1` 多次测试随机出生点。
+- 下一步最高优先级：实现 Transition/撤离点配置与交互系统，让 Level 0 可以进入 Level 1，Level 1 可以返回 lobby。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已运行 `./gradlew.bat deployDevServer`，插件 jar 已复制到测试服 `plugins` 目录。
+- 已检查 TAB/项目配置中未残留 `%animation:`、`essentials_`、`vault_prefix`、`rel_factions` 等早期测试占位符。
+- 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。

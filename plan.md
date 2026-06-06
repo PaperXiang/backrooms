@@ -429,3 +429,32 @@ plugins/BackroomsCore/
 
 `plan.md` 记录长期设计，`step.md` 记录每一步执行总结。
 
+## 12. Pursue-goal 执行模式
+
+从测试服 `D:\dev\backrooms\devserver` 搭好后，开发进入持续推进模式：
+
+- 目标是持续完善项目，直到形成可运行、稳定、可玩的 Backrooms MVP。
+- 每次开发都先读取并维护 `plan.md`，如果计划太粗就拆细。
+- 优先选择最高优先级未完成任务，直接实现，不只做规划。
+- 每次完成一个 step 必须：运行相关检查、更新 `plan.md`、更新 `step.md`、commit 并 push。
+- 服务器插件配置也要版本化保存到项目内的 `server-configs/`，再同步到 `devserver/plugins/`。
+- 插件功能尽可能支持 `/br reload` 热重载；外部插件配置尽量使用它们自己的 reload 命令，例如 CraftEngine `/ce reload all`、TAB `/tab reload`。
+
+### 12.1 当前最高优先级任务
+
+- 完成第一批 CraftEngine 26.6 Backrooms 测试物品/方块配置，模型先复用 Minecraft 原版 model/texture，后续再替换美术资源。
+- 完成 TAB 测试服基础显示配置，减少演示占位符和无关动画。
+- 增加 Level 随机 spawn 点配置，先用于 `/br level tp` 和未来切层入口，避免所有玩家永远落在单一坐标。
+- 下一阶段实现正式 Transition/撤离点系统：Level 0 -> Level 1，Level 1 -> lobby。
+
+### 12.2 为什么当前仍是第一阶段 MVP
+
+当前阶段重点是把服务器跑起来并形成可测试闭环：Level 配置、跨世界传送、Level 规则、资源方块抽象、CE 测试资产、基础显示配置。世界生成、房间拼接、尸体背包保存、基地 claim、组织系统和真实 loot 刷新仍属于后续 MVP 任务，因为它们依赖已稳定的 Level/资源/切层基础设施。先做小而稳的闭环，能降低后续 WorldEdit/CE/Multiverse 实机集成时的排错成本。
+
+### 12.3 Step 006 完成状态
+
+- 已新增第一批 CraftEngine 26.6 `backrooms` 资源包配置，包含杏仁水、电池、废料、电线、发电机部件、MEG 芯片、钥匙卡、物资箱、尸体缓存、楼梯井标记等测试资产。
+- 已将外部插件配置版本化到 `server-configs/`，并同步到 `devserver/plugins/`。
+- 已为 Level 配置增加 `spawn.points`，当前 `/br level tp <id>` 会在多个配置点中随机选择，未来 Transition/撤离点系统也复用这一能力。
+- 已增加 `deployDevServer` Gradle task，用于把 BackroomsCore jar 部署到本地测试服 `plugins` 目录。
+- 地图/房间生成仍未实现：当前只完成测试服资源和随机 spawn 基础设施，下一步最高优先级是 Transition/撤离点系统，然后再做房间模板和生成原型。

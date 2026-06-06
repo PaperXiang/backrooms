@@ -1,0 +1,46 @@
+items:
+  backrooms:almond_water:
+    material: honey_bottle
+    data:
+      item_name: <!i><#F5E6B8>Almond Water
+    texture: minecraft:item/honey_bottle
+  backrooms:dead_battery:
+    material: paper
+    data:
+      item_name: <!i><gray>Dead Battery
+    texture: minecraft:item/redstone
+  backrooms:charged_battery:
+    material: paper
+    data:
+      item_name: <!i><yellow>Charged Battery
+    texture: minecraft:item/glowstone_dust
+  backrooms:scrap_metal:
+    material: iron_nugget
+    data:
+      item_name: <!i><gray>Scrap Metal
+    texture: minecraft:item/iron_nugget
+  backrooms:copper_wire:
+    material: string
+    data:
+      item_name: <!i><#C87533>Copper Wire
+    texture: minecraft:item/string
+  backrooms:generator_part:
+    material: copper_ingot
+    data:
+      item_name: <!i><gold>Generator Part
+    texture: minecraft:item/copper_ingot
+  backrooms:meg_chip:
+    material: echo_shard
+    data:
+      item_name: <!i><aqua>MEG Auth Chip
+    texture: minecraft:item/echo_shard
+  backrooms:level1_keycard:
+    material: paper
+    data:
+      item_name: <!i><yellow>Level 1 Access Keycard
+    texture: minecraft:item/name_tag
+  backrooms:field_note:
+    material: paper
+    data:
+      item_name: <!i><white>Field Note
+    texture: minecraft:item/paper

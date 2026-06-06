@@ -53,3 +53,9 @@ processResources {
         expand props
     }
 }
+
+tasks.register('deployDevServer', Copy) {
+    dependsOn tasks.named('jar')
+    from tasks.named('jar')
+    into layout.projectDirectory.dir('../devserver/plugins')
+}

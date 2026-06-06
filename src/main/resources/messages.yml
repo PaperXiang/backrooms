@@ -56,6 +56,7 @@ messages:
     - "<gray>世界：</gray><white><world></white>"
     - "<gray>启用：</gray><enabled>"
     - "<gray>PVP：</gray><pvp>"
+    - "<gray>随机出生点：</gray><white><spawn_points></white>"
     - "<gray>标题：</gray><title>"
     - "<gray>副标题：</gray><subtitle>"
     - "<dark_gray><description></dark_gray>"

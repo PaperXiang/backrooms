@@ -164,6 +164,7 @@ public final class BrCommand implements TabExecutor {
                 messages.text("world", level.world()),
                 messages.bool("enabled", level.enabled()),
                 messages.bool("pvp", level.pvp()),
+                messages.text("spawn_points", String.valueOf(level.spawn() == null ? 0 : level.spawn().pointCount())),
                 messages.mini("title", level.title()),
                 messages.mini("subtitle", level.subtitle()),
                 messages.text("description", level.description())
@@ -198,6 +199,8 @@ public final class BrCommand implements TabExecutor {
             }
 
             Location location = level.spawn() == null ? world.getSpawnLocation() : level.spawn().toLocation(world);
+            plugin.getLogger().info("Teleporting " + player.getName() + " to level '" + level.id() + "' at "
+                    + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ() + ".");
             boolean teleported = player.teleport(location, PlayerTeleportEvent.TeleportCause.COMMAND);
             if (!teleported) {
                 messages.send(sender, "level-teleport-failed", messages.text("id", level.id()));

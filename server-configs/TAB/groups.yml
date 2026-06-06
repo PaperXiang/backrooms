@@ -1,0 +1,12 @@
+# Backrooms test server TAB group formatting.
+# Sync target: D:\dev\backrooms\devserver\plugins\TAB\groups.yml
+Player:
+  tabprefix: "&8[&7Player&8] &f"
+  tagprefix: "&8[&7Player&8] &f"
+
+_DEFAULT_:
+  tabprefix: "&8[&7Test&8] &f"
+  tagprefix: "&8[&7Test&8] &f"
+  customtabname: "%player%"
+  tabsuffix: ""
+  tagsuffix: ""

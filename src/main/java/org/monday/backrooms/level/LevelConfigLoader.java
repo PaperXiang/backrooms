@@ -1,6 +1,9 @@
 package org.monday.backrooms.level;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,7 +25,7 @@ public final class LevelConfigLoader {
             return;
         }
 
-        for (Map.Entry<File, FileConfiguration> entry : levelFiles.entrySet()) {
+        for (Entry<File, FileConfiguration> entry : levelFiles.entrySet()) {
             File file = entry.getKey();
             FileConfiguration section = entry.getValue();
             String id = section.getString("id", fileId(file));
@@ -53,6 +56,9 @@ public final class LevelConfigLoader {
             if (level.enabled() && Bukkit.getWorld(level.world()) == null) {
                 plugin.getLogger().warning("Level '" + level.id() + "' references world '" + level.world() + "', but the world is not loaded.");
             }
+            if (level.spawn() != null && level.spawn().pointCount() > 1) {
+                plugin.getLogger().info("Level '" + level.id() + "' has " + level.spawn().pointCount() + " random spawn points.");
+            }
         }
 
         plugin.getLogger().info("Loaded levels: total=" + registry.size()
@@ -72,6 +78,11 @@ public final class LevelConfigLoader {
             return null;
         }
 
+        List<LevelSpawnPoint> points = loadSpawnPoints(levelSection.getString("id", "unknown"), spawnSection);
+        if (!points.isEmpty()) {
+            return new LevelSpawn(points);
+        }
+
         return new LevelSpawn(
                 spawnSection.getDouble("x", 0.5D),
                 spawnSection.getDouble("y", 64.0D),
@@ -79,6 +90,42 @@ public final class LevelConfigLoader {
                 (float) spawnSection.getDouble("yaw", 0.0D),
                 (float) spawnSection.getDouble("pitch", 0.0D)
         );
+    }
+
+    private List<LevelSpawnPoint> loadSpawnPoints(String levelId, ConfigurationSection spawnSection) {
+        List<Map<?, ?>> configuredPoints = spawnSection.getMapList("points");
+        if (configuredPoints.isEmpty()) {
+            return List.of();
+        }
+
+        List<LevelSpawnPoint> points = new ArrayList<>();
+        for (int index = 0; index < configuredPoints.size(); index++) {
+            Map<?, ?> point = configuredPoints.get(index);
+            Object x = point.get("x");
+            Object y = point.get("y");
+            Object z = point.get("z");
+            if (!(x instanceof Number xNumber) || !(y instanceof Number yNumber) || !(z instanceof Number zNumber)) {
+                plugin.getLogger().warning("Skipping invalid spawn point " + index + " for level '" + levelId + "': x, y and z must be numbers.");
+                continue;
+            }
+
+            points.add(new LevelSpawnPoint(
+                    xNumber.doubleValue(),
+                    yNumber.doubleValue(),
+                    zNumber.doubleValue(),
+                    number(point.get("yaw"), 0.0F),
+                    number(point.get("pitch"), 0.0F)
+            ));
+        }
+
+        if (points.isEmpty()) {
+            plugin.getLogger().warning("Level '" + levelId + "' has spawn.points configured, but no valid points were loaded; falling back to legacy spawn fields.");
+        }
+        return points;
+    }
+
+    private float number(Object value, float fallback) {
+        return value instanceof Number number ? number.floatValue() : fallback;
     }
 
     private LevelRules loadRules(ConfigurationSection levelSection) {

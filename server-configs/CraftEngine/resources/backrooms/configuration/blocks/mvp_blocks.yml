@@ -1,0 +1,193 @@
+items:
+  backrooms:loose_carpet_cache:
+    material: paper
+    data:
+      item_name: <!i><yellow>Loose Carpet Cache
+    model:
+      type: minecraft:model
+      path: backrooms:item/loose_carpet_cache
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:block/yellow_wool
+    behavior:
+      type: block_item
+      block: backrooms:loose_carpet_cache
+  backrooms:scrap_pile:
+    material: paper
+    data:
+      item_name: <!i><gray>Scrap Pile
+    model:
+      type: minecraft:model
+      path: backrooms:item/scrap_pile
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/iron_nugget
+    behavior:
+      type: block_item
+      block: backrooms:scrap_pile
+  backrooms:supply_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Supply Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/supply_crate
+      generation:
+        parent: minecraft:block/cube_all
+        textures:
+          all: minecraft:block/barrel_side
+    behavior:
+      type: block_item
+      block: backrooms:supply_crate
+  backrooms:corpse_cache:
+    material: paper
+    data:
+      item_name: <!i><dark_red>Unknown Corpse Cache
+    model:
+      type: minecraft:model
+      path: backrooms:item/corpse_cache
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/rotten_flesh
+    behavior:
+      type: block_item
+      block: backrooms:corpse_cache
+  backrooms:stairwell_marker:
+    material: paper
+    data:
+      item_name: <!i><aqua>Stairwell Marker
+    model:
+      type: minecraft:model
+      path: backrooms:item/stairwell_marker
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/ender_eye
+    behavior:
+      type: block_item
+      block: backrooms:stairwell_marker
+
+blocks:
+  backrooms:loose_carpet_cache:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/loose_carpet_cache
+        generation:
+          parent: minecraft:block/carpet
+          textures:
+            wool: minecraft:block/yellow_wool
+    loot:
+      template: default:loot_table/basic
+      arguments:
+        item: backrooms:field_note
+        count: 1
+  backrooms:scrap_pile:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/scrap_pile
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/raw_iron_block
+    loot:
+      template: default:loot_table/basic
+      arguments:
+        item: backrooms:scrap_metal
+        count: 2
+  backrooms:supply_crate:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    behavior:
+      type: simple_storage_block
+      title: "Supply Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/supply_crate
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/barrel_side
+    loot:
+      template: default:loot_table/self
+  backrooms:corpse_cache:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+    behavior:
+      type: simple_storage_block
+      title: "Unknown Corpse"
+      rows: 3
+      sounds:
+        open: minecraft:block.wool.hit
+        close: minecraft:block.wool.fall
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/corpse_cache
+        generation:
+          parent: minecraft:block/carpet
+          textures:
+            wool: minecraft:block/red_wool
+    loot:
+      template: default:loot_table/self
+  backrooms:stairwell_marker:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/stairwell_marker
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/chiseled_deepslate
+    loot:
+      template: default:loot_table/self
