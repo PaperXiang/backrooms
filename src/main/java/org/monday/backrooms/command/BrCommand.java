@@ -14,12 +14,14 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.message.MessageService;
+import org.monday.backrooms.player.PlayerLevelState;
 
 public final class BrCommand implements TabExecutor {
 
     private static final String BASE_PERMISSION = "backrooms.command.br";
     private static final String RELOAD_PERMISSION = "backrooms.command.reload";
     private static final String LEVEL_TP_PERMISSION = "backrooms.command.level.tp";
+    private static final String DEBUG_CURRENT_PERMISSION = "backrooms.command.debug.current";
 
     private final Backrooms plugin;
 
@@ -72,6 +74,16 @@ public final class BrCommand implements TabExecutor {
             return true;
         }
 
+        if (is(args[0], "debug")) {
+            if (args.length >= 2 && is(args[1], "current")) {
+                sendDebugCurrent(sender);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
+            return true;
+        }
+
         if (is(args[0], "reload")) {
             if (!sender.hasPermission(RELOAD_PERMISSION)) {
                 plugin.messages().send(sender, "no-permission");
@@ -98,7 +110,14 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(RELOAD_PERMISSION)) {
                 options.add("reload");
             }
+            if (sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
+                options.add("debug");
+            }
             return filter(options, args[0]);
+        }
+
+        if (args.length == 2 && is(args[0], "debug") && sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
+            return filter(List.of("current"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "level")) {
@@ -190,6 +209,50 @@ public final class BrCommand implements TabExecutor {
                     messages.mini("display", level.displayName())
             );
         }, () -> messages.send(sender, "level-not-found", messages.text("id", id)));
+    }
+
+    private void sendDebugCurrent(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (!(sender instanceof Player player)) {
+            messages.send(sender, "player-only");
+            return;
+        }
+
+        var state = plugin.playerLevels().current(player);
+        var worldLevel = plugin.levels().getByWorld(player.getWorld().getName());
+        if (state.isEmpty()) {
+            messages.send(sender, "debug-current-none",
+                    messages.text("player", player.getName()),
+                    messages.text("world", player.getWorld().getName()),
+                    messages.text("world_level", worldLevel.map(BackroomsLevel::id).orElse("none"))
+            );
+            return;
+        }
+
+        PlayerLevelState currentState = state.get();
+        plugin.levels().get(currentState.levelId()).ifPresentOrElse(level -> messages.send(sender, "debug-current",
+                messages.text("player", player.getName()),
+                messages.text("world", player.getWorld().getName()),
+                messages.text("tracked_level", currentState.levelId()),
+                messages.text("world_level", worldLevel.map(BackroomsLevel::id).orElse("none")),
+                messages.mini("display", level.displayName()),
+                messages.bool("pvp", level.pvp()),
+                messages.bool("allow_break", level.rules().allowBlockBreak()),
+                messages.bool("allow_place", level.rules().allowBlockPlace()),
+                messages.bool("resource_interaction", level.rules().resourceInteraction()),
+                messages.text("entered_at", currentState.enteredAt().toString())
+        ), () -> messages.send(sender, "debug-current-stale",
+                messages.text("player", player.getName()),
+                messages.text("world", player.getWorld().getName()),
+                messages.text("tracked_level", currentState.levelId()),
+                messages.text("world_level", worldLevel.map(BackroomsLevel::id).orElse("none")),
+                messages.text("entered_at", currentState.enteredAt().toString())
+        ));
     }
 
     private boolean is(String input, String expected) {

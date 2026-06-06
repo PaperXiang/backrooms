@@ -9,7 +9,7 @@ website: mc.monday-ovo.top
 commands:
   br:
     description: Backrooms main command
-    usage: /br <help|levels|level|reload>
+    usage: /br <help|levels|level|debug|reload>
     aliases: [backrooms]
 permissions:
   backrooms.command.br:
@@ -21,6 +21,12 @@ permissions:
   backrooms.command.level.tp:
     description: Allows teleporting to configured Backrooms levels
     default: op
+  backrooms.command.debug.current:
+    description: Allows checking current Backrooms runtime state
+    default: op
+  backrooms.bypass.build:
+    description: Allows bypassing Backrooms build protection
+    default: op
   backrooms.admin:
     description: Allows all Backrooms administrative commands
     default: op
@@ -28,3 +34,5 @@ permissions:
       backrooms.command.br: true
       backrooms.command.reload: true
       backrooms.command.level.tp: true
+      backrooms.command.debug.current: true
+      backrooms.bypass.build: true

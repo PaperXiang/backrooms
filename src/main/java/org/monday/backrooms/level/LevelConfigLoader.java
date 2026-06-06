@@ -32,6 +32,7 @@ public final class LevelConfigLoader {
                     section.getString("world", id),
                     loadSpawn(section),
                     section.getBoolean("pvp", false),
+                    loadRules(section),
                     section.getString("title", id),
                     section.getString("subtitle", ""),
                     section.getString("description", "")
@@ -53,6 +54,19 @@ public final class LevelConfigLoader {
                 spawnSection.getDouble("z", 0.5D),
                 (float) spawnSection.getDouble("yaw", 0.0D),
                 (float) spawnSection.getDouble("pitch", 0.0D)
+        );
+    }
+
+    private LevelRules loadRules(ConfigurationSection levelSection) {
+        ConfigurationSection rulesSection = levelSection.getConfigurationSection("rules");
+        if (rulesSection == null) {
+            return new LevelRules(false, false, true);
+        }
+
+        return new LevelRules(
+                rulesSection.getBoolean("allow-block-break", false),
+                rulesSection.getBoolean("allow-block-place", false),
+                rulesSection.getBoolean("resource-interaction", true)
         );
     }
 }

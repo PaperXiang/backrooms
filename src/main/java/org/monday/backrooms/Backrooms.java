@@ -7,6 +7,8 @@ import org.monday.backrooms.level.LevelTitleService;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelListener;
 import org.monday.backrooms.player.PlayerLevelTracker;
+import org.monday.backrooms.resource.ResourceBlockService;
+import org.monday.backrooms.rule.LevelRuleListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Backrooms extends JavaPlugin {
@@ -16,6 +18,7 @@ public final class Backrooms extends JavaPlugin {
     private LevelConfigLoader levelConfigLoader;
     private LevelTitleService levelTitleService;
     private PlayerLevelTracker playerLevelTracker;
+    private ResourceBlockService resourceBlockService;
 
     @Override
     public void onEnable() {
@@ -26,6 +29,7 @@ public final class Backrooms extends JavaPlugin {
         this.levelConfigLoader = new LevelConfigLoader(this);
         this.levelTitleService = new LevelTitleService(this);
         this.playerLevelTracker = new PlayerLevelTracker(this);
+        this.resourceBlockService = new ResourceBlockService(this);
 
         reloadRuntimeConfig();
         registerListeners();
@@ -49,6 +53,7 @@ public final class Backrooms extends JavaPlugin {
         messageService.reload();
         levelRegistry.clear();
         levelConfigLoader.loadInto(levelRegistry);
+        resourceBlockService.reload();
         if (playerLevelTracker != null) {
             playerLevelTracker.reconcileOnlinePlayers(false);
         }
@@ -70,8 +75,13 @@ public final class Backrooms extends JavaPlugin {
         return playerLevelTracker;
     }
 
+    public ResourceBlockService resources() {
+        return resourceBlockService;
+    }
+
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new PlayerLevelListener(this), this);
+        getServer().getPluginManager().registerEvents(new LevelRuleListener(this), this);
     }
 
     private void registerCommands() {

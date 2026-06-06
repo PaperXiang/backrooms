@@ -7,6 +7,7 @@ public record BackroomsLevel(
         String world,
         LevelSpawn spawn,
         boolean pvp,
+        LevelRules rules,
         String title,
         String subtitle,
         String description

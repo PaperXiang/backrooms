@@ -131,3 +131,65 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
+
+## Step 004 - Level 规则与资源方块抽象
+
+### 本次完成
+
+- 并行核对 Paper/Bukkit 1.21.4 事件 API 与 CraftEngine 26.6 文档，确认本阶段使用 Bukkit 稳定事件实现 Level 规则，不直接接入 CE API。
+- 新增 `LevelRules` 配置模型，支持：
+  - `allow-block-break`
+  - `allow-block-place`
+  - `resource-interaction`
+- 新增 Level 规则监听器，按玩家当前 Level 控制：
+  - 普通建筑破坏。
+  - 普通方块放置。
+  - PVP 伤害。
+  - 资源方块右键交互。
+- 新增 `backrooms.bypass.build` 权限，方便管理员绕过建筑保护进行地图测试。
+- 新增资源方块抽象，当前仅支持原版 `Material` 匹配，为后续 CraftEngine Adapter 预留边界。
+- 新增资源触发类型：
+  - `BREAK`
+  - `RIGHT_CLICK`
+- 新增基础资源掉落配置，支持 `material`、`chance`、`min`、`max`。
+- 新增资源点冷却提示与简单冷却记录。
+- 新增 `/br debug current`，用于查看玩家当前运行时 Level 状态、世界识别 Level 与规则状态。
+- 在默认配置中加入 Level 0/1 的规则配置与两个测试资源点：
+  - Level 0：右键 `YELLOW_CARPET` 概率掉落 `PAPER`。
+  - Level 1：破坏 `IRON_ORE` / `COPPER_ORE` 掉落废料占位物。
+
+### 修改文件
+
+- `src/main/resources/config.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/level/BackroomsLevel.java`
+- `src/main/java/org/monday/backrooms/level/LevelConfigLoader.java`
+- `src/main/java/org/monday/backrooms/level/LevelRules.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockDefinition.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceDrop.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceTrigger.java`
+- `src/main/java/org/monday/backrooms/rule/LevelRuleListener.java`
+- `step.md`
+
+### 设计原因
+
+- Level 规则使用 Bukkit 事件层取消行为，而不是依赖 `World#setPVP` 或 Multiverse 世界级设置，方便后续扩展区域 PVP、基地规则和事件规则。
+- 普通建筑保护与资源方块处理分离，符合“普通建筑不可破坏，资源方块可交互”的服务器设计。
+- 资源方块先用原版 `Material` 做业务闭环，后续接入 CraftEngine 26.6 时只需要增加识别 Adapter，不需要重写规则监听层。
+- CraftEngine 文档建议通过 Bukkit 原生事件与 BlockData 识别自定义方块，因此当前不监听 CE 专属事件，不调用 CE 内部 API。
+- `/br debug current` 同时显示 tracker 状态和世界识别状态，便于后续实机测试时排查配置、传送或跨世界同步问题。
+
+### 下一步建议
+
+- 实机验证 Level 0/1 世界中的破坏、放置、PVP 和资源方块交互行为。
+- 增加资源方块坐标级注册或 marker 机制，避免仅靠 Material 导致同材质建筑方块被误判为资源点。
+- 增加基础交互方块抽象，例如楼梯井、维护门、撤离点，为 Level 0 -> Level 1 与 Level 1 -> lobby 的正式切层做准备。
+- 后续在服务器与 CraftEngine 26.6 环境稳定后，实现 CraftEngine Adapter：按 CE block id 匹配资源方块、尸体方块和特殊容器。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
