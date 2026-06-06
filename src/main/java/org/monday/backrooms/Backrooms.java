@@ -1,6 +1,7 @@
 package org.monday.backrooms;
 
 import org.monday.backrooms.command.BrCommand;
+import org.monday.backrooms.config.ConfigFileService;
 import org.monday.backrooms.level.LevelConfigLoader;
 import org.monday.backrooms.level.LevelRegistry;
 import org.monday.backrooms.level.LevelTitleService;
@@ -13,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Backrooms extends JavaPlugin {
 
+    private ConfigFileService configFileService;
     private MessageService messageService;
     private LevelRegistry levelRegistry;
     private LevelConfigLoader levelConfigLoader;
@@ -22,7 +24,11 @@ public final class Backrooms extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        getLogger().info("Enabling BackroomsCore v" + getPluginMeta().getVersion() + "...");
         saveDefaultConfig();
+        this.configFileService = new ConfigFileService(this);
+        this.configFileService.ensureDefaultFiles();
+        this.configFileService.reload();
 
         this.messageService = new MessageService(this);
         this.levelRegistry = new LevelRegistry();
@@ -30,12 +36,16 @@ public final class Backrooms extends JavaPlugin {
         this.levelTitleService = new LevelTitleService(this);
         this.playerLevelTracker = new PlayerLevelTracker(this);
         this.resourceBlockService = new ResourceBlockService(this);
+        getLogger().info("Core services initialized.");
 
         reloadRuntimeConfig();
         registerListeners();
         registerCommands();
 
-        getLogger().info("BackroomsCore enabled with " + levelRegistry.size() + " configured levels.");
+        getLogger().info("BackroomsCore enabled successfully: levels=" + levelRegistry.size()
+                + ", enabled=" + levelRegistry.enabledCount()
+                + ", disabled=" + levelRegistry.disabledCount()
+                + ", resourceBlocks=" + resourceBlockService.definitionCount() + ".");
     }
 
     @Override
@@ -49,7 +59,10 @@ public final class Backrooms extends JavaPlugin {
     }
 
     public void reloadRuntimeConfig() {
+        long startMillis = System.currentTimeMillis();
+        getLogger().info("Reloading runtime config...");
         reloadConfig();
+        configFileService.reload();
         messageService.reload();
         levelRegistry.clear();
         levelConfigLoader.loadInto(levelRegistry);
@@ -57,6 +70,15 @@ public final class Backrooms extends JavaPlugin {
         if (playerLevelTracker != null) {
             playerLevelTracker.reconcileOnlinePlayers(false);
         }
+        getLogger().info("Runtime config reloaded in " + (System.currentTimeMillis() - startMillis) + "ms: levels="
+                + levelRegistry.size() + ", enabled=" + levelRegistry.enabledCount()
+                + ", disabled=" + levelRegistry.disabledCount()
+                + ", resourceBlocks=" + resourceBlockService.definitionCount()
+                + ", onlinePlayers=" + getServer().getOnlinePlayers().size() + ".");
+    }
+
+    public ConfigFileService configFiles() {
+        return configFileService;
     }
 
     public MessageService messages() {
@@ -82,6 +104,7 @@ public final class Backrooms extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new PlayerLevelListener(this), this);
         getServer().getPluginManager().registerEvents(new LevelRuleListener(this), this);
+        getLogger().info("Registered listeners: PlayerLevelListener, LevelRuleListener.");
     }
 
     private void registerCommands() {
@@ -89,11 +112,12 @@ public final class Backrooms extends JavaPlugin {
 
         var command = getCommand("br");
         if (command == null) {
-            getLogger().severe("Command 'br' is not declared in paper-plugin.yml.");
+            getLogger().severe("Command 'br' is not declared in paper-plugin.yml; command registration failed.");
             return;
         }
 
         command.setExecutor(brCommand);
         command.setTabCompleter(brCommand);
+        getLogger().info("Registered command: /br.");
     }
 }

@@ -1,0 +1,18 @@
+id: level_1
+enabled: true
+display-name: "<gold>Level 1</gold>"
+world: "level_1"
+spawn:
+  x: 0.5
+  y: 64.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+pvp: false
+rules:
+  allow-block-break: false
+  allow-block-place: false
+  resource-interaction: true
+title: "<gold><bold>Level 1</bold></gold>"
+subtitle: "<gray>Habitable Zone | 资源竞争 | 楼梯井撤离</gray>"
+description: "资源竞争、基地 claim、局部 PVP 与返回 MEG 主基地的撤离层。"

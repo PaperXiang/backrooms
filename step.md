@@ -193,3 +193,67 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
+
+## Step 005 - 拆分运行时配置与增强控制台日志
+
+### 本次完成
+
+- 新增 `ConfigFileService`，统一负责插件运行时配置文件的默认生成、加载和重载。
+- 将原本集中在 `config.yml` 的运行时配置拆分为更便于维护的独立 YAML：
+  - `messages.yml`：聊天消息、帮助文本、调试文本与命令反馈。
+  - `settings/config.yml`：Level Title 等通用运行时设置。
+  - `resources.yml`：资源方块总开关与资源点定义。
+  - `levels/level_0.yml`：Level 0 配置。
+  - `levels/level_1.yml`：Level 1 配置。
+- 将根 `config.yml` 改为保留用的 legacy/global stub，避免后续根配置继续膨胀。
+- 调整消息服务，使 `MessageService` 从 `messages.yml` 读取所有 MiniMessage 文本。
+- 调整 Level Title 服务，使标题开关和时间参数从 `settings/config.yml` 读取。
+- 调整 Level 配置加载器，使其扫描 `levels/*.yml` 并加载每个独立 Level 文件。
+- 调整资源方块服务，使其从 `resources.yml` 读取资源点定义。
+- 增加更多控制台日志，覆盖：
+  - 插件启用版本。
+  - 默认配置文件创建。
+  - Level 配置文件加载数量。
+  - Level 总数、启用数、禁用数。
+  - 资源方块定义数、跳过数和掉落条目数。
+  - Listener 与 `/br` 命令注册。
+  - 管理员触发 `/br reload`。
+  - 重载耗时、在线玩家数与运行时配置摘要。
+- 对旧 `config.yml` 中仍存在的 `messages`、`level-title`、`resource-blocks`、`levels` section 增加忽略警告，方便旧配置迁移时发现问题。
+
+### 修改文件
+
+- `src/main/resources/config.yml`
+- `src/main/resources/messages.yml`
+- `src/main/resources/settings/config.yml`
+- `src/main/resources/resources.yml`
+- `src/main/resources/levels/level_0.yml`
+- `src/main/resources/levels/level_1.yml`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/message/MessageService.java`
+- `src/main/java/org/monday/backrooms/level/LevelConfigLoader.java`
+- `src/main/java/org/monday/backrooms/level/LevelRegistry.java`
+- `src/main/java/org/monday/backrooms/level/LevelTitleService.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `step.md`
+
+### 设计原因
+
+- 消息、Level、资源点和通用设置的编辑频率不同，拆分后更适合实机调参，也更适合后续让不同模块独立扩展。
+- `levels/*.yml` 的结构可以让每个 Backrooms Level 独立维护，后续新增 Level 不需要反复编辑一个巨大的根配置文件。
+- `resources.yml` 先保持原版 `Material` 配置格式，继续为 CraftEngine Adapter 预留识别边界。
+- 根 `config.yml` 保留为空壳，兼容 Bukkit 默认配置生命周期，也为未来真正全局开关预留位置。
+- 增强控制台摘要日志后，服务端启动和 `/br reload` 时能快速确认配置是否加载成功、世界是否缺失、资源定义是否生效。
+
+### 下一步建议
+
+- 实机启动服务器，确认首次运行会自动释放新的拆分配置文件。
+- 将旧服已有 `config.yml` 内容迁移到新的拆分文件后，删除旧 section，避免控制台重复出现 legacy 警告。
+- 增加基础交互点抽象，例如楼梯井、维护门、撤离点，为 Level 0 -> Level 1 与 Level 1 -> lobby 的正式切层做准备。
+- 后续增加配置校验命令，例如 `/br debug config`，输出缺失世界、重复 Level id、无效 Material 与资源点统计。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。

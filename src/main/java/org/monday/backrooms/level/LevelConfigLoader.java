@@ -1,6 +1,10 @@
 package org.monday.backrooms.level;
 
+import java.io.File;
+import java.util.Map;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.monday.backrooms.Backrooms;
 
 public final class LevelConfigLoader {
@@ -12,17 +16,23 @@ public final class LevelConfigLoader {
     }
 
     public void loadInto(LevelRegistry registry) {
-        ConfigurationSection levelsSection = plugin.getConfig().getConfigurationSection("levels");
-        if (levelsSection == null) {
-            plugin.getLogger().warning("No 'levels' section found in config.yml.");
+        Map<File, FileConfiguration> levelFiles = plugin.configFiles().levelFiles();
+        if (levelFiles.isEmpty()) {
+            plugin.getLogger().warning("No level config files are loaded; no Backrooms levels available.");
             return;
         }
 
-        for (String id : levelsSection.getKeys(false)) {
-            ConfigurationSection section = levelsSection.getConfigurationSection(id);
-            if (section == null) {
-                plugin.getLogger().warning("Skipping invalid level config section: " + id);
+        for (Map.Entry<File, FileConfiguration> entry : levelFiles.entrySet()) {
+            File file = entry.getKey();
+            FileConfiguration section = entry.getValue();
+            String id = section.getString("id", fileId(file));
+            if (id == null || id.isBlank()) {
+                plugin.getLogger().warning("Skipping level config file with blank id: " + file.getName());
                 continue;
+            }
+
+            if (registry.get(id).isPresent()) {
+                plugin.getLogger().warning("Duplicate level id '" + id + "' after normalization; previous level will be overwritten.");
             }
 
             BackroomsLevel level = new BackroomsLevel(
@@ -39,7 +49,21 @@ public final class LevelConfigLoader {
             );
 
             registry.register(level);
+
+            if (level.enabled() && Bukkit.getWorld(level.world()) == null) {
+                plugin.getLogger().warning("Level '" + level.id() + "' references world '" + level.world() + "', but the world is not loaded.");
+            }
         }
+
+        plugin.getLogger().info("Loaded levels: total=" + registry.size()
+                + ", enabled=" + registry.enabledCount()
+                + ", disabled=" + registry.disabledCount() + ".");
+    }
+
+    private String fileId(File file) {
+        String name = file.getName();
+        int dotIndex = name.lastIndexOf('.');
+        return dotIndex > 0 ? name.substring(0, dotIndex) : name;
     }
 
     private LevelSpawn loadSpawn(ConfigurationSection levelSection) {

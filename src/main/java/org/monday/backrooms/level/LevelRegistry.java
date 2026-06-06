@@ -35,6 +35,14 @@ public final class LevelRegistry {
         return levels.size();
     }
 
+    public long enabledCount() {
+        return levels.values().stream().filter(BackroomsLevel::enabled).count();
+    }
+
+    public long disabledCount() {
+        return levels.values().stream().filter(level -> !level.enabled()).count();
+    }
+
     public void clear() {
         levels.clear();
     }

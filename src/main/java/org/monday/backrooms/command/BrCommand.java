@@ -90,6 +90,7 @@ public final class BrCommand implements TabExecutor {
                 return true;
             }
 
+            plugin.getLogger().info("Reload requested by " + sender.getName() + ".");
             plugin.reloadRuntimeConfig();
             plugin.messages().send(sender, "reload", plugin.messages().text("count", String.valueOf(plugin.levels().size())));
             return true;

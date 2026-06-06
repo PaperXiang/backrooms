@@ -34,24 +34,46 @@ public final class ResourceBlockService {
         definitions.clear();
         cooldowns.clear();
 
-        if (!plugin.getConfig().getBoolean("resource-blocks.enabled", true)) {
+        if (!plugin.configFiles().resources().getBoolean("resource-blocks.enabled", true)) {
+            plugin.getLogger().info("Resource blocks disabled by config.");
             return;
         }
 
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("resource-blocks.definitions");
+        ConfigurationSection section = plugin.configFiles().resources().getConfigurationSection("resource-blocks.definitions");
         if (section == null) {
+            plugin.getLogger().warning("Resource blocks are enabled, but 'resource-blocks.definitions' is missing.");
             return;
         }
 
+        if (section.getKeys(false).isEmpty()) {
+            plugin.getLogger().warning("Resource blocks are enabled, but no definitions were configured.");
+            return;
+        }
+
+        int skipped = 0;
         for (String id : section.getKeys(false)) {
             ConfigurationSection definitionSection = section.getConfigurationSection(id);
             if (definitionSection == null) {
+                plugin.getLogger().warning("Skipping invalid resource block definition section: " + id);
+                skipped++;
                 continue;
             }
 
             Optional<ResourceBlockDefinition> definition = loadDefinition(id, definitionSection);
-            definition.ifPresent(definitions::add);
+            if (definition.isPresent()) {
+                definitions.add(definition.get());
+            } else {
+                skipped++;
+            }
         }
+
+        int drops = definitions.stream().mapToInt(definition -> definition.drops().size()).sum();
+        plugin.getLogger().info("Loaded resource blocks: enabled=true, definitions=" + definitions.size()
+                + ", skipped=" + skipped + ", drops=" + drops + ".");
+    }
+
+    public int definitionCount() {
+        return definitions.size();
     }
 
     public boolean handleBreak(BlockBreakEvent event, BackroomsLevel level) {
@@ -143,11 +165,24 @@ public final class ResourceBlockService {
                     () -> plugin.getLogger().warning("Unknown resource trigger '" + trigger + "' in resource block '" + id + "'."));
         }
         if (triggers.isEmpty()) {
+            plugin.getLogger().warning("Resource block '" + id + "' has no valid triggers; defaulting to BREAK.");
             triggers.add(ResourceTrigger.BREAK);
+        }
+
+        for (String levelId : levels) {
+            if (plugin.levels().get(levelId).isEmpty()) {
+                plugin.getLogger().warning("Resource block '" + id + "' references unknown level '" + levelId + "'.");
+            }
         }
 
         Material replacement = parseMaterial(section.getString("replacement", "AIR"), "replacement for resource block " + id)
                 .orElse(Material.AIR);
+
+        List<ResourceDrop> drops = loadDrops(section.getMapList("drops"), id);
+        boolean removeBlock = section.getBoolean("remove-block", false);
+        if (drops.isEmpty() && !removeBlock) {
+            plugin.getLogger().warning("Resource block '" + id + "' has no drops and does not remove the block; interaction will have no reward.");
+        }
 
         return Optional.of(new ResourceBlockDefinition(
                 id,
@@ -155,10 +190,10 @@ public final class ResourceBlockService {
                 materials,
                 triggers,
                 section.getBoolean("cancel-original-event", true),
-                section.getBoolean("remove-block", false),
+                removeBlock,
                 replacement,
                 section.getLong("cooldown-seconds", 0L),
-                loadDrops(section.getMapList("drops"), id)
+                drops
         ));
     }
 
@@ -177,6 +212,7 @@ public final class ResourceBlockService {
             String materialName = materialValue == null ? "AIR" : String.valueOf(materialValue);
             Optional<Material> material = parseMaterial(materialName, "drop for resource block " + definitionId);
             if (material.isEmpty() || material.get().isAir()) {
+                plugin.getLogger().warning("Skipping invalid drop material '" + materialName + "' in resource block '" + definitionId + "'.");
                 continue;
             }
 

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.monday.backrooms.Backrooms;
 
 public final class MessageService {
@@ -20,11 +21,11 @@ public final class MessageService {
     }
 
     public void reload() {
-        this.prefix = plugin.getConfig().getString("messages.prefix", "");
+        this.prefix = messagesConfig().getString("messages.prefix", "");
     }
 
     public void send(CommandSender sender, String key, TagResolver... resolvers) {
-        Object value = plugin.getConfig().get("messages." + key);
+        Object value = messagesConfig().get("messages." + key);
 
         if (value instanceof List<?> lines) {
             for (Object line : lines) {
@@ -54,5 +55,9 @@ public final class MessageService {
 
     private Component parseWithPrefix(String input, TagResolver... resolvers) {
         return parse(prefix + input, resolvers);
+    }
+
+    private FileConfiguration messagesConfig() {
+        return plugin.configFiles().messages();
     }
 }

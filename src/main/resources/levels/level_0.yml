@@ -1,0 +1,18 @@
+id: level_0
+enabled: true
+display-name: "<yellow>Level 0</yellow>"
+world: "level_0"
+spawn:
+  x: 0.5
+  y: 64.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+pvp: false
+rules:
+  allow-block-break: false
+  allow-block-place: false
+  resource-interaction: true
+title: "<yellow><bold>Level 0</bold></yellow>"
+subtitle: "<gray>Threshold | 生存难度 1 | 实体：未确认</gray>"
+description: "阈限体验、基础探索与寻找 Level 1 入口。"

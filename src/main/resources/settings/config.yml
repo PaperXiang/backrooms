@@ -1,0 +1,6 @@
+level-title:
+  enabled: true
+  fade-in-ticks: 10
+  stay-ticks: 60
+  fade-out-ticks: 20
+  show-on-join: false
