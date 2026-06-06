@@ -453,6 +453,48 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 010 - 运行时配置摘要调试命令
+
+### 本次完成
+
+- 新增 `/br debug config` 管理命令，用于输出当前 Backrooms 运行时配置摘要。
+- 新增权限 `backrooms.command.debug.config`，默认 `op`，并加入 `backrooms.admin`。
+- `/br debug config` 会汇总：
+  - Level 总数、启用数、禁用数。
+  - 已配置但当前未加载的 Level world。
+  - 资源方块定义数量。
+  - Transition 总数、禁用数和引用问题。
+  - Room 模板总数、禁用数和引用问题。
+- Transition 引用检查覆盖：来源 Level 不存在、trigger world 未加载、目标 Level 不存在/禁用、目标 world 未加载。
+- Room 引用检查覆盖：模板引用了不存在的 Level。
+- 补充 `/br help`、tab completion、`messages.yml` 和 `paper-plugin.yml`。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 实机验证阶段最常见的问题不是代码逻辑，而是世界未加载、Level id 拼错、Transition 指向错误或 Room 模板引用错误。
+- `/br debug config` 提供一个快速摘要，避免每次都翻控制台启动日志或逐条执行 `/br level info`、`/br transition info`、`/br room info`。
+- 命令只读运行时状态，不修改配置或世界，因此适合作为测试服排错入口。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后执行：
+  - `/br reload`
+  - `/br debug config`
+- 如果出现 missing world 或 reference issue，优先检查 Multiverse 世界加载状态和 `levels/*.yml`、`transitions.yml`、`rooms.yml` 中的 id。
+- 确认摘要无明显问题后，再测试 `/br transition guide <id>` 和 `/br room generate <id> [level]`。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+
 ## Step 009 - Room 模板与占位生成原型
 
 ### 本次完成

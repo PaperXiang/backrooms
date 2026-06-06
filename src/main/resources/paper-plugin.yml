@@ -24,6 +24,9 @@ permissions:
   backrooms.command.debug.current:
     description: Allows checking current Backrooms runtime state
     default: op
+  backrooms.command.debug.config:
+    description: Allows checking Backrooms runtime config summary
+    default: op
   backrooms.command.transitions:
     description: Allows listing configured Backrooms transitions
     default: op
@@ -62,6 +65,7 @@ permissions:
       backrooms.command.reload: true
       backrooms.command.level.tp: true
       backrooms.command.debug.current: true
+      backrooms.command.debug.config: true
       backrooms.command.transitions: true
       backrooms.command.transition.info: true
       backrooms.command.transition.trigger: true

@@ -25,6 +25,7 @@ public final class BrCommand implements TabExecutor {
     private static final String RELOAD_PERMISSION = "backrooms.command.reload";
     private static final String LEVEL_TP_PERMISSION = "backrooms.command.level.tp";
     private static final String DEBUG_CURRENT_PERMISSION = "backrooms.command.debug.current";
+    private static final String DEBUG_CONFIG_PERMISSION = "backrooms.command.debug.config";
     private static final String TRANSITIONS_PERMISSION = "backrooms.command.transitions";
     private static final String TRANSITION_INFO_PERMISSION = "backrooms.command.transition.info";
     private static final String TRANSITION_TRIGGER_PERMISSION = "backrooms.command.transition.trigger";
@@ -170,6 +171,11 @@ public final class BrCommand implements TabExecutor {
                 return true;
             }
 
+            if (args.length >= 2 && is(args[1], "config")) {
+                sendDebugConfig(sender);
+                return true;
+            }
+
             plugin.messages().send(sender, "unknown-command");
             return true;
         }
@@ -205,7 +211,7 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(RELOAD_PERMISSION)) {
                 options.add("reload");
             }
-            if (sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
+            if (sender.hasPermission(DEBUG_CURRENT_PERMISSION) || sender.hasPermission(DEBUG_CONFIG_PERMISSION)) {
                 options.add("debug");
             }
             if (sender.hasPermission(TRANSITIONS_PERMISSION)) {
@@ -271,8 +277,15 @@ public final class BrCommand implements TabExecutor {
             return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[3]);
         }
 
-        if (args.length == 2 && is(args[0], "debug") && sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
-            return filter(List.of("current"), args[1]);
+        if (args.length == 2 && is(args[0], "debug")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
+                options.add("current");
+            }
+            if (sender.hasPermission(DEBUG_CONFIG_PERMISSION)) {
+                options.add("config");
+            }
+            return filter(options, args[1]);
         }
 
         if (args.length == 2 && is(args[0], "level")) {
@@ -609,6 +622,69 @@ public final class BrCommand implements TabExecutor {
         ));
     }
 
+    private void sendDebugConfig(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(DEBUG_CONFIG_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        List<String> missingLevelWorlds = plugin.levels().all().stream()
+                .filter(level -> Bukkit.getWorld(level.world()) == null)
+                .map(level -> level.id() + "->" + level.world())
+                .toList();
+
+        int disabledTransitions = 0;
+        List<String> transitionIssues = new ArrayList<>();
+        for (TransitionDefinition transition : plugin.transitions().all()) {
+            if (!transition.enabled()) {
+                disabledTransitions++;
+            }
+            if (plugin.levels().get(transition.fromLevel()).isEmpty()) {
+                transitionIssues.add(transition.id() + ":from=" + transition.fromLevel());
+            }
+            if (Bukkit.getWorld(transition.triggerWorld()) == null) {
+                transitionIssues.add(transition.id() + ":triggerWorld=" + transition.triggerWorld());
+            }
+            if (transition.target().type().name().equals("LEVEL")) {
+                plugin.levels().get(transition.target().level()).ifPresentOrElse(targetLevel -> {
+                    if (!targetLevel.enabled()) {
+                        transitionIssues.add(transition.id() + ":targetDisabled=" + targetLevel.id());
+                    }
+                }, () -> transitionIssues.add(transition.id() + ":targetLevel=" + transition.target().level()));
+            } else if (Bukkit.getWorld(transition.target().world()) == null) {
+                transitionIssues.add(transition.id() + ":targetWorld=" + transition.target().world());
+            }
+        }
+
+        int disabledRooms = 0;
+        List<String> roomIssues = new ArrayList<>();
+        for (RoomDefinition room : plugin.rooms().all()) {
+            if (!room.enabled()) {
+                disabledRooms++;
+            }
+            for (String levelId : room.levels()) {
+                if (plugin.levels().get(levelId).isEmpty()) {
+                    roomIssues.add(room.id() + ":level=" + levelId);
+                }
+            }
+        }
+
+        messages.send(sender, "debug-config",
+                messages.text("levels", String.valueOf(plugin.levels().size())),
+                messages.text("levels_enabled", String.valueOf(plugin.levels().enabledCount())),
+                messages.text("levels_disabled", String.valueOf(plugin.levels().disabledCount())),
+                messages.text("missing_worlds", describeList(missingLevelWorlds)),
+                messages.text("resource_blocks", String.valueOf(plugin.resources().definitionCount())),
+                messages.text("transitions", String.valueOf(plugin.transitions().definitionCount())),
+                messages.text("transitions_disabled", String.valueOf(disabledTransitions)),
+                messages.text("transition_issues", describeList(transitionIssues)),
+                messages.text("rooms", String.valueOf(plugin.rooms().definitionCount())),
+                messages.text("rooms_disabled", String.valueOf(disabledRooms)),
+                messages.text("room_issues", describeList(roomIssues))
+        );
+    }
+
     private boolean is(String input, String expected) {
         return input.equalsIgnoreCase(expected);
     }
@@ -622,6 +698,10 @@ public final class BrCommand implements TabExecutor {
     private boolean canCompleteRoomIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(ROOM_INFO_PERMISSION))
                 || (is(subcommand, "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION));
+    }
+
+    private String describeList(List<String> values) {
+        return values.isEmpty() ? "none" : String.join(", ", values);
     }
 
     private List<String> filter(List<String> options, String prefix) {

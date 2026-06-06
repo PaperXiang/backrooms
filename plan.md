@@ -448,7 +448,8 @@ plugins/BackroomsCore/
 - 已实现正式 Transition/撤离点系统的 MVP：Level 0 -> Level 1，Level 1 -> lobby。
 - 已新增 Transition 触发指引命令 `/br transition guide <id>`，用于在地图中临时显示 region / block 触发位置，方便摆放 CraftEngine 楼梯井标记。
 - 已完成第一版 Room 生成原型：`rooms.yml` 配置 room/corridor 模板，`/br room generate <id> [level]` 可用 Bukkit 原生方块生成简单占位房间。
-- 下一阶段最高优先级：重启测试服实机验证 Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
+- 已新增 `/br debug config` 运行时配置摘要命令，用于实机快速检查 Level 世界缺失、Transition/Room 引用问题和模块数量。
+- 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -491,3 +492,11 @@ plugins/BackroomsCore/
 - 当前生成器只使用 Bukkit 原生 `Block#setType`，不引入 WorldEdit/FAWE API；这是为了先验证 Level/权限/配置/材质闭环，再升级到 schematic 粘贴和 marker 扫描。
 - 生成命令默认要求玩家站在目标 Level 对应世界内，避免把 Level 0 模板误生成到 lobby 或其他世界。
 - 下一步需要重启测试服加载新 jar，并在 `level_0`、`level_1` 世界实机测试 `/br rooms`、`/br room info level0_basic_room`、`/br room generate level0_basic_room level_0`。
+
+### 12.7 Step 010 完成状态
+
+- 已新增 `/br debug config` 管理命令，默认 `op` 权限 `backrooms.command.debug.config`。
+- 该命令会输出当前运行时配置摘要：Level 总数/启用数/禁用数、缺失世界、资源方块数量、Transition 数量与问题、Room 数量与问题。
+- Transition 检查会报告来源 Level 不存在、触发世界未加载、目标 Level 不存在/禁用、目标 world 未加载等常见实机问题。
+- Room 检查会报告模板引用了不存在的 Level，方便修改 `rooms.yml` 后快速验证。
+- 下一步继续以实机验证为核心：重启测试服后先执行 `/br reload` 和 `/br debug config`，再验证 `/br transition guide` 与 `/br room generate`。
