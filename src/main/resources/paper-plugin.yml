@@ -1,0 +1,8 @@
+name: backrooms
+version: '1.0-SNAPSHOT'
+main: org.monday.backrooms.Backrooms
+api-version: '1.21'
+prefix: Backrooms
+authors: [ DYF, Paper_Xiang ]
+description: backrooms plugin
+website: mc.monday-ovo.top
