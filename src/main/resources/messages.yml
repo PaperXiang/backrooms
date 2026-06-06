@@ -15,6 +15,7 @@ messages:
     - "<gray>/br transitions</gray> <dark_gray>-</dark_gray> <white>查看已配置 Transition</white>"
     - "<gray>/br transition info <id></gray> <dark_gray>-</dark_gray> <white>查看 Transition 详情</white>"
     - "<gray>/br transition trigger <id> [player]</gray> <dark_gray>-</dark_gray> <white>手动触发 Transition</white>"
+    - "<gray>/br transition guide <id></gray> <dark_gray>-</dark_gray> <white>显示 Transition 触发指引</white>"
     - "<gray>/br debug current</gray> <dark_gray>-</dark_gray> <white>查看当前运行时 Level 状态</white>"
     - "<gray>/br reload</gray> <dark_gray>-</dark_gray> <white>重载配置</white>"
   levels-header: "<yellow>已加载 Level：</yellow>"
@@ -46,6 +47,8 @@ messages:
   transition-success-world: "<green>已离开当前 Level，返回 <yellow><world></yellow>。"
   transition-trigger-usage: "<red>用法：<yellow>/br transition trigger <id> [player]</yellow>"
   transition-trigger-success: "<green>已为 <yellow><player></yellow> 触发 Transition <yellow><id></yellow>。"
+  transition-guide-usage: "<red>用法：<yellow>/br transition guide <id></yellow>"
+  transition-guide-shown: "<green>已显示 Transition <yellow><id></yellow> 的触发指引。<gray>世界：</gray><white><world></white> <gray>触发：</gray><white><trigger></white>"
   debug-current-none:
     - "<yellow><bold>当前 Backrooms 状态</bold></yellow>"
     - "<gray>玩家：</gray><white><player></white>"

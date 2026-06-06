@@ -446,7 +446,8 @@ plugins/BackroomsCore/
 - 已完成 TAB 测试服基础显示配置，减少演示占位符和无关动画。
 - 已完成 Level 随机 spawn 点配置，先用于 `/br level tp` 和切层入口，避免所有玩家永远落在单一坐标。
 - 已实现正式 Transition/撤离点系统的 MVP：Level 0 -> Level 1，Level 1 -> lobby。
-- 下一阶段最高优先级：把 Transition 区域和 CraftEngine 楼梯井标记结合，做可视化撤离点/入口点；随后开始房间模板与生成原型。
+- 已新增 Transition 触发指引命令 `/br transition guide <id>`，用于在地图中临时显示 region / block 触发位置，方便摆放 CraftEngine 楼梯井标记。
+- 下一阶段最高优先级：同步整理 devserver 运行配置并开始房间模板与生成原型；CE 楼梯井标记先用手动摆放和 guide 粒子辅助，不直接调用 CE Java API。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -468,3 +469,11 @@ plugins/BackroomsCore/
 - 已新增管理命令：`/br transitions`、`/br transition info <id>`、`/br transition trigger <id> [player]`，用于实机调试 Level0->Level1 和 Level1->lobby 的切层流程。
 - 当前默认坐标只是测试占位：Level 0 入口区域为 `20,63,-22 -> 28,67,-14`，Level 1 撤离区域为 `-46,63,-28 -> -38,68,-20`。后续地图/CE 楼梯井放置完成后需要调整。
 - 下一步需要把 Transition 与地图制作闭环结合：用 CE 楼梯井标记或原版占位方块做入口提示，再做房间模板/区域生成原型。
+
+### 12.5 Step 008 完成状态
+
+- 已新增 `/br transition guide <id>` 管理命令，默认 `op` 权限 `backrooms.command.transition.guide`。
+- guide 命令会调用 TransitionService 在触发区域中心、区域角点和配置方块位置生成临时粒子，帮助管理员在没有完整地图工具链时快速找到入口/撤离点区域。
+- 已补充 help、tab completion、usage、权限和消息 key，避免 `transition-guide-shown` 缺失时显示原始 key。
+- 当前仍不直接通过 Java 调用 CraftEngine API 放置 `backrooms:stairwell_marker`；CE 方块先用 `/ce item get` 或 `/ce debug setblock` 手动摆放，BackroomsCore 只负责 Transition 判定和可视化指引。
+- 下一步进入房间/地图原型：需要确定 WorldEdit/FAWE schematic、marker 方块扫描和生成边界。

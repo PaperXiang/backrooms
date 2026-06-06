@@ -406,3 +406,49 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建提示 `TransitionService` 使用了过时 API，来源是 `Player#teleport(Location, TeleportCause)`；当前 Paper 1.21.4 可编译运行，后续可再迁移到 Paper 推荐的异步/现代传送 API。
+
+## Step 008 - Transition 触发指引与 CE 标记摆放辅助
+
+### 本次完成
+
+- 新增 `/br transition guide <id>` 管理命令，用于临时显示 Transition 的触发区域或触发方块位置。
+- 在 `TransitionService` 中新增 `showGuide`：
+  - 对 region trigger 在区域中心生成 `PORTAL` 粒子。
+  - 对 region 八个角生成 `END_ROD` 粒子。
+  - 对 block trigger 的配置坐标生成 `END_ROD` 粒子。
+- 为 guide 命令新增独立权限 `backrooms.command.transition.guide`，默认 `op`。
+- 重构 `/br transition` 分支，使 `info`、`trigger`、`guide` 的缺参反馈更明确，避免 `guide` 被旧的宽泛 `info` 分支吞掉。
+- 补充 tab completion：
+  - 顶层 `/br transition` 会在拥有 info / trigger / guide 任一权限时出现。
+  - `/br transition <tab>` 会按权限补全 `info`、`trigger`、`guide`。
+  - `/br transition guide <tab>` 会补全 Transition id。
+- 补充 `messages.yml` 中 guide 相关文案，避免成功显示后回退成原始 key。
+- 更新 `paper-plugin.yml` 的 `/br` usage，让 usage 覆盖 `transitions` 与 `transition` 子命令。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionService.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 当前最小路线不直接从 Java 调用 CraftEngine API 放置 `backrooms:stairwell_marker`，避免 CE API 版本耦合和区块/重载边界问题。
+- guide 命令只负责把 Transition 触发范围可视化，管理员再用 CraftEngine `/ce item get` 或 `/ce debug setblock` 手动摆放楼梯井标记，职责更清晰、风险更低。
+- guide 权限单独拆出，是因为它会在世界内生成粒子提示，影响比纯文本 `info` 更大，不应复用普通玩家可用的 transition use 权限。
+- 使用粒子而不是真实方块，是为了避免 debug 辅助命令污染地图，也便于反复调整 `transitions.yml` 坐标。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后执行 `/br reload`。
+- 使用 `/br transition guide level0_to_level1_stairwell` 和 `/br transition guide level1_to_lobby_evacuation` 显示触发区域。
+- 在粒子显示的位置使用 CraftEngine 命令或物品摆放 `backrooms:stairwell_marker`，再用 `/ce debug target-block` 确认 CE 方块状态。
+- 下一步开始房间/地图生成原型：先确认 WorldEdit/FAWE schematic 依赖与 marker 扫描方案，再做最小房间模板粘贴或占位生成。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。

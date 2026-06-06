@@ -9,7 +9,7 @@ website: mc.monday-ovo.top
 commands:
   br:
     description: Backrooms main command
-    usage: /br <help|levels|level|debug|reload>
+    usage: /br <help|levels|level|transitions|transition|debug|reload>
     aliases: [backrooms]
 permissions:
   backrooms.command.br:
@@ -33,6 +33,9 @@ permissions:
   backrooms.command.transition.trigger:
     description: Allows manually triggering Backrooms transitions
     default: op
+  backrooms.command.transition.guide:
+    description: Allows showing Backrooms transition trigger guides
+    default: op
   backrooms.transition.use:
     description: Allows using configured Backrooms transitions
     default: true
@@ -53,6 +56,7 @@ permissions:
       backrooms.command.transitions: true
       backrooms.command.transition.info: true
       backrooms.command.transition.trigger: true
+      backrooms.command.transition.guide: true
       backrooms.transition.use: true
       backrooms.transition.bypass.cooldown: true
       backrooms.bypass.build: true

@@ -26,6 +26,7 @@ public final class BrCommand implements TabExecutor {
     private static final String TRANSITIONS_PERMISSION = "backrooms.command.transitions";
     private static final String TRANSITION_INFO_PERMISSION = "backrooms.command.transition.info";
     private static final String TRANSITION_TRIGGER_PERMISSION = "backrooms.command.transition.trigger";
+    private static final String TRANSITION_GUIDE_PERMISSION = "backrooms.command.transition.guide";
 
     private final Backrooms plugin;
 
@@ -56,7 +57,12 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (is(args[0], "transition")) {
-            if (args.length < 3 || is(args[1], "info")) {
+            if (args.length < 2) {
+                plugin.messages().send(sender, "unknown-command");
+                return true;
+            }
+
+            if (is(args[1], "info")) {
                 if (args.length < 3) {
                     plugin.messages().send(sender, "unknown-command");
                     return true;
@@ -66,7 +72,20 @@ public final class BrCommand implements TabExecutor {
             }
 
             if (is(args[1], "trigger")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "transition-trigger-usage");
+                    return true;
+                }
                 triggerTransition(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            if (is(args[1], "guide")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "transition-guide-usage");
+                    return true;
+                }
+                showTransitionGuide(sender, args[2]);
                 return true;
             }
 
@@ -148,7 +167,9 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(TRANSITIONS_PERMISSION)) {
                 options.add("transitions");
             }
-            if (sender.hasPermission(TRANSITION_INFO_PERMISSION) || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
+            if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
+                    || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
+                    || sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
                 options.add("transition");
             }
             return filter(options, args[0]);
@@ -162,10 +183,13 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
                 options.add("trigger");
             }
+            if (sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
+                options.add("guide");
+            }
             return filter(options, args[1]);
         }
 
-        if (args.length == 3 && is(args[0], "transition") && (is(args[1], "info") || is(args[1], "trigger"))) {
+        if (args.length == 3 && is(args[0], "transition") && canCompleteTransitionIds(sender, args[1])) {
             return filter(plugin.transitions().all().stream().map(TransitionDefinition::id).toList(), args[2]);
         }
 
@@ -302,6 +326,24 @@ public final class BrCommand implements TabExecutor {
         }, () -> messages.send(sender, "transition-not-found", messages.text("id", id)));
     }
 
+    private void showTransitionGuide(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (!(sender instanceof Player player)) {
+            messages.send(sender, "player-only");
+            return;
+        }
+
+        plugin.transitions().get(id).ifPresentOrElse(
+                transition -> plugin.transitions().showGuide(player, transition),
+                () -> messages.send(sender, "transition-not-found", messages.text("id", id))
+        );
+    }
+
     private void teleportToLevel(CommandSender sender, String id) {
         MessageService messages = plugin.messages();
         if (!sender.hasPermission(LEVEL_TP_PERMISSION)) {
@@ -392,6 +434,12 @@ public final class BrCommand implements TabExecutor {
 
     private boolean is(String input, String expected) {
         return input.equalsIgnoreCase(expected);
+    }
+
+    private boolean canCompleteTransitionIds(CommandSender sender, String subcommand) {
+        return (is(subcommand, "info") && sender.hasPermission(TRANSITION_INFO_PERMISSION))
+                || (is(subcommand, "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION))
+                || (is(subcommand, "guide") && sender.hasPermission(TRANSITION_GUIDE_PERMISSION));
     }
 
     private List<String> filter(List<String> options, String prefix) {

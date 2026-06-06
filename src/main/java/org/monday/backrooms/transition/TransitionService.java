@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -149,6 +150,28 @@ public final class TransitionService {
 
     public boolean triggerByCommand(Player player, TransitionDefinition definition) {
         return execute(player, definition, true);
+    }
+
+    public boolean showGuide(Player player, TransitionDefinition definition) {
+        World world = Bukkit.getWorld(definition.triggerWorld());
+        if (world == null) {
+            plugin.messages().send(player, "transition-world-not-loaded", plugin.messages().text("world", definition.triggerWorld()));
+            return false;
+        }
+
+        if (definition.triggerType() == TransitionTriggerType.REGION && definition.region() != null) {
+            showRegionGuide(world, definition.region());
+        }
+        for (BlockPosition position : definition.blockPositions()) {
+            showBlockGuide(world, position);
+        }
+
+        plugin.messages().send(player, "transition-guide-shown",
+                plugin.messages().text("id", definition.id()),
+                plugin.messages().text("world", definition.triggerWorld()),
+                plugin.messages().text("trigger", definition.triggerDescription())
+        );
+        return true;
     }
 
     private boolean execute(Player player, TransitionDefinition definition, boolean commandMode) {
@@ -429,6 +452,33 @@ public final class TransitionService {
 
     private boolean sourceMatches(Player player, TransitionDefinition definition) {
         return currentLevelId(player).map(levelId -> levelId.equalsIgnoreCase(definition.fromLevel())).orElse(false);
+    }
+
+    private void showRegionGuide(World world, CuboidRegion region) {
+        double centerX = (region.minX() + region.maxX()) / 2.0D;
+        double centerY = (region.minY() + region.maxY()) / 2.0D;
+        double centerZ = (region.minZ() + region.maxZ()) / 2.0D;
+        double offsetX = Math.max(0.25D, (region.maxX() - region.minX()) / 2.0D);
+        double offsetY = Math.max(0.25D, (region.maxY() - region.minY()) / 2.0D);
+        double offsetZ = Math.max(0.25D, (region.maxZ() - region.minZ()) / 2.0D);
+        world.spawnParticle(Particle.PORTAL, new Location(world, centerX, centerY, centerZ), 80, offsetX, offsetY, offsetZ, 0.01D);
+
+        spawnCorner(world, region.minX(), region.minY(), region.minZ());
+        spawnCorner(world, region.minX(), region.minY(), region.maxZ());
+        spawnCorner(world, region.minX(), region.maxY(), region.minZ());
+        spawnCorner(world, region.minX(), region.maxY(), region.maxZ());
+        spawnCorner(world, region.maxX(), region.minY(), region.minZ());
+        spawnCorner(world, region.maxX(), region.minY(), region.maxZ());
+        spawnCorner(world, region.maxX(), region.maxY(), region.minZ());
+        spawnCorner(world, region.maxX(), region.maxY(), region.maxZ());
+    }
+
+    private void showBlockGuide(World world, BlockPosition position) {
+        world.spawnParticle(Particle.END_ROD, new Location(world, position.x() + 0.5D, position.y() + 1.2D, position.z() + 0.5D), 30, 0.3D, 0.6D, 0.3D, 0.02D);
+    }
+
+    private void spawnCorner(World world, double x, double y, double z) {
+        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, z), 8, 0.05D, 0.05D, 0.05D, 0.0D);
     }
 
     private Optional<String> currentLevelId(Player player) {
