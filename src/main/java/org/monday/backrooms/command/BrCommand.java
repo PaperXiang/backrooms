@@ -3,9 +3,14 @@ package org.monday.backrooms.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.message.MessageService;
@@ -14,6 +19,7 @@ public final class BrCommand implements TabExecutor {
 
     private static final String BASE_PERMISSION = "backrooms.command.br";
     private static final String RELOAD_PERMISSION = "backrooms.command.reload";
+    private static final String LEVEL_TP_PERMISSION = "backrooms.command.level.tp";
 
     private final Backrooms plugin;
 
@@ -43,6 +49,25 @@ public final class BrCommand implements TabExecutor {
                 plugin.messages().send(sender, "unknown-command");
                 return true;
             }
+
+            if (is(args[1], "tp")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "level-tp-usage");
+                    return true;
+                }
+                teleportToLevel(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "unknown-command");
+                    return true;
+                }
+                sendLevelInfo(sender, args[2]);
+                return true;
+            }
+
             sendLevelInfo(sender, args[1]);
             return true;
         }
@@ -77,7 +102,16 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "level")) {
-            return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[1]);
+            List<String> options = new ArrayList<>(List.of("info"));
+            if (sender.hasPermission(LEVEL_TP_PERMISSION)) {
+                options.add("tp");
+            }
+            options.addAll(plugin.levels().all().stream().map(BackroomsLevel::id).toList());
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "level") && (is(args[1], "info") || is(args[1], "tp"))) {
+            return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[2]);
         }
 
         return List.of();
@@ -114,6 +148,48 @@ public final class BrCommand implements TabExecutor {
                 messages.mini("subtitle", level.subtitle()),
                 messages.text("description", level.description())
         ), () -> messages.send(sender, "level-not-found", messages.text("id", id)));
+    }
+
+    private void teleportToLevel(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LEVEL_TP_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (!(sender instanceof Player player)) {
+            messages.send(sender, "player-only");
+            return;
+        }
+
+        plugin.levels().get(id).ifPresentOrElse(level -> {
+            if (!level.enabled()) {
+                messages.send(sender, "level-disabled", messages.text("id", level.id()));
+                return;
+            }
+
+            World world = Bukkit.getWorld(level.world());
+            if (world == null) {
+                messages.send(sender, "level-world-not-loaded",
+                        messages.text("id", level.id()),
+                        messages.text("world", level.world())
+                );
+                return;
+            }
+
+            Location location = level.spawn() == null ? world.getSpawnLocation() : level.spawn().toLocation(world);
+            boolean teleported = player.teleport(location, PlayerTeleportEvent.TeleportCause.COMMAND);
+            if (!teleported) {
+                messages.send(sender, "level-teleport-failed", messages.text("id", level.id()));
+                return;
+            }
+
+            plugin.playerLevels().enter(player, level, true, true);
+            messages.send(sender, "level-teleport-success",
+                    messages.text("id", level.id()),
+                    messages.mini("display", level.displayName())
+            );
+        }, () -> messages.send(sender, "level-not-found", messages.text("id", id)));
     }
 
     private boolean is(String input, String expected) {

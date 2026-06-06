@@ -5,6 +5,7 @@ public record BackroomsLevel(
         boolean enabled,
         String displayName,
         String world,
+        LevelSpawn spawn,
         boolean pvp,
         String title,
         String subtitle,

@@ -19,6 +19,14 @@ public final class LevelRegistry {
         return Optional.ofNullable(levels.get(normalize(id)));
     }
 
+    public Optional<BackroomsLevel> getByWorld(String worldName) {
+        String normalizedWorld = normalize(worldName);
+        return levels.values().stream()
+                .filter(BackroomsLevel::enabled)
+                .filter(level -> normalize(level.world()).equals(normalizedWorld))
+                .findFirst();
+    }
+
     public Collection<BackroomsLevel> all() {
         return Collections.unmodifiableCollection(levels.values());
     }

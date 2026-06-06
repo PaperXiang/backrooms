@@ -3,7 +3,10 @@ package org.monday.backrooms;
 import org.monday.backrooms.command.BrCommand;
 import org.monday.backrooms.level.LevelConfigLoader;
 import org.monday.backrooms.level.LevelRegistry;
+import org.monday.backrooms.level.LevelTitleService;
 import org.monday.backrooms.message.MessageService;
+import org.monday.backrooms.player.PlayerLevelListener;
+import org.monday.backrooms.player.PlayerLevelTracker;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Backrooms extends JavaPlugin {
@@ -11,6 +14,8 @@ public final class Backrooms extends JavaPlugin {
     private MessageService messageService;
     private LevelRegistry levelRegistry;
     private LevelConfigLoader levelConfigLoader;
+    private LevelTitleService levelTitleService;
+    private PlayerLevelTracker playerLevelTracker;
 
     @Override
     public void onEnable() {
@@ -19,8 +24,11 @@ public final class Backrooms extends JavaPlugin {
         this.messageService = new MessageService(this);
         this.levelRegistry = new LevelRegistry();
         this.levelConfigLoader = new LevelConfigLoader(this);
+        this.levelTitleService = new LevelTitleService(this);
+        this.playerLevelTracker = new PlayerLevelTracker(this);
 
         reloadRuntimeConfig();
+        registerListeners();
         registerCommands();
 
         getLogger().info("BackroomsCore enabled with " + levelRegistry.size() + " configured levels.");
@@ -31,6 +39,9 @@ public final class Backrooms extends JavaPlugin {
         if (levelRegistry != null) {
             levelRegistry.clear();
         }
+        if (playerLevelTracker != null) {
+            playerLevelTracker.clear();
+        }
     }
 
     public void reloadRuntimeConfig() {
@@ -38,6 +49,9 @@ public final class Backrooms extends JavaPlugin {
         messageService.reload();
         levelRegistry.clear();
         levelConfigLoader.loadInto(levelRegistry);
+        if (playerLevelTracker != null) {
+            playerLevelTracker.reconcileOnlinePlayers(false);
+        }
     }
 
     public MessageService messages() {
@@ -46,6 +60,18 @@ public final class Backrooms extends JavaPlugin {
 
     public LevelRegistry levels() {
         return levelRegistry;
+    }
+
+    public LevelTitleService levelTitles() {
+        return levelTitleService;
+    }
+
+    public PlayerLevelTracker playerLevels() {
+        return playerLevelTracker;
+    }
+
+    private void registerListeners() {
+        getServer().getPluginManager().registerEvents(new PlayerLevelListener(this), this);
     }
 
     private void registerCommands() {

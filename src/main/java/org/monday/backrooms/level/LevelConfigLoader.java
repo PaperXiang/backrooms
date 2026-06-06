@@ -30,6 +30,7 @@ public final class LevelConfigLoader {
                     section.getBoolean("enabled", true),
                     section.getString("display-name", id),
                     section.getString("world", id),
+                    loadSpawn(section),
                     section.getBoolean("pvp", false),
                     section.getString("title", id),
                     section.getString("subtitle", ""),
@@ -38,5 +39,20 @@ public final class LevelConfigLoader {
 
             registry.register(level);
         }
+    }
+
+    private LevelSpawn loadSpawn(ConfigurationSection levelSection) {
+        ConfigurationSection spawnSection = levelSection.getConfigurationSection("spawn");
+        if (spawnSection == null) {
+            return null;
+        }
+
+        return new LevelSpawn(
+                spawnSection.getDouble("x", 0.5D),
+                spawnSection.getDouble("y", 64.0D),
+                spawnSection.getDouble("z", 0.5D),
+                (float) spawnSection.getDouble("yaw", 0.0D),
+                (float) spawnSection.getDouble("pitch", 0.0D)
+        );
     }
 }

@@ -80,3 +80,54 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
+
+## Step 003 - Level 传送与运行时状态
+
+### 本次完成
+
+- 并行调研 MCIO PluginBase 与 VectorDisplays 文档，确认它们适合作为后续架构/沉浸式 UI 参考，但当前阶段不作为硬依赖引入。
+- 确认服务器目标版本为 Paper 1.21.4，CraftEngine 目标版本为 26.6；本步骤仍不直接调用 CE API，避免服务器环境未落地前引入类加载风险。
+- 为 Level 增加可选 spawn 配置，支持 `x`、`y`、`z`、`yaw`、`pitch`。
+- 新增 `/br level tp <id>` 管理命令，用于传送到已配置且已加载的 Level 世界。
+- 保留 `/br level <id>` 查看详情，并新增 `/br level info <id>` 作为更明确的详情命令。
+- 新增 Level Title 服务，进入 Level 时使用 Adventure Title 显示配置中的 `title` 与 `subtitle`。
+- 新增玩家当前 Level 运行时状态追踪，按 UUID 记录玩家当前 Level、所在世界和进入时间。
+- 监听玩家进服、退服和跨世界事件，同步玩家当前 Level 状态。
+- 配置重载后会重新协调在线玩家的 Level 状态。
+- 在 `paper-plugin.yml` 中增加 `backrooms.command.level.tp` 权限。
+
+### 修改文件
+
+- `src/main/resources/config.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/level/BackroomsLevel.java`
+- `src/main/java/org/monday/backrooms/level/LevelConfigLoader.java`
+- `src/main/java/org/monday/backrooms/level/LevelRegistry.java`
+- `src/main/java/org/monday/backrooms/level/LevelSpawn.java`
+- `src/main/java/org/monday/backrooms/level/LevelTitleService.java`
+- `src/main/java/org/monday/backrooms/player/PlayerLevelState.java`
+- `src/main/java/org/monday/backrooms/player/PlayerLevelTracker.java`
+- `src/main/java/org/monday/backrooms/player/PlayerLevelListener.java`
+- `step.md`
+
+### 设计原因
+
+- `/br level tp <id>` 只传送到已经加载的世界，不自动创建世界，避免提前和 Multiverse-Core 或后续世界管理模块产生职责冲突。
+- 进入提示使用 Adventure `Title` API，而不是旧式字符串 title 或 NMS 发包，保持 Paper 1.21.4 下的稳定实现方式。
+- 玩家状态只保存在运行时内存中，且以 UUID 作为 key，避免保存 `Player` 对象导致退出后引用残留。
+- Level 的世界识别暂时采用一个 Level 对应一个世界的方式，满足 MVP；后续如果做区域级 Level 或实例世界，再扩展识别规则。
+- MCIO PluginBase 与 VectorDisplays 暂不接入，当前先保留轻量 Paper-only 核心；VectorDisplays 后续可作为 MEG 终端、基地控制台、楼梯井面板等沉浸式 UI 的可选方案。
+
+### 下一步建议
+
+- 实现基础 Level 规则监听，例如根据当前 Level 禁止普通建筑破坏、按配置控制 PVP。
+- 增加资源方块/可交互方块的抽象，先做原版方块占位，后续接入 CraftEngine 26.6 Adapter。
+- 增加 `/br debug current` 或 `/br player state`，方便查看玩家当前 Level 状态。
+- 等测试服务器和 Level 世界创建好后，实机验证 `/br level tp level_0`、`/br level tp level_1` 和跨世界 Title 触发。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
