@@ -442,10 +442,11 @@ plugins/BackroomsCore/
 
 ### 12.1 当前最高优先级任务
 
-- 完成第一批 CraftEngine 26.6 Backrooms 测试物品/方块配置，模型先复用 Minecraft 原版 model/texture，后续再替换美术资源。
-- 完成 TAB 测试服基础显示配置，减少演示占位符和无关动画。
-- 增加 Level 随机 spawn 点配置，先用于 `/br level tp` 和未来切层入口，避免所有玩家永远落在单一坐标。
-- 下一阶段实现正式 Transition/撤离点系统：Level 0 -> Level 1，Level 1 -> lobby。
+- 已完成第一批 CraftEngine 26.6 Backrooms 测试物品/方块配置，模型先复用 Minecraft 原版 model/texture，后续再替换美术资源。
+- 已完成 TAB 测试服基础显示配置，减少演示占位符和无关动画。
+- 已完成 Level 随机 spawn 点配置，先用于 `/br level tp` 和切层入口，避免所有玩家永远落在单一坐标。
+- 已实现正式 Transition/撤离点系统的 MVP：Level 0 -> Level 1，Level 1 -> lobby。
+- 下一阶段最高优先级：把 Transition 区域和 CraftEngine 楼梯井标记结合，做可视化撤离点/入口点；随后开始房间模板与生成原型。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -458,3 +459,12 @@ plugins/BackroomsCore/
 - 已为 Level 配置增加 `spawn.points`，当前 `/br level tp <id>` 会在多个配置点中随机选择，未来 Transition/撤离点系统也复用这一能力。
 - 已增加 `deployDevServer` Gradle task，用于把 BackroomsCore jar 部署到本地测试服 `plugins` 目录。
 - 地图/房间生成仍未实现：当前只完成测试服资源和随机 spawn 基础设施，下一步最高优先级是 Transition/撤离点系统，然后再做房间模板和生成原型。
+
+### 12.4 Step 007 完成状态
+
+- 已新增 `transitions.yml`，以单文件 `definitions` 形式配置切层/撤离点，后续可迁移到 `transitions/*.yml` 多文件结构。
+- 已新增 Transition MVP：支持 region 进入触发、右键方块触发、Level 目标、world 目标、目标 Level 随机 spawn、精确 point spawn、冷却、传送后短暂无触发保护、音效、MiniMessage 消息反馈。
+- 已接入 `/br reload` 热重载，Transition 会在 Level 和资源配置加载后重载，并在控制台输出定义数量。
+- 已新增管理命令：`/br transitions`、`/br transition info <id>`、`/br transition trigger <id> [player]`，用于实机调试 Level0->Level1 和 Level1->lobby 的切层流程。
+- 当前默认坐标只是测试占位：Level 0 入口区域为 `20,63,-22 -> 28,67,-14`，Level 1 撤离区域为 `-46,63,-28 -> -38,68,-20`。后续地图/CE 楼梯井放置完成后需要调整。
+- 下一步需要把 Transition 与地图制作闭环结合：用 CE 楼梯井标记或原版占位方块做入口提示，再做房间模板/区域生成原型。

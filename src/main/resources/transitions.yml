@@ -1,0 +1,62 @@
+transitions:
+  enabled: true
+  defaults:
+    cooldown-seconds: 5
+    post-teleport-immunity-ticks: 40
+
+  definitions:
+    level0_to_level1_stairwell:
+      enabled: true
+      display-name: "<yellow>Level 0 楼梯井</yellow>"
+      from:
+        level: level_0
+      trigger:
+        type: region
+        world: level_0
+        region:
+          min:
+            x: 20.0
+            y: 63.0
+            z: -22.0
+          max:
+            x: 28.0
+            y: 67.0
+            z: -14.0
+      target:
+        type: level
+        level: level_1
+        spawn:
+          mode: level-spawn
+      feedback:
+        message-key: transition-success-level
+        title: true
+        sound: ENTITY_ENDERMAN_TELEPORT
+      cooldown-seconds: 10
+
+    level1_to_lobby_evacuation:
+      enabled: true
+      display-name: "<gold>Level 1 MEG 撤离楼梯井</gold>"
+      from:
+        level: level_1
+      trigger:
+        type: region
+        world: level_1
+        region:
+          min:
+            x: -46.0
+            y: 63.0
+            z: -28.0
+          max:
+            x: -38.0
+            y: 68.0
+            z: -20.0
+      target:
+        type: world
+        world: lobby
+        spawn:
+          mode: world-spawn
+      feedback:
+        message-key: transition-success-world
+        title: false
+        sound: ENTITY_ENDERMAN_TELEPORT
+      cooldown-seconds: 5

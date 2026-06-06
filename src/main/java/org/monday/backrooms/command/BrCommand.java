@@ -15,6 +15,7 @@ import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
+import org.monday.backrooms.transition.TransitionDefinition;
 
 public final class BrCommand implements TabExecutor {
 
@@ -22,6 +23,9 @@ public final class BrCommand implements TabExecutor {
     private static final String RELOAD_PERMISSION = "backrooms.command.reload";
     private static final String LEVEL_TP_PERMISSION = "backrooms.command.level.tp";
     private static final String DEBUG_CURRENT_PERMISSION = "backrooms.command.debug.current";
+    private static final String TRANSITIONS_PERMISSION = "backrooms.command.transitions";
+    private static final String TRANSITION_INFO_PERMISSION = "backrooms.command.transition.info";
+    private static final String TRANSITION_TRIGGER_PERMISSION = "backrooms.command.transition.trigger";
 
     private final Backrooms plugin;
 
@@ -43,6 +47,30 @@ public final class BrCommand implements TabExecutor {
 
         if (is(args[0], "levels")) {
             sendLevels(sender);
+            return true;
+        }
+
+        if (is(args[0], "transitions")) {
+            sendTransitions(sender);
+            return true;
+        }
+
+        if (is(args[0], "transition")) {
+            if (args.length < 3 || is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "unknown-command");
+                    return true;
+                }
+                sendTransitionInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "trigger")) {
+                triggerTransition(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
             return true;
         }
 
@@ -92,7 +120,10 @@ public final class BrCommand implements TabExecutor {
 
             plugin.getLogger().info("Reload requested by " + sender.getName() + ".");
             plugin.reloadRuntimeConfig();
-            plugin.messages().send(sender, "reload", plugin.messages().text("count", String.valueOf(plugin.levels().size())));
+            plugin.messages().send(sender, "reload",
+                    plugin.messages().text("count", String.valueOf(plugin.levels().size())),
+                    plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount()))
+            );
             return true;
         }
 
@@ -114,7 +145,32 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
                 options.add("debug");
             }
+            if (sender.hasPermission(TRANSITIONS_PERMISSION)) {
+                options.add("transitions");
+            }
+            if (sender.hasPermission(TRANSITION_INFO_PERMISSION) || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
+                options.add("transition");
+            }
             return filter(options, args[0]);
+        }
+
+        if (args.length == 2 && is(args[0], "transition")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
+                options.add("trigger");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "transition") && (is(args[1], "info") || is(args[1], "trigger"))) {
+            return filter(plugin.transitions().all().stream().map(TransitionDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "transition") && is(args[1], "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "debug") && sender.hasPermission(DEBUG_CURRENT_PERMISSION)) {
@@ -156,6 +212,30 @@ public final class BrCommand implements TabExecutor {
         }
     }
 
+    private void sendTransitions(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(TRANSITIONS_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.transitions().all().isEmpty()) {
+            messages.send(sender, "transitions-empty");
+            return;
+        }
+
+        messages.send(sender, "transitions-header");
+        for (TransitionDefinition transition : plugin.transitions().all()) {
+            messages.send(sender, "transition-line",
+                    messages.text("id", transition.id()),
+                    messages.mini("display", transition.displayName()),
+                    messages.text("from", transition.fromLevel()),
+                    messages.text("target", transition.target().describe()),
+                    messages.bool("enabled", transition.enabled())
+            );
+        }
+    }
+
     private void sendLevelInfo(CommandSender sender, String id) {
         MessageService messages = plugin.messages();
         plugin.levels().get(id).ifPresentOrElse(level -> messages.send(sender, "level-info",
@@ -169,6 +249,57 @@ public final class BrCommand implements TabExecutor {
                 messages.mini("subtitle", level.subtitle()),
                 messages.text("description", level.description())
         ), () -> messages.send(sender, "level-not-found", messages.text("id", id)));
+    }
+
+    private void sendTransitionInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.transitions().get(id).ifPresentOrElse(transition -> messages.send(sender, "transition-info",
+                messages.text("id", transition.id()),
+                messages.mini("display", transition.displayName()),
+                messages.bool("enabled", transition.enabled()),
+                messages.text("from", transition.fromLevel()),
+                messages.text("target", transition.target().describe()),
+                messages.text("trigger", transition.triggerDescription()),
+                messages.text("cooldown", String.valueOf(transition.cooldownSeconds()))
+        ), () -> messages.send(sender, "transition-not-found", messages.text("id", id)));
+    }
+
+    private void triggerTransition(CommandSender sender, String id, String targetName) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        Player target;
+        if (targetName == null || targetName.isBlank()) {
+            if (!(sender instanceof Player player)) {
+                messages.send(sender, "transition-trigger-usage");
+                return;
+            }
+            target = player;
+        } else {
+            target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                messages.send(sender, "player-not-found", messages.text("player", targetName));
+                return;
+            }
+        }
+
+        plugin.transitions().get(id).ifPresentOrElse(transition -> {
+            boolean success = plugin.transitions().triggerByCommand(target, transition);
+            if (success) {
+                messages.send(sender, "transition-trigger-success",
+                        messages.text("id", transition.id()),
+                        messages.text("player", target.getName())
+                );
+            }
+        }, () -> messages.send(sender, "transition-not-found", messages.text("id", id)));
     }
 
     private void teleportToLevel(CommandSender sender, String id) {

@@ -24,6 +24,21 @@ permissions:
   backrooms.command.debug.current:
     description: Allows checking current Backrooms runtime state
     default: op
+  backrooms.command.transitions:
+    description: Allows listing configured Backrooms transitions
+    default: op
+  backrooms.command.transition.info:
+    description: Allows viewing Backrooms transition details
+    default: op
+  backrooms.command.transition.trigger:
+    description: Allows manually triggering Backrooms transitions
+    default: op
+  backrooms.transition.use:
+    description: Allows using configured Backrooms transitions
+    default: true
+  backrooms.transition.bypass.cooldown:
+    description: Allows bypassing Backrooms transition cooldowns
+    default: op
   backrooms.bypass.build:
     description: Allows bypassing Backrooms build protection
     default: op
@@ -35,4 +50,9 @@ permissions:
       backrooms.command.reload: true
       backrooms.command.level.tp: true
       backrooms.command.debug.current: true
+      backrooms.command.transitions: true
+      backrooms.command.transition.info: true
+      backrooms.command.transition.trigger: true
+      backrooms.transition.use: true
+      backrooms.transition.bypass.cooldown: true
       backrooms.bypass.build: true

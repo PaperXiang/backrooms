@@ -10,6 +10,8 @@ import org.monday.backrooms.player.PlayerLevelListener;
 import org.monday.backrooms.player.PlayerLevelTracker;
 import org.monday.backrooms.resource.ResourceBlockService;
 import org.monday.backrooms.rule.LevelRuleListener;
+import org.monday.backrooms.transition.TransitionListener;
+import org.monday.backrooms.transition.TransitionService;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Backrooms extends JavaPlugin {
@@ -21,6 +23,7 @@ public final class Backrooms extends JavaPlugin {
     private LevelTitleService levelTitleService;
     private PlayerLevelTracker playerLevelTracker;
     private ResourceBlockService resourceBlockService;
+    private TransitionService transitionService;
 
     @Override
     public void onEnable() {
@@ -36,6 +39,7 @@ public final class Backrooms extends JavaPlugin {
         this.levelTitleService = new LevelTitleService(this);
         this.playerLevelTracker = new PlayerLevelTracker(this);
         this.resourceBlockService = new ResourceBlockService(this);
+        this.transitionService = new TransitionService(this);
         getLogger().info("Core services initialized.");
 
         reloadRuntimeConfig();
@@ -45,7 +49,8 @@ public final class Backrooms extends JavaPlugin {
         getLogger().info("BackroomsCore enabled successfully: levels=" + levelRegistry.size()
                 + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
-                + ", resourceBlocks=" + resourceBlockService.definitionCount() + ".");
+                + ", resourceBlocks=" + resourceBlockService.definitionCount()
+                + ", transitions=" + transitionService.definitionCount() + ".");
     }
 
     @Override
@@ -67,6 +72,7 @@ public final class Backrooms extends JavaPlugin {
         levelRegistry.clear();
         levelConfigLoader.loadInto(levelRegistry);
         resourceBlockService.reload();
+        transitionService.reload();
         if (playerLevelTracker != null) {
             playerLevelTracker.reconcileOnlinePlayers(false);
         }
@@ -74,6 +80,7 @@ public final class Backrooms extends JavaPlugin {
                 + levelRegistry.size() + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
+                + ", transitions=" + transitionService.definitionCount()
                 + ", onlinePlayers=" + getServer().getOnlinePlayers().size() + ".");
     }
 
@@ -101,10 +108,15 @@ public final class Backrooms extends JavaPlugin {
         return resourceBlockService;
     }
 
+    public TransitionService transitions() {
+        return transitionService;
+    }
+
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new PlayerLevelListener(this), this);
+        getServer().getPluginManager().registerEvents(new TransitionListener(this), this);
         getServer().getPluginManager().registerEvents(new LevelRuleListener(this), this);
-        getLogger().info("Registered listeners: PlayerLevelListener, LevelRuleListener.");
+        getLogger().info("Registered listeners: PlayerLevelListener, TransitionListener, LevelRuleListener.");
     }
 
     private void registerCommands() {

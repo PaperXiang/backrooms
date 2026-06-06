@@ -328,3 +328,81 @@
 - 已运行 `./gradlew.bat deployDevServer`，插件 jar 已复制到测试服 `plugins` 目录。
 - 已检查 TAB/项目配置中未残留 `%animation:`、`essentials_`、`vault_prefix`、`rel_factions` 等早期测试占位符。
 - 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。
+
+## Step 007 - Transition 与撤离点 MVP
+
+### 本次完成
+
+- 新增 `transitions.yml`，使用 `transitions.definitions` 配置切层/撤离点。
+- 新增 Transition 核心模型与服务：
+  - `TransitionDefinition`
+  - `TransitionTarget`
+  - `TransitionService`
+  - `TransitionListener`
+  - `CuboidRegion`
+  - `BlockPosition`
+  - `TransitionTriggerType`
+  - `TransitionTargetType`
+  - `TransitionSpawnMode`
+- 支持两种触发方式：
+  - 玩家进入配置区域。
+  - 玩家右键配置方块或坐标。
+- 支持两种目标：
+  - 目标 Backrooms Level，默认复用目标 Level 的随机 `spawn.points`。
+  - 目标 Bukkit world，例如返回 `lobby` 世界出生点。
+- 支持 `point` 精确坐标目标、冷却、传送后短暂无触发保护、音效和 MiniMessage 消息反馈。
+- 将 Transition 接入 `/br reload`，加载顺序为：配置文件 -> 消息 -> Level -> 资源方块 -> Transition。
+- 新增 Transition 管理/调试命令：
+  - `/br transitions`
+  - `/br transition info <id>`
+  - `/br transition trigger <id> [player]`
+- 新增 Transition 权限：
+  - `backrooms.transition.use`
+  - `backrooms.transition.bypass.cooldown`
+  - `backrooms.command.transitions`
+  - `backrooms.command.transition.info`
+  - `backrooms.command.transition.trigger`
+- 默认配置了两个 MVP 通道：
+  - `level0_to_level1_stairwell`：Level 0 区域进入 -> Level 1 随机出生点。
+  - `level1_to_lobby_evacuation`：Level 1 区域进入 -> lobby 世界出生点。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/transition/BlockPosition.java`
+- `src/main/java/org/monday/backrooms/transition/CuboidRegion.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionDefinition.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionListener.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionService.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionSpawnMode.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionTarget.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionTargetType.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionTriggerType.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/transitions.yml`
+
+### 设计原因
+
+- 切层是跨 Level 的关系，因此先放在独立 `transitions.yml`，避免污染每个 `levels/*.yml`；后续如果数量变多，再迁移到 `transitions/*.yml`。
+- Region 触发先满足 Level 0 -> Level 1、Level 1 -> lobby 的核心闭环，右键方块触发则为 CE 楼梯井标记、维护门、终端等交互预留入口。
+- 传送目标复用现有 `LevelSpawn`，这样 Transition 天然支持随机出生点，不需要重复实现一套随机逻辑。
+- Transition 不自动创建或加载世界，只在目标世界已加载时传送，继续把世界管理职责留给 Paper/Multiverse。
+- `PlayerMoveEvent` 只在方块坐标变化时检查，并按来源 Level 索引 Transition，降低每 tick 移动事件的性能压力。
+- 传送后加入短暂无触发保护，避免入口/出口区域重叠时出现循环传送。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后执行 `/br reload`，再用 `/br transitions` 和 `/br transition info level0_to_level1_stairwell` 检查配置是否加载。
+- 如果测试服已有 `lobby`、`level_0`、`level_1` 世界，可用 `/br transition trigger level0_to_level1_stairwell <player>` 和 `/br transition trigger level1_to_lobby_evacuation <player>` 测试传送闭环。
+- 根据实际地图把 `transitions.yml` 中两个 region 坐标改到楼梯井/撤离点位置。
+- 下一步将 Transition 与 CE 楼梯井标记结合，做可视化入口/撤离点；之后开始房间模板和生成原型。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建提示 `TransitionService` 使用了过时 API，来源是 `Player#teleport(Location, TeleportCause)`；当前 Paper 1.21.4 可编译运行，后续可再迁移到 Paper 推荐的异步/现代传送 API。
