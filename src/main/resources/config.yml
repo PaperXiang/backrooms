@@ -1,0 +1,42 @@
+messages:
+  prefix: "<dark_gray>[<yellow>Backrooms</yellow>]</dark_gray> "
+  no-permission: "<red>你没有权限使用这个命令。"
+  player-only: "<red>这个命令只能由玩家执行。"
+  reload: "<green>配置已重载。当前已加载 <yellow><count></yellow> 个 Level。"
+  unknown-command: "<red>未知子命令。输入 <yellow>/br help</yellow> 查看帮助。"
+  help:
+    - "<yellow><bold>BackroomsCore</bold></yellow> <gray>- 基础命令</gray>"
+    - "<gray>/br help</gray> <dark_gray>-</dark_gray> <white>查看帮助</white>"
+    - "<gray>/br levels</gray> <dark_gray>-</dark_gray> <white>查看已配置 Level</white>"
+    - "<gray>/br level <id></gray> <dark_gray>-</dark_gray> <white>查看 Level 详情</white>"
+    - "<gray>/br reload</gray> <dark_gray>-</dark_gray> <white>重载配置</white>"
+  levels-header: "<yellow>已加载 Level：</yellow>"
+  levels-empty: "<red>当前没有启用或配置任何 Level。"
+  level-line: "<gray>-</gray> <yellow><id></yellow> <dark_gray>|</dark_gray> <white><display></white> <dark_gray>| world:</dark_gray> <gray><world></gray> <dark_gray>| enabled:</dark_gray> <enabled>"
+  level-not-found: "<red>找不到 Level：<yellow><id></yellow>"
+  level-info:
+    - "<yellow><bold><display></bold></yellow> <dark_gray>(<id>)</dark_gray>"
+    - "<gray>世界：</gray><white><world></white>"
+    - "<gray>启用：</gray><enabled>"
+    - "<gray>PVP：</gray><pvp>"
+    - "<gray>标题：</gray><title>"
+    - "<gray>副标题：</gray><subtitle>"
+    - "<dark_gray><description></dark_gray>"
+
+levels:
+  level_0:
+    enabled: true
+    display-name: "<yellow>Level 0</yellow>"
+    world: "level_0"
+    pvp: false
+    title: "<yellow><bold>Level 0</bold></yellow>"
+    subtitle: "<gray>Threshold | 生存难度 1 | 实体：未确认</gray>"
+    description: "阈限体验、基础探索与寻找 Level 1 入口。"
+  level_1:
+    enabled: true
+    display-name: "<gold>Level 1</gold>"
+    world: "level_1"
+    pvp: false
+    title: "<gold><bold>Level 1</bold></gold>"
+    subtitle: "<gray>Habitable Zone | 资源竞争 | 楼梯井撤离</gray>"
+    description: "资源竞争、基地 claim、局部 PVP 与返回 MEG 主基地的撤离层。"

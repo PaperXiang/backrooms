@@ -6,3 +6,21 @@ prefix: Backrooms
 authors: [ DYF, Paper_Xiang ]
 description: backrooms plugin
 website: mc.monday-ovo.top
+commands:
+  br:
+    description: Backrooms main command
+    usage: /br <help|levels|reload>
+    aliases: [backrooms]
+permissions:
+  backrooms.command.br:
+    description: Allows using the Backrooms base command
+    default: true
+  backrooms.command.reload:
+    description: Allows reloading Backrooms configuration
+    default: op
+  backrooms.admin:
+    description: Allows all Backrooms administrative commands
+    default: op
+    children:
+      backrooms.command.br: true
+      backrooms.command.reload: true

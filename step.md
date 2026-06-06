@@ -31,3 +31,52 @@
 
 - 本步骤主要是文档和仓库初始化准备，尚未运行代码测试。
 
+## Step 002 - 基础插件框架
+
+### 本次完成
+
+- 查询并核对本地 CraftEngine 文档，确认第一阶段只做可选集成预留，不直接依赖 CE 非稳定 API。
+- 查询并核对当前 Paper 项目基础实现方式，确认第一阶段使用 Bukkit 经典命令 API、JavaPlugin 配置 API、Adventure MiniMessage 和自定义 Level 注册表。
+- 新增默认 `config.yml`，包含基础消息配置与 `level_0`、`level_1` 两个 MVP Level 配置。
+- 新增 MiniMessage 消息服务，支持 prefix、单行/多行消息、文本占位符、MiniMessage 占位符和布尔值占位符。
+- 新增 Level 数据模型、配置加载器和注册表。
+- 新增 `/br` 主命令，支持：
+  - `/br help`
+  - `/br levels`
+  - `/br level <id>`
+  - `/br reload`
+- 在 `paper-plugin.yml` 中声明 `/br` 命令、`backrooms` 别名和基础权限。
+- 将 run-paper 测试服务端版本从 `1.21` 调整为 `1.21.4`，保持与 Paper API 依赖一致。
+
+### 修改文件
+
+- `build.gradle`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/config.yml`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/message/MessageService.java`
+- `src/main/java/org/monday/backrooms/level/BackroomsLevel.java`
+- `src/main/java/org/monday/backrooms/level/LevelConfigLoader.java`
+- `src/main/java/org/monday/backrooms/level/LevelRegistry.java`
+- `step.md`
+
+### 设计原因
+
+- 第一阶段先做稳定基础设施，不提前接入 CraftEngine、MythicMobs、WorldGuard 等外部插件，避免在服务器环境未确定前引入不必要的类加载和版本风险。
+- `/br` 使用 Bukkit `TabExecutor` 与 `paper-plugin.yml` 声明命令，避免过早使用 Paper Brigadier/lifecycle 命令 API。
+- Level 使用插件内部 `Map<String, BackroomsLevel>` 注册表，不使用 Paper/Minecraft Registry，因为 Backrooms Level 是业务概念，不是原版注册项。
+- 消息统一使用 Adventure MiniMessage，方便后续 Title、ActionBar、GUI 文本和 lore 复用同一套格式。
+- 默认配置先把 `level_0`、`level_1` 放在 `config.yml`，后续内容复杂后再拆分到 `levels/`、`messages/` 等独立文件。
+
+### 下一步建议
+
+- 增加玩家进入 Level 的基础运行时状态，例如当前 Level、进入时间、是否位于 Backrooms 世界。
+- 实现 `/br level tp <id>` 管理命令，用于快速传送测试 Level 世界。
+- 增加进入 Level 时的 Title/Subtitle 展示，复用配置中的 `title` 与 `subtitle`。
+- 预留外部插件检测层，但仍不直接调用 CraftEngine API，等服务器和 CE 版本确认后再写 Adapter。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已读取 IDE lints，当前新增 Java 文件未报告诊断问题。

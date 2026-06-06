@@ -1,0 +1,37 @@
+package org.monday.backrooms.level;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
+public final class LevelRegistry {
+
+    private final Map<String, BackroomsLevel> levels = new LinkedHashMap<>();
+
+    public void register(BackroomsLevel level) {
+        levels.put(normalize(level.id()), level);
+    }
+
+    public Optional<BackroomsLevel> get(String id) {
+        return Optional.ofNullable(levels.get(normalize(id)));
+    }
+
+    public Collection<BackroomsLevel> all() {
+        return Collections.unmodifiableCollection(levels.values());
+    }
+
+    public int size() {
+        return levels.size();
+    }
+
+    public void clear() {
+        levels.clear();
+    }
+
+    private String normalize(String id) {
+        return id.toLowerCase(Locale.ROOT);
+    }
+}
