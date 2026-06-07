@@ -1,5 +1,70 @@
 # 开发记录
 
+## Step 035 - runtime 实机验证命令
+
+### 本次完成
+
+- 新增 `/br verify runtime`，用于在测试服内汇总实机验证状态。
+- 新增 tab completion：
+  - `/br verify runtime`
+- 新增权限：
+  - `backrooms.command.verify.runtime`
+- 将新权限加入 `backrooms.admin`。
+- 验证项覆盖：
+  - Level worlds 是否加载。
+  - CraftEngine 是否安装并启用。
+  - FastAsyncWorldEdit / WorldEdit 是否可用。
+  - Multiverse-Core 是否可用。
+  - PlaceholderAPI 是否可用。
+  - VectorDisplays 是否可用。
+  - PacketEvents 是否可用。
+  - CraftEngine `backrooms` pack、configuration、resourcepack assets 路径是否存在。
+  - `categories.yml`、`translations.yml`、`lang.yml` 是否存在。
+  - 资源包 model / texture 文件数量。
+  - Worldgen schematic 模板文件是否存在。
+  - Sanity HUD 依赖链是否完整。
+  - Backrooms runtime 模块数量。
+- README 已补充 `/br verify runtime` 与本地 RCON 信息。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- README 中的实机验证项分散在 CraftEngine、Loot/Resource、Transition、Room、Worldgen 和 HUD 章节；单条验证命令可以减少每次重启后的人工排查成本。
+- 当前测试服运行在隐藏窗口，启用本地 RCON 后可以从终端直接执行 `/br verify runtime` 并保存输出。
+- 命令不修改运行时状态，只读取 Bukkit 插件状态、Backrooms runtime 和磁盘文件，适合作为反复执行的健康检查。
+
+### 下一步建议
+
+- 安装或接入 VectorDisplays 与 PacketEvents 后重新执行 `/br verify runtime`，确认 HUD 依赖链通过。
+- 制作并同步 `plugins/backrooms/templates/level_0/*.schem` 后重新执行 `/br verify runtime`，确认 schematic 模板从 WARN 变为 PASS。
+- 后续可继续扩展验证项：CE 具体 item/block id 存在性、真实坐标资源点、Transition 坐标和基地终端坐标。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已启用本地 devserver RCON：
+  - `rcon.port=25575`
+  - `rcon.password=backrooms-dev`
+- 已通过 RCON 执行 `br verify runtime`。
+- 当前命令输出确认：
+  - PASS：Level worlds、CraftEngine 26.6、FAWE 2.15.2、Multiverse-Core 5.6.2、PlaceholderAPI 2.12.2。
+  - PASS：CraftEngine backrooms pack/config/resourcepack、categories/translations/lang。
+  - PASS：资源包 model files = 122，texture files = 60。
+  - PASS：runtime modules：levels=2、items=10、lootTables=2、lootSources=4、resources=2、transitions=2、rooms=3、bases=2、baseClaims=0。
+  - WARN：VectorDisplays missing、PacketEvents missing。
+  - WARN：Worldgen schematic templates 4/4 missing。
+  - WARN：Sanity HUD provider 依赖链未完整加载。
+
 ## Step 034 - 基地终端右键 claim
 
 ### 本次完成

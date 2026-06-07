@@ -465,6 +465,7 @@ plugins/BackroomsCore/
 - 已新增 Loot Source direct reward：`event_reward` 与 `command_reward` 类型可通过 `LootSourceService#triggerReward(...)` 对玩家发放 Loot Table 产物，`/br loot source trigger <id> [player]` 可用于管理员测试和脚本触发。
 - 已新增尸体缓存 MVP：`corpses.yml` 配置启用 Level、原版容器材料、保险物品堆数量和死亡点附近搜索半径；玩家在 Backrooms Level 死亡时，普通掉落进入尸体容器，保险物品在重生后返还。
 - 已新增基地 claim MVP：`bases.yml` 配置 Level 1 固定可 claim 区域，`/br base claim <id>` 持久化占领；Level 规则保护会对 owner 在已 claim 区域内放行破坏/放置。
+- 已新增 `/br verify runtime` 实机验证摘要命令，用于统一检查测试服插件依赖、CraftEngine Backrooms 资源目录、资源包模型/贴图数量、schematic 模板缺失、VectorDisplays/PacketEvents 状态和 Backrooms runtime 模块数量。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
@@ -733,3 +734,13 @@ plugins/BackroomsCore/
 - 已注册 `BaseListener`，启动日志会显示 `BaseListener` 已加入监听器列表。
 - 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；启动日志确认 `BaseListener` 注册成功。
 - 下一步重点：实机在 terminal 坐标放置 `backrooms:base_claim_terminal`，右键确认可 claim；后续再把终端 UI、升级和 Survivor Cell 成员权限接上。
+
+### 12.31 Step 035 runtime 实机验证命令状态
+
+- 已新增 `/br verify runtime`，用于将 README 中分散的实机验证项汇总成一条服务器内命令。
+- 检查内容包括：Level worlds、CraftEngine、FAWE/WorldEdit、Multiverse-Core、PlaceholderAPI、VectorDisplays、PacketEvents、CraftEngine `backrooms` pack 目录、configuration、resourcepack assets、categories/translations/lang、资源包 model/texture 数量、Worldgen schematic 文件、Sanity HUD 依赖链和 Backrooms runtime 模块数量。
+- 已新增权限 `backrooms.command.verify.runtime`，并加入 `backrooms.admin`。
+- 已启用本地 devserver RCON：`rcon.port=25575`、`rcon.password=backrooms-dev`，用于在隐藏窗口服务器上执行验证命令。
+- 已通过 RCON 执行 `br verify runtime`；当前 PASS：Level worlds、CraftEngine 26.6、FAWE 2.15.2、Multiverse-Core、PlaceholderAPI、CraftEngine pack/config/resourcepack、categories/translations/lang、122 个 model、60 个 texture、runtime modules。
+- 当前 WARN：VectorDisplays missing、PacketEvents missing、4/4 schematic 模板文件缺失、Sanity HUD provider 依赖链未完整加载。
+- 下一步重点：安装或接入 VectorDisplays/PacketEvents，制作/同步 `plugins/backrooms/templates/level_0/*.schem`，再运行 `/br verify runtime` 直到核心验证项从 WARN 收敛为 PASS。

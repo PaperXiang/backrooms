@@ -1,9 +1,11 @@
 package org.monday.backrooms.command;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -63,6 +65,7 @@ public final class BrCommand implements TabExecutor {
     private static final String BASE_LIST_PERMISSION = "backrooms.command.base.list";
     private static final String BASE_INFO_PERMISSION = "backrooms.command.base.info";
     private static final String BASE_CLAIM_PERMISSION = "backrooms.command.base.claim";
+    private static final String VERIFY_RUNTIME_PERMISSION = "backrooms.command.verify.runtime";
 
     private final Backrooms plugin;
 
@@ -127,6 +130,15 @@ public final class BrCommand implements TabExecutor {
             }
 
             plugin.messages().send(sender, "unknown-command");
+            return true;
+        }
+
+        if (is(args[0], "verify")) {
+            if (args.length < 2 || is(args[1], "runtime")) {
+                sendRuntimeVerification(sender);
+                return true;
+            }
+            plugin.messages().send(sender, "verify-runtime-usage");
             return true;
         }
 
@@ -455,6 +467,9 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
                 options.add("worldgen");
             }
+            if (sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+                options.add("verify");
+            }
             if (sender.hasPermission(BASE_LIST_PERMISSION)) {
                 options.add("bases");
             }
@@ -533,6 +548,10 @@ public final class BrCommand implements TabExecutor {
                 options.add("source");
             }
             return filter(options, args[1]);
+        }
+
+        if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            return filter(List.of("runtime"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1037,6 +1056,128 @@ public final class BrCommand implements TabExecutor {
                 messages.text("markers", result.markers()),
                 messages.text("reason", result.reason())
         );
+    }
+
+    private void sendRuntimeVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-runtime-header");
+
+        List<String> missingWorlds = plugin.levels().all().stream()
+                .filter(level -> Bukkit.getWorld(level.world()) == null)
+                .map(level -> level.id() + "->" + level.world())
+                .toList();
+        sendVerifyLine(sender, missingWorlds.isEmpty() ? "pass" : "fail", "Level worlds",
+                missingWorlds.isEmpty() ? "all configured worlds are loaded" : describeList(missingWorlds));
+
+        sendPluginCheck(sender, "CraftEngine", "CraftEngine", true);
+        sendPluginCheck(sender, "FastAsyncWorldEdit/WorldEdit", "FastAsyncWorldEdit", Bukkit.getPluginManager().getPlugin("WorldEdit") == null);
+        sendPluginCheck(sender, "Multiverse-Core", "Multiverse-Core", true);
+        sendPluginCheck(sender, "PlaceholderAPI", "PlaceholderAPI", true);
+        sendPluginCheck(sender, "VectorDisplays", "VectorDisplays", false);
+        sendPluginCheck(sender, "PacketEvents", "packetevents", false);
+
+        File pluginsDir = plugin.getDataFolder().getParentFile();
+        File craftEngineBackrooms = new File(pluginsDir, "CraftEngine/resources/backrooms");
+        File craftEngineConfig = new File(craftEngineBackrooms, "configuration");
+        File craftEngineResourcepack = new File(craftEngineBackrooms, "resourcepack/assets/backrooms");
+        sendVerifyLine(sender, craftEngineBackrooms.isDirectory() ? "pass" : "fail", "CraftEngine backrooms pack",
+                craftEngineBackrooms.getPath());
+        sendVerifyLine(sender, craftEngineConfig.isDirectory() ? "pass" : "fail", "CraftEngine configuration",
+                craftEngineConfig.getPath());
+        sendVerifyLine(sender, craftEngineResourcepack.isDirectory() ? "pass" : "fail", "CraftEngine resourcepack assets",
+                craftEngineResourcepack.getPath());
+        sendVerifyLine(sender, new File(craftEngineConfig, "categories.yml").isFile() ? "pass" : "warn", "CraftEngine categories",
+                new File(craftEngineConfig, "categories.yml").getPath());
+        sendVerifyLine(sender, new File(craftEngineConfig, "translations.yml").isFile() ? "pass" : "warn", "CraftEngine translations",
+                new File(craftEngineConfig, "translations.yml").getPath());
+        sendVerifyLine(sender, new File(craftEngineConfig, "lang.yml").isFile() ? "pass" : "warn", "CraftEngine lang",
+                new File(craftEngineConfig, "lang.yml").getPath());
+
+        long faithfulModels = countFiles(new File(craftEngineResourcepack, "models"), ".json");
+        long faithfulTextures = countFiles(new File(craftEngineResourcepack, "textures"), ".png");
+        sendVerifyLine(sender, faithfulModels > 0 ? "pass" : "fail", "Resourcepack model files", String.valueOf(faithfulModels));
+        sendVerifyLine(sender, faithfulTextures > 0 ? "pass" : "fail", "Resourcepack texture files", String.valueOf(faithfulTextures));
+
+        List<String> missingTemplates = plugin.worldgen().allTemplates().stream()
+                .filter(template -> !template.file().isFile())
+                .map(template -> template.id() + "->" + template.file().getPath())
+                .toList();
+        sendVerifyLine(sender, missingTemplates.isEmpty() ? "pass" : "warn", "Worldgen schematic templates",
+                missingTemplates.isEmpty()
+                        ? plugin.worldgen().templateCount() + " configured, all files present"
+                        : missingTemplates.size() + "/" + plugin.worldgen().templateCount() + " missing: " + describeList(missingTemplates));
+
+        boolean vectorDisplaysLoaded = Bukkit.getPluginManager().getPlugin("VectorDisplays") != null
+                && Bukkit.getPluginManager().getPlugin("VectorDisplays").isEnabled();
+        boolean packetEventsLoaded = Bukkit.getPluginManager().getPlugin("packetevents") != null
+                && Bukkit.getPluginManager().getPlugin("packetevents").isEnabled();
+        sendVerifyLine(sender, vectorDisplaysLoaded && packetEventsLoaded ? "pass" : "warn", "Sanity HUD provider",
+                vectorDisplaysLoaded && packetEventsLoaded
+                        ? "VectorDisplays dependency chain is loaded"
+                        : "inactive or not fully verifiable; VectorDisplays=" + vectorDisplaysLoaded + ", PacketEvents=" + packetEventsLoaded);
+        sendVerifyLine(sender, "pass", "Runtime modules",
+                "levels=" + plugin.levels().size()
+                        + ", items=" + plugin.items().definitionCount()
+                        + ", lootTables=" + plugin.lootTables().definitionCount()
+                        + ", lootSources=" + plugin.lootSources().definitionCount()
+                        + ", resources=" + plugin.resources().definitionCount()
+                        + ", transitions=" + plugin.transitions().definitionCount()
+                        + ", rooms=" + plugin.rooms().definitionCount()
+                        + ", bases=" + plugin.bases().definitionCount()
+                        + ", baseClaims=" + plugin.bases().claimCount());
+    }
+
+    private void sendPluginCheck(CommandSender sender, String label, String pluginName, boolean required) {
+        var dependency = Bukkit.getPluginManager().getPlugin(pluginName);
+        boolean loaded = dependency != null && dependency.isEnabled();
+        String status = loaded ? "pass" : (required ? "fail" : "warn");
+        String detail = loaded ? dependency.getPluginMeta().getVersion() : "missing";
+        if (!loaded && Objects.equals(label, "FastAsyncWorldEdit/WorldEdit")) {
+            var worldEdit = Bukkit.getPluginManager().getPlugin("WorldEdit");
+            if (worldEdit != null && worldEdit.isEnabled()) {
+                status = "pass";
+                detail = "WorldEdit " + worldEdit.getPluginMeta().getVersion();
+            }
+        }
+        sendVerifyLine(sender, status, label, detail);
+    }
+
+    private void sendVerifyLine(CommandSender sender, String status, String item, String detail) {
+        plugin.messages().send(sender, "verify-runtime-line",
+                plugin.messages().mini("status", verifyStatus(status)),
+                plugin.messages().text("item", item),
+                plugin.messages().text("detail", detail)
+        );
+    }
+
+    private String verifyStatus(String status) {
+        return switch (status.toLowerCase(Locale.ROOT)) {
+            case "pass" -> "<green>PASS</green>";
+            case "warn" -> "<yellow>WARN</yellow>";
+            case "fail" -> "<red>FAIL</red>";
+            default -> "<gray>" + status.toUpperCase(Locale.ROOT) + "</gray>";
+        };
+    }
+
+    private long countFiles(File root, String suffix) {
+        File[] files = root.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        long count = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                count += countFiles(file, suffix);
+            } else if (file.getName().toLowerCase(Locale.ROOT).endsWith(suffix)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private void sendLootTables(CommandSender sender) {

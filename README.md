@@ -139,6 +139,7 @@ level_1
 ```text
 /br reload
 /br debug config
+/br verify runtime
 /br levels
 /br level tp level_0
 /br debug current
@@ -153,6 +154,15 @@ level_1
 - Room issues 是否为 `none`。
 - Loot Table 和 Resource 数量是否符合配置。
 - Pending insurance 是否符合当前等待重生返还的玩家数量。
+
+`/br verify runtime` 会额外检查测试服依赖和资产目录，包括 CraftEngine、FAWE/WorldEdit、Multiverse、PlaceholderAPI、VectorDisplays、PacketEvents、CraftEngine `backrooms` 资源包目录、categories/translations/lang、资源包模型/贴图数量、schematic 模板文件和当前 runtime 模块数量。
+
+当前测试服已开启本地 RCON，便于在隐藏窗口服务器上执行验证命令：
+
+```text
+rcon.port=25575
+rcon.password=backrooms-dev
+```
 
 ## CraftEngine 测试
 
