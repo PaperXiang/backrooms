@@ -5,10 +5,10 @@
 ## 导入位置
 
 ```text
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/block/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/custom/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/item/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/textures/block/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/item/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/
 server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml
 ```
 
@@ -20,6 +20,7 @@ server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_lev
 - 灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire`，并关闭 suffocation / view blocking / occlusion。
 - crate 系列临时使用 `simple_storage_block`，方便后续接 loot container。
 - 贴图路径统一改写为 `backrooms:block/faithful/<texture>`，模型路径统一改写为 `backrooms:block/faithful/<model>` 或 `backrooms:custom/faithful/<model>`。
+- 注意：CraftEngine 资源包文件需要放在资源目录的 `resourcepack/assets/...` 下；直接放在 `assets/...` 会导致 `/ce reload all` 提示缺少模型文件。
 
 ## 本次配置的 CE 方块
 

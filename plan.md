@@ -602,3 +602,12 @@ plugins/BackroomsCore/
 - 项目内 `server-configs` 与测试服 `devserver/plugins/CraftEngine/resources/backrooms` 的对应配置均已同步修复。
 - 日志中提到的 Faithful item model 文件已确认存在于项目资源包和测试服资源包；如果再次出现，优先执行 `/ce clean-cache` 后再 `/ce reload all` 排除缓存或旧 pack 状态。
 - 下一步重点：重新执行 `/ce reload all`，确认上述三个 vanilla texture 警告消失，并继续验证 `backrooms:faithful_*` 建图方块模型、碰撞、灯光和 storage 行为。
+
+### 12.19 Step 022 CraftEngine resourcepack 资产目录修复状态
+
+- 已确认 `backrooms:faithful_*` item model 文件本身存在，但之前放在 `resources/backrooms/assets/...` 下，CraftEngine reload 仍提示缺失，说明该路径没有被资源包打包流程扫描。
+- 已将项目内 Faithful 资源包文件移动到 `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/...`。
+- 已将测试服 CraftEngine 资源目录同步移动到 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\resourcepack\assets/...`。
+- 已更新 `docs/faithful-assets-ce.md`，明确 CE 资源包文件必须位于资源目录的 `resourcepack/assets/...` 下。
+- 已确认项目与测试服旧 `assets` 目录均不存在，新目录下存在 `resourcepack/assets/backrooms/models/item/faithful/manilla_wallpaper.json`。
+- 下一步重点：执行 `/ce clean-cache` 后再 `/ce reload all`，确认 Faithful item model 缺失警告消失；如果仍缺失，检查 CE 最终生成资源包 zip 中是否包含 `assets/backrooms/models/item/faithful/*.json`。

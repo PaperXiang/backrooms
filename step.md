@@ -198,6 +198,43 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 已确认警告中列出的 Faithful item model 文件在项目资源包和 devserver 资源包中存在。
 
+## Step 022 - CraftEngine resourcepack 资产目录修复
+
+### 本次完成
+
+- 根据 `/ce reload all` 仍提示 `backrooms:faithful_*` item model 缺失的问题，确认模型文件虽然存在，但放置目录不符合 CraftEngine 资源包结构。
+- 将项目内 Faithful 资源包文件从：
+  - `server-configs/CraftEngine/resources/backrooms/assets/...`
+  移动到：
+  - `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/...`
+- 将测试服 CraftEngine 资源目录同步做同样移动：
+  - `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\resourcepack\assets/...`
+- 更新 `docs/faithful-assets-ce.md`，明确 CraftEngine 资源包文件必须位于 `resourcepack/assets/...`，不能直接放在资源根目录的 `assets/...`。
+- 已确认旧 `assets` 目录不存在，新 `resourcepack/assets/backrooms/models/item/faithful/manilla_wallpaper.json` 在项目与测试服中均存在。
+
+### 修改文件
+
+- `docs/faithful-assets-ce.md`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/**`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\resourcepack\assets/**`
+
+### 设计原因
+
+- CraftEngine 会从资源目录的 `resourcepack/assets/...` 收集资源包文件；之前直接放在 `assets/...` 下，文件本身存在，但不会被 CE 打包扫描到，因此 reload 时仍提示缺少 item model。
+- 保持配置里的 `backrooms:item/faithful/...`、`backrooms:block/faithful/...` 路径不变，只修正物理目录结构，符合 Minecraft 资源包解析规则。
+
+### 下一步建议
+
+- 在测试服执行 `/ce clean-cache`。
+- 再执行 `/ce reload all`。
+- 如果仍有缺失，检查 CE 生成的最终资源包 zip 内是否包含 `assets/backrooms/models/item/faithful/*.json`。
+
+### 测试与验证
+
+- 已确认项目旧目录 `server-configs/CraftEngine/resources/backrooms/assets` 不存在。
+- 已确认测试服旧目录 `plugins/CraftEngine/resources/backrooms/assets` 不存在。
+- 已确认项目与测试服新目录下存在 `resourcepack/assets/backrooms/models/item/faithful/manilla_wallpaper.json`。
+
 ## Step 019 - FAWE schematic 有限区域 worldgen MVP
 
 ### 本次完成
