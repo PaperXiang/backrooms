@@ -1,5 +1,57 @@
 # 开发记录
 
+## Step 030 - Loot Source 调试命令
+
+### 本次完成
+
+- 新增 `/br loot sources`，用于列出当前加载的 Loot Source。
+- 新增 `/br loot source info <id>`，用于查看单个 Loot Source 详情。
+- 新增 tab completion：
+  - `/br loot sources`
+  - `/br loot source info <id>`
+- 新增权限：
+  - `backrooms.command.loot.source.list`
+  - `backrooms.command.loot.source.info`
+- 将新权限加入 `backrooms.admin`。
+- README 的 Loot / Resource 测试流程已补充 Loot Source 调试命令。
+- `deployDevServer` 和 `syncDevServerConfig` 关闭 task state tracking，避免 Paper 运行目录中的 `.paper-remapped` 或运行时文件影响 Gradle Copy 任务。
+
+### 修改文件
+
+- `README.md`
+- `build.gradle`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceService.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- Loot Source 已接入 runtime，但没有管理员命令时只能通过日志确认数量，无法在实机中检查具体 source 的 Level、材质、坐标和 loot table。
+- 容器源依赖真实地图坐标，调试命令可以在替换占位坐标时快速确认当前服务器加载的配置是否正确。
+- 关闭 devserver Copy 任务的状态跟踪，是因为测试服运行目录是 Paper 管理的可变目录，Gradle 不应尝试对整个目标目录做可靠增量快照。
+
+### 下一步建议
+
+- 玩家进服后执行 `/br loot sources` 和 `/br loot source info level0_supply_container`，确认命令输出与配置一致。
+- 在 `level_0` / `level_1` 占位坐标放置空 `CHEST` 或 `BARREL`，打开容器验证首次生成和 one-time 防重复。
+- 后续继续接入 CE 容器、尸体方块和事件奖励 source。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Running Java 21`
+  - `Loaded loot sources: enabled=true, definitions=2, skipped=0`
+  - `Runtime config reloaded ... lootSources=2`
+  - `Registered listeners: ... LootSourceListener`
+  - `Registered Paper command handler: /br`
+  - `BackroomsCore enabled successfully ... lootSources=2`
+
 ## Step 029 - 测试服 BackroomsCore 配置同步任务
 
 ### 本次完成

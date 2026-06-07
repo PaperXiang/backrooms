@@ -67,11 +67,13 @@ processResources {
 
 tasks.register('deployDevServer', Copy) {
     dependsOn tasks.named('jar')
+    doNotTrackState('Devserver plugins directory contains Paper runtime files.')
     from tasks.named('jar')
     into layout.projectDirectory.dir('../devserver/plugins')
 }
 
 tasks.register('syncDevServerConfig', Copy) {
+    doNotTrackState('Devserver plugin data directory is a mutable runtime directory.')
     from('src/main/resources') {
         include 'config.yml'
         include 'items.yml'

@@ -461,6 +461,7 @@ plugins/BackroomsCore/
 - 已新增 Loot Source MVP：原版 `CHEST` / `BARREL` 容器打开时可按配置从 Loot Table 注入物品，并用 TileState PDC 标记 one-time 生成状态。
 - 已新增 Gradle `syncDevServerConfig` 与 `deployDevServerAll`，用于同步 BackroomsCore 运行时 YAML 到测试服 `plugins/backrooms`，避免 jar 与 YAML 版本不一致。
 - 已用 Java 21 重启测试服并验证 BackroomsCore 启动日志：`lootSources=2`、`lootTables=2`、`resourceBlocks=2`、`transitions=2`、`rooms=3`；CraftEngine 在 Java 21 下不再出现 Java 26 的 ASM class major 70 警告。
+- 已新增 Loot Source 调试命令：`/br loot sources` 和 `/br loot source info <id>`，用于实机查看容器源的 Level、材质、坐标、loot table、one-time 和 fill-empty-only。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
@@ -679,3 +680,12 @@ plugins/BackroomsCore/
 - README 构建与部署章节已补充 `syncDevServerConfig` 和 `deployDevServerAll`。
 - 已运行 `.\gradlew.bat syncDevServerConfig build`，任务与构建均通过。
 - 下一步重点：后续每次修改 `src/main/resources/*.yml` 后，使用 `syncDevServerConfig` 或 `deployDevServerAll` 保证测试服实际加载的 YAML 与仓库一致。
+
+### 12.26 Step 030 Loot Source 调试命令状态
+
+- 已新增 `/br loot sources`，列出当前加载的 Loot Source id、type、levels、materials、loot tables 和 enabled 状态。
+- 已新增 `/br loot source info <id>`，显示单个 Loot Source 的 type、levels、materials、locations、loot tables、one-time 和 fill-empty-only。
+- 已新增权限 `backrooms.command.loot.source.list` 与 `backrooms.command.loot.source.info`，并加入 `backrooms.admin`。
+- README 的 Loot / Resource 测试流程已补充 Loot Source 调试命令。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，部署、配置同步和构建均通过；测试服用 Java 21 重启后，BackroomsCore 启动日志显示 `lootSources=2`、监听器注册成功、`/br` 命令注册成功。
+- 下一步重点：玩家进服后实际执行 `/br loot sources`、`/br loot source info level0_supply_container`，再打开占位容器验证 one-time 生成。

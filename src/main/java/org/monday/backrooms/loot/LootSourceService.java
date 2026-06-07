@@ -86,6 +86,10 @@ public final class LootSourceService {
         return Collections.unmodifiableCollection(definitions.values());
     }
 
+    public Optional<LootSourceDefinition> get(String id) {
+        return Optional.ofNullable(definitions.get(normalize(id)));
+    }
+
     public boolean handleVanillaContainerOpen(Player player, Block block, Inventory inventory) {
         if (!enabled || block == null || inventory == null) {
             return false;

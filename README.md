@@ -198,6 +198,9 @@ level_1
 /br loot roll level0_basic_supplies <player>
 /br loot info level1_scrap_cache
 /br loot roll level1_scrap_cache <player>
+/br loot sources
+/br loot source info level0_supply_container
+/br loot source info level1_scrap_container
 
 /br resources
 /br resource info level0_loose_carpet

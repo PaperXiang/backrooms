@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
+import org.monday.backrooms.loot.LootSourceDefinition;
 import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
@@ -44,6 +45,8 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_LIST_PERMISSION = "backrooms.command.loot.list";
     private static final String LOOT_INFO_PERMISSION = "backrooms.command.loot.info";
     private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
+    private static final String LOOT_SOURCE_LIST_PERMISSION = "backrooms.command.loot.source.list";
+    private static final String LOOT_SOURCE_INFO_PERMISSION = "backrooms.command.loot.source.info";
     private static final String ITEM_LIST_PERMISSION = "backrooms.command.item.list";
     private static final String ITEM_INFO_PERMISSION = "backrooms.command.item.info";
     private static final String ITEM_GIVE_PERMISSION = "backrooms.command.item.give";
@@ -121,6 +124,20 @@ public final class BrCommand implements TabExecutor {
         if (is(args[0], "loot")) {
             if (args.length < 2 || is(args[1], "list")) {
                 sendLootTables(sender);
+                return true;
+            }
+
+            if (is(args[1], "sources")) {
+                sendLootSources(sender);
+                return true;
+            }
+
+            if (is(args[1], "source")) {
+                if (args.length < 4 || !is(args[2], "info")) {
+                    plugin.messages().send(sender, "loot-source-info-usage");
+                    return true;
+                }
+                sendLootSourceInfo(sender, args[3]);
                 return true;
             }
 
@@ -359,7 +376,9 @@ public final class BrCommand implements TabExecutor {
             }
             if (sender.hasPermission(LOOT_LIST_PERMISSION)
                     || sender.hasPermission(LOOT_INFO_PERMISSION)
-                    || sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+                    || sender.hasPermission(LOOT_ROLL_PERMISSION)
+                    || sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)
+                    || sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
                 options.add("loot");
             }
             if (sender.hasPermission(ITEM_LIST_PERMISSION)) {
@@ -444,11 +463,25 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(LOOT_ROLL_PERMISSION)) {
                 options.add("roll");
             }
+            if (sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)) {
+                options.add("sources");
+            }
+            if (sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+                options.add("source");
+            }
             return filter(options, args[1]);
         }
 
         if (args.length == 3 && is(args[0], "loot") && canCompleteLootIds(sender, args[1])) {
             return filter(plugin.lootTables().all().stream().map(LootTableDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 3 && is(args[0], "loot") && is(args[1], "source") && sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+            return filter(List.of("info"), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "info") && sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+            return filter(plugin.lootSources().all().stream().map(LootSourceDefinition::id).toList(), args[3]);
         }
 
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
@@ -861,6 +894,55 @@ public final class BrCommand implements TabExecutor {
                 messages.text("rolls", table.rollsDescription()),
                 messages.text("entries", String.valueOf(table.entries().size()))
         ), () -> messages.send(sender, "loot-table-not-found", messages.text("id", id)));
+    }
+
+    private void sendLootSources(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.lootSources().all().isEmpty()) {
+            messages.send(sender, "loot-sources-empty");
+            return;
+        }
+
+        messages.send(sender, "loot-sources-header");
+        for (LootSourceDefinition source : plugin.lootSources().all()) {
+            messages.send(sender, "loot-source-line",
+                    messages.text("id", source.id()),
+                    messages.bool("enabled", source.enabled()),
+                    messages.text("type", source.type().name().toLowerCase(Locale.ROOT)),
+                    messages.text("levels", source.levels().isEmpty() ? "any" : String.join(",", source.levels())),
+                    messages.text("materials", source.materials().stream().map(Enum::name).sorted().toList().toString()),
+                    messages.text("tables", String.join(",", source.lootTables()))
+            );
+        }
+    }
+
+    private void sendLootSourceInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.lootSources().get(id).ifPresentOrElse(source -> messages.send(sender, "loot-source-info",
+                messages.text("id", source.id()),
+                messages.bool("enabled", source.enabled()),
+                messages.text("type", source.type().name().toLowerCase(Locale.ROOT)),
+                messages.text("levels", source.levels().isEmpty() ? "any" : String.join(",", source.levels())),
+                messages.text("materials", source.materials().stream().map(Enum::name).sorted().toList().toString()),
+                messages.text("locations", source.locations().isEmpty() ? "any" : source.locations().stream()
+                        .map(position -> position.x() + "," + position.y() + "," + position.z())
+                        .sorted()
+                        .toList()
+                        .toString()),
+                messages.text("tables", String.join(",", source.lootTables())),
+                messages.bool("one_time", source.oneTime()),
+                messages.bool("fill_empty_only", source.fillEmptyOnly())
+        ), () -> messages.send(sender, "loot-source-not-found", messages.text("id", id)));
     }
 
     private void rollLootTable(CommandSender sender, String id, String targetName) {
