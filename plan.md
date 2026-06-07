@@ -459,6 +459,8 @@ plugins/BackroomsCore/
 - 已将 `/br level tp` 与 Transition 迁移到 Paper `teleportAsync`，当前代码中没有同步 `Player#teleport` 调用残留。
 - 已将 `/br reload` 改为 staged runtime reload：先用新配置临时加载 Level、Item、Sanity HUD、Sanity、Loot、Resource、Transition、Room、Worldgen，全部成功后统一提交；失败时 live runtime 保持不变。
 - 已新增 Loot Source MVP：原版 `CHEST` / `BARREL` 容器打开时可按配置从 Loot Table 注入物品，并用 TileState PDC 标记 one-time 生成状态。
+- 已新增 Gradle `syncDevServerConfig` 与 `deployDevServerAll`，用于同步 BackroomsCore 运行时 YAML 到测试服 `plugins/backrooms`，避免 jar 与 YAML 版本不一致。
+- 已用 Java 21 重启测试服并验证 BackroomsCore 启动日志：`lootSources=2`、`lootTables=2`、`resourceBlocks=2`、`transitions=2`、`rooms=3`；CraftEngine 在 Java 21 下不再出现 Java 26 的 ASM class major 70 警告。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
@@ -667,4 +669,13 @@ plugins/BackroomsCore/
 - `/br reload` staged runtime 已接入 Loot Source，`/br debug config` 已显示 Loot sources 数量。
 - 默认配置提供两个占位容器源：`level0_supply_container` 与 `level1_scrap_container`，坐标均为 `x=4 y=64 z=0`，后续真实地图制作完成后需要替换。
 - 已运行 `.\gradlew.bat build`，构建通过；已运行 `.\gradlew.bat deployDevServer`，最新 jar 已部署到测试服 `plugins` 目录。
+- 已同步 `loot.yml` 与 `messages.yml` 到测试服，并用 Java 21 重启测试服验证：BackroomsCore 日志显示 `Loaded loot sources: enabled=true, definitions=2, skipped=0` 和 `lootSources=2`。
 - 下一步重点：完整重启测试服，在 `level_0` 和 `level_1` 的占位坐标放置空 `CHEST` 或 `BARREL`，执行 `/br reload` 后打开容器，确认首次生成与 one-time 防重复生效。
+
+### 12.25 Step 029 测试服配置同步任务状态
+
+- 已新增 Gradle `syncDevServerConfig`，将 `src/main/resources` 中的 BackroomsCore 运行时 YAML 同步到 `D:\dev\backrooms\devserver\plugins\backrooms`。
+- 已新增 Gradle `deployDevServerAll`，同时执行 jar 部署和 BackroomsCore YAML 同步。
+- README 构建与部署章节已补充 `syncDevServerConfig` 和 `deployDevServerAll`。
+- 已运行 `.\gradlew.bat syncDevServerConfig build`，任务与构建均通过。
+- 下一步重点：后续每次修改 `src/main/resources/*.yml` 后，使用 `syncDevServerConfig` 或 `deployDevServerAll` 保证测试服实际加载的 YAML 与仓库一致。

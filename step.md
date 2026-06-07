@@ -1,5 +1,54 @@
 # 开发记录
 
+## Step 029 - 测试服 BackroomsCore 配置同步任务
+
+### 本次完成
+
+- 新增 Gradle `syncDevServerConfig`，将 `src/main/resources` 中的 BackroomsCore 运行时 YAML 同步到测试服：
+  - `config.yml`
+  - `items.yml`
+  - `loot.yml`
+  - `messages.yml`
+  - `resources.yml`
+  - `rooms.yml`
+  - `transitions.yml`
+  - `worldgen.yml`
+  - `levels/**`
+  - `settings/**`
+- 新增 Gradle `deployDevServerAll`，同时执行 jar 部署和 BackroomsCore YAML 同步。
+- README 的构建与部署章节已补充 `syncDevServerConfig` 和 `deployDevServerAll`。
+- 使用 Java 21 重启测试服，避免 Java 26 下 CraftEngine / Paper remap 触发 `Unsupported class file major version 70` 警告。
+- 验证测试服启动日志中 BackroomsCore 已加载 `lootSources=2`。
+
+### 修改文件
+
+- `README.md`
+- `build.gradle`
+- `plan.md`
+- `step.md`
+
+### 设计原因
+
+- `deployDevServer` 只复制 jar，不覆盖测试服 `plugins/backrooms/*.yml`；新增 `loot-sources` 后，测试服仍使用旧 `loot.yml`，导致启动日志显示 `Loot sources disabled by config`。
+- 把 BackroomsCore 运行时 YAML 同步做成 Gradle task，可以让代码、默认配置和测试服实际配置保持一致，减少实机验证时的误判。
+- 保留独立 `syncDevServerConfig`，避免每次只部署 jar 时都无意覆盖测试服配置；需要完整同步时使用 `deployDevServerAll`。
+
+### 下一步建议
+
+- 后续凡是修改 `src/main/resources/*.yml`，实机验证前执行 `.\gradlew.bat syncDevServerConfig` 或 `.\gradlew.bat deployDevServerAll`。
+- 继续在游戏内测试 `level0_supply_container` 与 `level1_scrap_container` 的首次生成和 one-time 防重复。
+- 如果后续真实地图坐标确定，应先更新仓库里的 YAML，再同步到测试服，避免测试服配置漂移。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat syncDevServerConfig build`，任务和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Running Java 21`
+  - `Loaded loot sources: enabled=true, definitions=2, skipped=0`
+  - `Runtime config reloaded ... lootSources=2`
+  - `BackroomsCore enabled successfully ... lootSources=2`
+
 ## Step 028 - 原版容器 Loot Source MVP
 
 ### 本次完成
@@ -58,6 +107,7 @@
 - 已运行 `.\gradlew.bat build`，构建通过。
 - 已运行 `.\gradlew.bat deployDevServer`，部署通过。
 - 测试服最新 jar 时间为 `2026-06-08 00:12:56`，大小 `195367` bytes。
+- 同步 `loot.yml` / `messages.yml` 并用 Java 21 重启后，测试服日志已确认 `lootSources=2`。
 
 ## Step 027 - staged reload 与异步传送收敛
 
