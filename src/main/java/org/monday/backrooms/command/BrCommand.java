@@ -41,7 +41,9 @@ import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
 import org.monday.backrooms.resource.ResourceBlockDefinition;
+import org.monday.backrooms.resource.ResourceBlockService.ResourceHarvestResult;
 import org.monday.backrooms.resource.ResourceDrop;
+import org.monday.backrooms.resource.ResourceTrigger;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.room.RoomShape;
@@ -82,6 +84,7 @@ public final class BrCommand implements TabExecutor {
     private static final String ITEM_GIVE_PERMISSION = "backrooms.command.item.give";
     private static final String RESOURCE_LIST_PERMISSION = "backrooms.command.resource.list";
     private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
+    private static final String RESOURCE_HARVEST_PERMISSION = "backrooms.command.resource.harvest";
     private static final String WORLDGEN_TEMPLATES_PERMISSION = "backrooms.command.worldgen.templates";
     private static final String WORLDGEN_GENERATE_PERMISSION = "backrooms.command.worldgen.generate";
     private static final String WORLDGEN_SCAFFOLD_PERMISSION = "backrooms.command.worldgen.scaffold";
@@ -355,6 +358,15 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 sampleResource(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            if (is(args[1], "harvest")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "resource-harvest-usage");
+                    return true;
+                }
+                harvestResource(sender, args[2], args.length >= 4 ? args[3] : null);
                 return true;
             }
 
@@ -745,15 +757,24 @@ public final class BrCommand implements TabExecutor {
                 options.add("info");
                 options.add("sample");
             }
+            if (sender.hasPermission(RESOURCE_HARVEST_PERMISSION)) {
+                options.add("harvest");
+            }
             return filter(options, args[1]);
         }
 
-        if (args.length == 3 && is(args[0], "resource") && (is(args[1], "info") || is(args[1], "sample")) && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+        if (args.length == 3 && is(args[0], "resource")
+                && ((is(args[1], "info") || is(args[1], "sample")) && sender.hasPermission(RESOURCE_INFO_PERMISSION)
+                || (is(args[1], "harvest") && sender.hasPermission(RESOURCE_HARVEST_PERMISSION)))) {
             return filter(plugin.resources().all().stream().map(ResourceBlockDefinition::id).toList(), args[2]);
         }
 
         if (args.length == 4 && is(args[0], "resource") && is(args[1], "sample") && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
             return filter(List.of("1", "5", "10", "25", "50"), args[3]);
+        }
+
+        if (args.length == 4 && is(args[0], "resource") && is(args[1], "harvest") && sender.hasPermission(RESOURCE_HARVEST_PERMISSION)) {
+            return filter(List.of("right-click", "break"), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "worldgen")) {
@@ -2912,6 +2933,52 @@ public final class BrCommand implements TabExecutor {
                     }
                     sendSampleResult(sender, "resource-sample-success", "resource-sample-empty", resource.id(), rolls, generated);
                 }, () -> messages.send(sender, "resource-not-found", messages.text("id", id)));
+    }
+
+    private void harvestResource(CommandSender sender, String id, String triggerInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(RESOURCE_HARVEST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        ResourceTrigger trigger = null;
+        if (triggerInput != null && !triggerInput.isBlank()) {
+            java.util.Optional<ResourceTrigger> parsed = ResourceTrigger.fromConfig(triggerInput);
+            if (parsed.isEmpty()) {
+                messages.send(sender, "resource-harvest-usage");
+                return;
+            }
+            trigger = parsed.get();
+        }
+
+        ResourceHarvestResult result = plugin.resources().harvestConfigured(id, trigger);
+        switch (result.status()) {
+            case SUCCESS, PARTIAL -> messages.send(sender, "resource-harvest-success",
+                    messages.text("id", result.definition().id()),
+                    messages.text("trigger", result.trigger().name().toLowerCase(Locale.ROOT).replace('_', '-')),
+                    messages.text("checked", String.valueOf(result.checked())),
+                    messages.text("harvested", String.valueOf(result.harvested())),
+                    messages.text("items", String.valueOf(result.generatedStacks())),
+                    messages.text("cooldowns", String.valueOf(result.cooldowns())),
+                    messages.text("removed", String.valueOf(result.removedBlocks())),
+                    messages.text("issues", describeList(result.issues()))
+            );
+            case FAILED, NO_WORLDS -> messages.send(sender, "resource-harvest-failed",
+                    messages.text("id", result.definition().id()),
+                    messages.text("checked", String.valueOf(result.checked())),
+                    messages.text("issues", describeList(result.issues()))
+            );
+            case NOT_FOUND -> messages.send(sender, "resource-not-found", messages.text("id", id));
+            case NO_LOCATIONS -> messages.send(sender, "resource-harvest-no-locations",
+                    messages.text("id", result.definition().id())
+            );
+            case UNSUPPORTED_TRIGGER -> messages.send(sender, "resource-harvest-unsupported-trigger",
+                    messages.text("id", result.definition().id()),
+                    messages.text("trigger", result.trigger().name().toLowerCase(Locale.ROOT).replace('_', '-')),
+                    messages.text("issues", describeList(result.issues()))
+            );
+        }
     }
 
     private java.util.Optional<ItemStack> createResourceSampleStack(ResourceDrop drop, int amount) {

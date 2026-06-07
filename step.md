@@ -1,5 +1,59 @@
 # 开发记录
 
+## Step 048 - Resource harvest 命令
+
+### 本次完成
+
+- 新增 `/br resource harvest <id> [break|right-click]`。
+- 新增权限：
+  - `backrooms.command.resource.harvest`
+- 新增 help、usage 与 tab completion：
+  - `/br resource harvest <id> [break|right-click]`
+- 新增 `ResourceBlockService#harvestConfigured(...)`：
+  - 只作用于配置的固定 `locations`。
+  - 默认优先使用 `right-click` trigger，否则使用 `break`。
+  - 可显式指定 `break` 或 `right-click`。
+  - 复用实际 Loot Table roll 和内联 drops 创建路径。
+  - 执行 cooldown、`remove-block` 和 replacement。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- `/br resource sample` 只能验证产物创建，不会触发真实世界掉落、cooldown 或 `remove-block`。
+- 玩家事件路径还需要在线玩家；管理员命令可以在 RCON 中先验证配置坐标、方块材质和服务层 harvest 行为。
+- 命令会修改测试服世界，因此不做全图扫描，只按配置 `locations` 执行。
+
+### 下一步建议
+
+- 玩家进服后右键 Level 0 资源点，确认事件取消、掉落位置和 cooldown 提示。
+- 玩家进服后破坏 Level 1 资源点，确认方块移除、掉落可见性和保护规则交互。
+- 真实地图制作后替换 `resources.yml` 坐标，再跑 `/br verify map` 与 `/br resource harvest <id>`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br resource harvest level0_loose_carpet`：
+  - 首次：`trigger=right-click, checked=1, harvested=1, items=1, cooldowns=0, removed=0`。
+  - 第二次：`trigger=right-click, checked=1, harvested=0, items=0, cooldowns=1, removed=0`。
+- 已通过 RCON 执行 `br resource harvest level1_scrap_ore`：
+  - 首次：`trigger=break, checked=1, harvested=1, items=2, cooldowns=0, removed=1`。
+  - 第二次：因方块已替换为 AIR，按预期报告 `material=AIR`。
+- 已用 RCON 执行 `execute in minecraft:level_1 run setblock 0 64 0 iron_ore` 恢复测试锚点。
+- 已通过 RCON 执行 `br verify loot`，当前全 PASS。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+- 已通过 RCON 执行 `br verify map`，当前全 PASS。
+
 ## Step 047 - vanilla 容器 Loot Source 填充命令
 
 ### 本次完成

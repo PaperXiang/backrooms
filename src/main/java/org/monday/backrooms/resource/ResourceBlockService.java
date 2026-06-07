@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
+import org.monday.backrooms.loot.LootTableDefinition;
 
 public final class ResourceBlockService {
 
@@ -81,6 +82,12 @@ public final class ResourceBlockService {
         return Collections.unmodifiableList(definitions);
     }
 
+    public Optional<ResourceBlockDefinition> get(String id) {
+        return definitions.stream()
+                .filter(definition -> definition.id().equalsIgnoreCase(id))
+                .findFirst();
+    }
+
     public boolean handleBreak(BlockBreakEvent event, BackroomsLevel level) {
         Optional<ResourceBlockDefinition> definition = match(level, event.getBlock(), ResourceTrigger.BREAK);
         if (definition.isEmpty()) {
@@ -132,14 +139,101 @@ public final class ResourceBlockService {
             return;
         }
 
+        performHarvest(block, definition);
+    }
+
+    public ResourceHarvestResult harvestConfigured(String id, ResourceTrigger requestedTrigger) {
+        Optional<ResourceBlockDefinition> maybeDefinition = get(id);
+        if (maybeDefinition.isEmpty()) {
+            return ResourceHarvestResult.failed(ResourceHarvestStatus.NOT_FOUND, null);
+        }
+        ResourceBlockDefinition definition = maybeDefinition.get();
+        if (definition.positions().isEmpty()) {
+            return ResourceHarvestResult.failed(ResourceHarvestStatus.NO_LOCATIONS, definition);
+        }
+        ResourceTrigger trigger = requestedTrigger == null ? defaultTrigger(definition) : requestedTrigger;
+        if (!definition.triggers().contains(trigger)) {
+            return new ResourceHarvestResult(ResourceHarvestStatus.UNSUPPORTED_TRIGGER, definition, trigger,
+                    0, 0, 0, 0, 0, List.of("configured triggers=" + definition.triggers()));
+        }
+
+        int checked = 0;
+        int harvested = 0;
+        int generatedStacks = 0;
+        int cooldowns = 0;
+        int removedBlocks = 0;
+        List<String> issues = new ArrayList<>();
+        List<BackroomsLevel> levels = plugin.levels().all().stream()
+                .filter(BackroomsLevel::enabled)
+                .filter(level -> definition.appliesToLevel(level.id()))
+                .toList();
+        if (levels.isEmpty()) {
+            return new ResourceHarvestResult(ResourceHarvestStatus.NO_WORLDS, definition, trigger,
+                    0, 0, 0, 0, 0, List.of("no matching enabled levels"));
+        }
+
+        for (BackroomsLevel level : levels) {
+            if (!level.rules().resourceInteraction()) {
+                issues.add(level.id() + ":resource interaction disabled");
+                continue;
+            }
+            org.bukkit.World world = org.bukkit.Bukkit.getWorld(level.world());
+            if (world == null) {
+                issues.add(level.id() + ":world missing " + level.world());
+                continue;
+            }
+            for (ResourceBlockPosition position : definition.positions()) {
+                checked++;
+                Block block = world.getBlockAt(position.x(), position.y(), position.z());
+                if (!definition.matches(block, trigger)) {
+                    issues.add(level.id() + "@" + position.x() + "," + position.y() + "," + position.z()
+                            + ":material=" + block.getType().name());
+                    continue;
+                }
+                long remainingMillis = remainingCooldown(block, definition);
+                if (remainingMillis > 0L) {
+                    cooldowns++;
+                    continue;
+                }
+
+                ResourceHarvestOperation operation = performHarvest(block, definition);
+                harvested++;
+                generatedStacks += operation.generatedStacks();
+                if (operation.removedBlock()) {
+                    removedBlocks++;
+                }
+            }
+        }
+
+        ResourceHarvestStatus status = issues.isEmpty() ? ResourceHarvestStatus.SUCCESS
+                : (harvested > 0 || cooldowns > 0 ? ResourceHarvestStatus.PARTIAL : ResourceHarvestStatus.FAILED);
+        plugin.getLogger().info("Harvested resource '" + definition.id() + "' via command: trigger=" + trigger.name().toLowerCase(Locale.ROOT)
+                + ", checked=" + checked + ", harvested=" + harvested + ", generatedStacks=" + generatedStacks
+                + ", cooldowns=" + cooldowns + ", issues=" + issues.size() + ".");
+        return new ResourceHarvestResult(status, definition, trigger, checked, harvested, generatedStacks, cooldowns, removedBlocks, List.copyOf(issues));
+    }
+
+    private ResourceTrigger defaultTrigger(ResourceBlockDefinition definition) {
+        if (definition.triggers().contains(ResourceTrigger.RIGHT_CLICK)) {
+            return ResourceTrigger.RIGHT_CLICK;
+        }
+        return ResourceTrigger.BREAK;
+    }
+
+    private ResourceHarvestOperation performHarvest(Block block, ResourceBlockDefinition definition) {
         Location dropLocation = block.getLocation().add(0.5D, 0.5D, 0.5D);
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        int generatedStacks = 0;
         for (String lootTableId : definition.lootTables()) {
-            plugin.lootTables().get(lootTableId).ifPresent(table -> {
-                for (ItemStack item : plugin.lootTables().roll(table)) {
-                    block.getWorld().dropItemNaturally(dropLocation, item);
-                }
-            });
+            Optional<LootTableDefinition> table = plugin.lootTables().get(lootTableId);
+            if (table.isEmpty()) {
+                continue;
+            }
+            List<ItemStack> rolled = plugin.lootTables().roll(table.get());
+            for (ItemStack item : rolled) {
+                block.getWorld().dropItemNaturally(dropLocation, item);
+            }
+            generatedStacks += rolled.size();
         }
         for (ResourceDrop drop : definition.drops()) {
             if (random.nextDouble() > drop.chance()) {
@@ -149,14 +243,21 @@ public final class ResourceBlockService {
             int min = Math.max(1, drop.min());
             int max = Math.max(min, drop.max());
             int amount = random.nextInt(min, max + 1);
-            createStack(drop, amount).ifPresent(item -> block.getWorld().dropItemNaturally(dropLocation, item));
+            Optional<ItemStack> stack = createStack(drop, amount);
+            stack.ifPresent(item -> block.getWorld().dropItemNaturally(dropLocation, item));
+            if (stack.isPresent()) {
+                generatedStacks++;
+            }
         }
 
+        boolean removedBlock = false;
         if (definition.removeBlock()) {
             block.setType(definition.replacement(), false);
+            removedBlock = true;
         }
 
         startCooldown(block, definition);
+        return new ResourceHarvestOperation(generatedStacks, removedBlock);
     }
 
     private Optional<ItemStack> createStack(ResourceDrop drop, int amount) {
@@ -344,5 +445,35 @@ public final class ResourceBlockService {
     private String cooldownKey(Block block, ResourceBlockDefinition definition) {
         Location location = block.getLocation();
         return definition.id() + "@" + location.getWorld().getName() + ":" + location.getBlockX() + ":" + location.getBlockY() + ":" + location.getBlockZ();
+    }
+
+    public enum ResourceHarvestStatus {
+        SUCCESS,
+        PARTIAL,
+        FAILED,
+        NOT_FOUND,
+        NO_LOCATIONS,
+        NO_WORLDS,
+        UNSUPPORTED_TRIGGER
+    }
+
+    public record ResourceHarvestResult(
+            ResourceHarvestStatus status,
+            ResourceBlockDefinition definition,
+            ResourceTrigger trigger,
+            int checked,
+            int harvested,
+            int generatedStacks,
+            int cooldowns,
+            int removedBlocks,
+            List<String> issues
+    ) {
+
+        public static ResourceHarvestResult failed(ResourceHarvestStatus status, ResourceBlockDefinition definition) {
+            return new ResourceHarvestResult(status, definition, null, 0, 0, 0, 0, 0, List.of());
+        }
+    }
+
+    private record ResourceHarvestOperation(int generatedStacks, boolean removedBlock) {
     }
 }

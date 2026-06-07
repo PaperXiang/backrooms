@@ -866,3 +866,12 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br loot source fill level1_scrap_container`：首次 roll 为空但仍写入 one-time 标记，第二次 `already=1`，确认空产物也不会重复刷。
 - 已再次执行 `br verify loot` 与 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后打开这两个容器，确认客户端看到的物品、打开体验和 PDC 防重复与命令路径一致；真实地图制作后替换容器坐标。
+
+### 12.44 Step 048 Resource harvest 命令状态
+
+- 已新增 `/br resource harvest <id> [break|right-click]`，权限为 `backrooms.command.resource.harvest`，并加入 `backrooms.admin`。
+- 命令只作用于 Resource 定义中的固定 `locations`，默认优先使用 `right-click` trigger，没有则使用 `break`，也可显式指定 trigger；执行实际 Loot Table roll、内联 drops、cooldown、`remove-block` 和 replacement。
+- 已通过 RCON 执行 `br resource harvest level0_loose_carpet`：首次 `checked=1, harvested=1, items=1`，第二次 `cooldowns=1`，确认 cooldown 生效。
+- 已通过 RCON 执行 `br resource harvest level1_scrap_ore`：首次 `checked=1, harvested=1, items=2, removed=1`，确认 break 资源点会替换为 AIR；测试后已用 `setblock` 恢复 `IRON_ORE` 占位锚点。
+- 已再次执行 `br verify loot`、`br verify runtime` 和 `br verify map`，当前仍全 PASS。
+- 下一步重点：玩家进服后实测右键/破坏手感、客户端掉落可见性和 Level 保护事件取消；真实地图制作后替换资源点坐标。

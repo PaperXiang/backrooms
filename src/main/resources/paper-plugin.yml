@@ -93,6 +93,9 @@ permissions:
   backrooms.command.resource.info:
     description: Allows viewing Backrooms resource block details
     default: op
+  backrooms.command.resource.harvest:
+    description: Allows triggering configured Backrooms resource blocks
+    default: op
   backrooms.command.worldgen.templates:
     description: Allows listing configured Backrooms schematic templates
     default: op
@@ -154,6 +157,7 @@ permissions:
       backrooms.command.item.give: true
       backrooms.command.resource.list: true
       backrooms.command.resource.info: true
+      backrooms.command.resource.harvest: true
       backrooms.command.worldgen.templates: true
       backrooms.command.worldgen.generate: true
       backrooms.command.worldgen.scaffold: true
