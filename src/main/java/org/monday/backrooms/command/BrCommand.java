@@ -18,6 +18,7 @@ import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
+import org.monday.backrooms.resource.ResourceBlockDefinition;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.TransitionDefinition;
@@ -39,6 +40,8 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_LIST_PERMISSION = "backrooms.command.loot.list";
     private static final String LOOT_INFO_PERMISSION = "backrooms.command.loot.info";
     private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
+    private static final String RESOURCE_LIST_PERMISSION = "backrooms.command.resource.list";
+    private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
 
     private final Backrooms plugin;
 
@@ -73,6 +76,11 @@ public final class BrCommand implements TabExecutor {
             return true;
         }
 
+        if (is(args[0], "resources")) {
+            sendResources(sender);
+            return true;
+        }
+
         if (is(args[0], "loot")) {
             if (args.length < 2 || is(args[1], "list")) {
                 sendLootTables(sender);
@@ -94,6 +102,25 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 rollLootTable(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
+            return true;
+        }
+
+        if (is(args[0], "resource")) {
+            if (args.length < 2 || is(args[1], "list")) {
+                sendResources(sender);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "resource-info-usage");
+                    return true;
+                }
+                sendResourceInfo(sender, args[2]);
                 return true;
             }
 
@@ -265,6 +292,13 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(LOOT_ROLL_PERMISSION)) {
                 options.add("loot");
             }
+            if (sender.hasPermission(RESOURCE_LIST_PERMISSION)) {
+                options.add("resources");
+            }
+            if (sender.hasPermission(RESOURCE_LIST_PERMISSION)
+                    || sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+                options.add("resource");
+            }
             if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
                     || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
                     || sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
@@ -337,6 +371,21 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
             return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
+        }
+
+        if (args.length == 2 && is(args[0], "resource")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(RESOURCE_LIST_PERMISSION)) {
+                options.add("list");
+            }
+            if (sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "resource") && is(args[1], "info") && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+            return filter(plugin.resources().all().stream().map(ResourceBlockDefinition::id).toList(), args[2]);
         }
 
         if (args.length == 2 && is(args[0], "debug")) {
@@ -432,6 +481,56 @@ public final class BrCommand implements TabExecutor {
                     messages.text("levels", room.levels().isEmpty() ? "any" : String.join(",", room.levels()))
             );
         }
+    }
+
+    private void sendResources(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(RESOURCE_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.resources().all().isEmpty()) {
+            messages.send(sender, "resources-empty");
+            return;
+        }
+
+        messages.send(sender, "resources-header");
+        for (ResourceBlockDefinition resource : plugin.resources().all()) {
+            messages.send(sender, "resource-line",
+                    messages.text("id", resource.id()),
+                    messages.text("levels", resource.levels().isEmpty() ? "any" : String.join(",", resource.levels())),
+                    messages.text("materials", resource.materials().stream().map(Enum::name).toList().toString()),
+                    messages.text("triggers", resource.triggers().stream().map(trigger -> trigger.name().toLowerCase(Locale.ROOT)).toList().toString()),
+                    messages.text("loot_tables", resource.lootTables().isEmpty() ? "none" : String.join(",", resource.lootTables())),
+                    messages.text("drops", String.valueOf(resource.drops().size())),
+                    messages.text("locations", String.valueOf(resource.positions().size()))
+            );
+        }
+    }
+
+    private void sendResourceInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.resources().all().stream()
+                .filter(resource -> resource.id().equalsIgnoreCase(id))
+                .findFirst()
+                .ifPresentOrElse(resource -> messages.send(sender, "resource-info",
+                        messages.text("id", resource.id()),
+                        messages.text("levels", resource.levels().isEmpty() ? "any" : String.join(",", resource.levels())),
+                        messages.text("materials", resource.materials().stream().map(Enum::name).toList().toString()),
+                        messages.text("locations", String.valueOf(resource.positions().size())),
+                        messages.text("triggers", resource.triggers().stream().map(trigger -> trigger.name().toLowerCase(Locale.ROOT)).toList().toString()),
+                        messages.text("loot_tables", resource.lootTables().isEmpty() ? "none" : String.join(",", resource.lootTables())),
+                        messages.text("drops", String.valueOf(resource.drops().size())),
+                        messages.bool("remove_block", resource.removeBlock()),
+                        messages.text("replacement", resource.replacement().name()),
+                        messages.text("cooldown", String.valueOf(resource.cooldownSeconds()))
+                ), () -> messages.send(sender, "resource-not-found", messages.text("id", id)));
     }
 
     private void sendLootTables(CommandSender sender) {

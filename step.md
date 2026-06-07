@@ -453,6 +453,49 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 013 - Resource 方块调试命令
+
+### 本次完成
+
+- 为 `ResourceBlockService` 新增只读 `all()` 方法，供命令层查看当前运行时已加载的 Resource 方块定义。
+- 新增 Resource 方块管理/调试命令：
+  - `/br resources`
+  - `/br resource list`
+  - `/br resource info <id>`
+- Resource 列表会显示 id、适用 Level、Material、Trigger、Loot Table、内联 drops 数量和显式 location 数量。
+- Resource 详情会显示 Level、Material、locations 数量、Trigger、Loot Table、drops、是否移除方块、替换方块和冷却时间。
+- 新增 Resource 命令权限：
+  - `backrooms.command.resource.list`
+  - `backrooms.command.resource.info`
+- 补充 `/br help`、tab completion、`messages.yml` 和 `paper-plugin.yml`，方便在测试服定位资源点坐标和 loot table 引用问题。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- Step 012 已把资源点与命名 Loot Table 连接起来，下一步最需要的是实机排查工具，确认当前加载的资源点是否真的引用了正确 Level、Material、坐标和 loot table。
+- 命令只读运行时状态，不修改配置、不生成物品、不改变世界，适合作为测试服验证资源点配置的安全入口。
+- `/br resources` 与现有 `/br rooms`、`/br transitions`、`/br loot list` 保持同类命令风格，降低后续管理命令扩展成本。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后执行 `/br reload`。
+- 使用 `/br resources`、`/br resource info level0_loose_carpet`、`/br resource info level1_scrap_ore` 检查资源点配置是否符合预期。
+- 将 `resources.yml` 中默认 `locations` 替换为真实地图资源点坐标，再验证右键/破坏触发与 Loot Table 掉落。
+- 后续可继续做原版容器 loot source 或 marker 扫描，把 loot table 从资源点扩展到房间/尸体/物资箱。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 012 - Loot Table MVP 与资源点掉落池
 
 ### 本次完成

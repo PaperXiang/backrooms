@@ -523,3 +523,11 @@ plugins/BackroomsCore/
 - Resource 方块新增可选 `loot-tables` 字段，现有 `drops` 保留并与命名 loot table 叠加，便于逐步从内联掉落迁移到可复用战利品池。
 - `/br debug config`、启动日志和 `/br reload` 反馈已包含 Loot Table 数量。
 - 下一步实机验证重点：`/br loot list`、`/br loot info level0_basic_supplies`、`/br loot roll level0_basic_supplies <player>`、资源点触发 loot table，并确认 `/br reload` 后数量稳定。
+
+### 12.10 Step 013 Resource 调试命令状态
+
+- 已新增 Resource 方块运行时只读列表能力，`ResourceBlockService#all()` 可供命令层检查当前加载定义。
+- 已新增 `/br resources`、`/br resource list`、`/br resource info <id>` 管理命令，用于实机查看 resource block 的 Level、Material、Trigger、locations、loot tables、drops、cooldown 与替换方块配置。
+- 已新增 `backrooms.command.resource.list`、`backrooms.command.resource.info` 权限，并加入 `backrooms.admin`。
+- 已补充 `/br help`、tab completion、`messages.yml` 和 `paper-plugin.yml`，方便在测试服定位资源点配置与 loot table 引用问题。
+- 下一步实机验证重点：`/br resources`、`/br resource info level0_loose_carpet`、`/br resource info level1_scrap_ore`，然后把默认 `locations` 替换为真实地图坐标。

@@ -1,6 +1,7 @@
 package org.monday.backrooms.resource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,10 @@ public final class ResourceBlockService {
 
     public int definitionCount() {
         return definitions.size();
+    }
+
+    public List<ResourceBlockDefinition> all() {
+        return Collections.unmodifiableList(definitions);
     }
 
     public boolean handleBreak(BlockBreakEvent event, BackroomsLevel level) {
