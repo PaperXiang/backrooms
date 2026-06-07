@@ -163,6 +163,41 @@
 - 已统计导入资产：textures=51，blockModels=47，customModels=28，itemModels=47。
 - 后续仍需在测试服通过 CraftEngine `/ce reload all` 做实机验证。
 
+## Step 021 - CraftEngine 纹理路径警告修复
+
+### 本次完成
+
+- 根据测试服 CraftEngine reload 日志修复缺失 vanilla 纹理路径警告。
+- 将 `backrooms:fuse` 的纹理从不存在的 `minecraft:item/redstone_torch` 改为 `minecraft:block/redstone_torch`。
+- 将 `backrooms:pipe_segment` 的纹理从不存在的 `minecraft:item/iron_bars` 改为 `minecraft:block/iron_bars`。
+- 将 `backrooms:evacuation_hatch_marker` 的 item model 纹理从不存在的 `minecraft:item/iron_trapdoor` 改为 `minecraft:block/iron_trapdoor`。
+- 同步修复测试服 CraftEngine 资源目录中的对应配置，便于直接执行 `/ce reload all` 验证。
+- 已确认日志中提到的 Faithful item model 文件在项目资源包和测试服资源包中均存在，相关警告更可能来自 reload/pack 缓存或当次 reload 前文件状态。
+
+### 修改文件
+
+- `step.md`
+- `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\items\materials.yml`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\blocks\mvp_blocks.yml`
+
+### 设计原因
+
+- `redstone_torch`、`iron_bars`、`iron_trapdoor` 在 vanilla 资源包里对应 block texture，不是 item texture；继续引用 `minecraft:item/...` 会导致 CraftEngine 打包时提示缺失纹理。
+- 优先修正配置路径，不复制 vanilla 纹理，避免资源包膨胀和维护重复资源。
+
+### 下一步建议
+
+- 在测试服执行 `/ce reload all`。
+- 如果仍提示 Faithful item model 缺失，先执行 `/ce clean-cache` 后再 `/ce reload all`。
+- 如果缺失提示仍存在，检查 CraftEngine 当前实际加载的资源根目录是否为 `plugins/CraftEngine/resources/backrooms`，以及 `assets/backrooms/models/item/faithful/*.json` 是否被打包进生成资源包。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已确认警告中列出的 Faithful item model 文件在项目资源包和 devserver 资源包中存在。
+
 ## Step 019 - FAWE schematic 有限区域 worldgen MVP
 
 ### 本次完成

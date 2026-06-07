@@ -48,7 +48,7 @@ items:
     material: redstone_torch
     data:
       item_name: <!i><red>Electrical Fuse
-    texture: minecraft:item/redstone_torch
+    texture: minecraft:block/redstone_torch
   backrooms:cloth_scrap:
     material: paper
     data:
@@ -58,7 +58,7 @@ items:
     material: iron_bars
     data:
       item_name: <!i><gray>Pipe Segment
-    texture: minecraft:item/iron_bars
+    texture: minecraft:block/iron_bars
   backrooms:flashlight_frame:
     material: paper
     data:

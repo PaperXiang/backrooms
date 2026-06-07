@@ -592,3 +592,13 @@ plugins/BackroomsCore/
 - 已新增 `docs/faithful-assets-ce.md`，说明本次 Faithful 资产导入路径、CE 配置原则、方块 ID 和实机验证命令。
 - README 已补充 Faithful Level 0 CE 建图资产状态和实机验证 TODO。
 - 下一步重点：同步资源到测试服后执行 `/ce reload all`，验证 `backrooms:faithful_yellow_wallpaper`、`backrooms:faithful_old_carpet`、`backrooms:faithful_ceiling_light`、`backrooms:faithful_crate`、`backrooms:faithful_exit_sign` 的模型、碰撞、灯光和 storage 行为。
+
+### 12.18 Step 021 CraftEngine 纹理路径警告修复状态
+
+- 已根据测试服 CraftEngine reload 日志修复 vanilla 纹理路径错误。
+- `backrooms:fuse` 已从 `minecraft:item/redstone_torch` 改为 `minecraft:block/redstone_torch`。
+- `backrooms:pipe_segment` 已从 `minecraft:item/iron_bars` 改为 `minecraft:block/iron_bars`。
+- `backrooms:evacuation_hatch_marker` 已从 `minecraft:item/iron_trapdoor` 改为 `minecraft:block/iron_trapdoor`。
+- 项目内 `server-configs` 与测试服 `devserver/plugins/CraftEngine/resources/backrooms` 的对应配置均已同步修复。
+- 日志中提到的 Faithful item model 文件已确认存在于项目资源包和测试服资源包；如果再次出现，优先执行 `/ce clean-cache` 后再 `/ce reload all` 排除缓存或旧 pack 状态。
+- 下一步重点：重新执行 `/ce reload all`，确认上述三个 vanilla texture 警告消失，并继续验证 `backrooms:faithful_*` 建图方块模型、碰撞、灯光和 storage 行为。

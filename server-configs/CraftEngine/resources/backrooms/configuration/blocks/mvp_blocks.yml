@@ -93,7 +93,7 @@ items:
       generation:
         parent: minecraft:item/generated
         textures:
-          layer0: minecraft:item/iron_trapdoor
+          layer0: minecraft:block/iron_trapdoor
     behavior:
       type: block_item
       block: backrooms:evacuation_hatch_marker
