@@ -8,10 +8,22 @@ loot-tables:
         min: 1
         max: 1
       entries:
-        - material: PAPER
+        - item: backrooms:field_note
           chance: 0.35
           min: 1
           max: 2
+        - item: backrooms:almond_water
+          chance: 0.25
+          min: 1
+          max: 1
+        - item: backrooms:dead_battery
+          chance: 0.20
+          min: 1
+          max: 1
+        - item: backrooms:memory_salt
+          chance: 0.08
+          min: 1
+          max: 1
         - material: BREAD
           chance: 0.15
           min: 1
@@ -27,15 +39,19 @@ loot-tables:
         min: 1
         max: 2
       entries:
-        - material: IRON_NUGGET
+        - item: backrooms:scrap_metal
           chance: 0.75
           min: 1
           max: 4
-        - material: COPPER_INGOT
+        - item: backrooms:copper_wire
           chance: 0.25
           min: 1
           max: 2
-        - material: STRING
-          chance: 0.20
+        - item: backrooms:fuse
+          chance: 0.12
           min: 1
-          max: 2
+          max: 1
+        - item: backrooms:toolbox
+          chance: 0.06
+          min: 1
+          max: 1

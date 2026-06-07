@@ -1,11 +1,15 @@
 # Generated from D:/dev/backrooms/faithfulbackrooms selected Level 0 assets.
-# These entries use imported pre-made models under assets/backrooms/models/*/faithful/.
-# Decorative non-full-cube props use lower_tripwire to avoid full-block suffocation/occlusion.
+# These entries use imported pre-made models under resourcepack/assets/backrooms/models/*/faithful/.
+# Item descriptions use l10n translations from configuration/translations.yml.
+# Non-full-cube props use lower_tripwire and non-occluding settings; do not use solid full-cube fallback states for those assets.
 items:
   backrooms:faithful_yellow_wallpaper:
     material: paper
     data:
-      item_name: <!i><yellow>Level 0 Yellow Wallpaper
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_yellow_wallpaper>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/yellow_wallpaper
@@ -15,7 +19,10 @@ items:
   backrooms:faithful_formless_yellow_wallpaper:
     material: paper
     data:
-      item_name: <!i><yellow>Formless Yellow Wallpaper
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_formless_yellow_wallpaper>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/formless_yellow_wallpaper
@@ -25,7 +32,10 @@ items:
   backrooms:faithful_moist_wallpaper:
     material: paper
     data:
-      item_name: <!i><yellow>Moist Wallpaper
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_moist_wallpaper>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/moist_wallpaper
@@ -35,7 +45,10 @@ items:
   backrooms:faithful_strange_wallpaper:
     material: paper
     data:
-      item_name: <!i><yellow>Strange Wallpaper
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_strange_wallpaper>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/strange_wallpaper
@@ -45,7 +58,10 @@ items:
   backrooms:faithful_manilla_wallpaper:
     material: paper
     data:
-      item_name: <!i><yellow>Manilla Wallpaper
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_manilla_wallpaper>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/manilla_wallpaper
@@ -55,7 +71,10 @@ items:
   backrooms:faithful_beige_wall:
     material: paper
     data:
-      item_name: <!i><yellow>Beige Wall
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_beige_wall>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/beige_wall
@@ -65,7 +84,10 @@ items:
   backrooms:faithful_beige_drywall:
     material: paper
     data:
-      item_name: <!i><yellow>Beige Drywall
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_beige_drywall>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/beige_drywall
@@ -75,7 +97,10 @@ items:
   backrooms:faithful_yellow_wallpaper_half_wall:
     material: paper
     data:
-      item_name: <!i><yellow>Yellow Wallpaper Half Wall
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_yellow_wallpaper_half_wall>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/yellow_wallpaper_half_wall
@@ -85,7 +110,10 @@ items:
   backrooms:faithful_old_carpet:
     material: paper
     data:
-      item_name: <!i><#C9B45A>Old Carpet
+      item_name: "<!i><#C9B45A><l10n:item.backrooms.faithful_old_carpet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/old_carpet
@@ -95,7 +123,10 @@ items:
   backrooms:faithful_moist_carpet:
     material: paper
     data:
-      item_name: <!i><#C9B45A>Moist Carpet
+      item_name: "<!i><#C9B45A><l10n:item.backrooms.faithful_moist_carpet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/moist_carpet
@@ -105,7 +136,10 @@ items:
   backrooms:faithful_office_carpet:
     material: paper
     data:
-      item_name: <!i><#C9B45A>Office Carpet
+      item_name: "<!i><#C9B45A><l10n:item.backrooms.faithful_office_carpet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/office_carpet
@@ -115,7 +149,10 @@ items:
   backrooms:faithful_pale_carpet:
     material: paper
     data:
-      item_name: <!i><#C9B45A>Pale Carpet
+      item_name: "<!i><#C9B45A><l10n:item.backrooms.faithful_pale_carpet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/pale_carpet
@@ -125,7 +162,10 @@ items:
   backrooms:faithful_old_ceiling:
     material: paper
     data:
-      item_name: <!i><gray>Old Ceiling Tile
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_old_ceiling>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/old_ceiling
@@ -135,7 +175,10 @@ items:
   backrooms:faithful_modern_ceiling:
     material: paper
     data:
-      item_name: <!i><gray>Modern Ceiling Tile
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_modern_ceiling>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/modern_ceiling
@@ -145,7 +188,10 @@ items:
   backrooms:faithful_remodelled_ceiling:
     material: paper
     data:
-      item_name: <!i><gray>Remodelled Ceiling Tile
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_remodelled_ceiling>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.structure>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/remodelled_ceiling
@@ -155,7 +201,10 @@ items:
   backrooms:faithful_fallen_ceiling_tile:
     material: paper
     data:
-      item_name: <!i><gray>Fallen Ceiling Tile
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_fallen_ceiling_tile>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/fallen_ceiling_tile
@@ -165,7 +214,10 @@ items:
   backrooms:faithful_ceiling_light:
     material: paper
     data:
-      item_name: <!i><yellow>Ceiling Light
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_ceiling_light>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/ceiling_light
@@ -175,7 +227,10 @@ items:
   backrooms:faithful_broken_ceiling_light:
     material: paper
     data:
-      item_name: <!i><yellow>Broken Ceiling Light
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_broken_ceiling_light>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/broken_ceiling_light
@@ -185,7 +240,10 @@ items:
   backrooms:faithful_modern_ceiling_light:
     material: paper
     data:
-      item_name: <!i><yellow>Modern Ceiling Light
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_modern_ceiling_light>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/modern_ceiling_light
@@ -195,7 +253,10 @@ items:
   backrooms:faithful_modern_ceiling_lightbar:
     material: paper
     data:
-      item_name: <!i><yellow>Modern Ceiling Lightbar
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_modern_ceiling_lightbar>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/modern_ceiling_lightbar
@@ -205,7 +266,10 @@ items:
   backrooms:faithful_industrial_wall_light:
     material: paper
     data:
-      item_name: <!i><yellow>Industrial Wall Light
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_industrial_wall_light>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/industrial_wall_light
@@ -215,7 +279,10 @@ items:
   backrooms:faithful_industrial_wall_light_small:
     material: paper
     data:
-      item_name: <!i><yellow>Small Industrial Wall Light
+      item_name: "<!i><yellow><l10n:item.backrooms.faithful_industrial_wall_light_small>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/industrial_wall_light_small
@@ -225,7 +292,10 @@ items:
   backrooms:faithful_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.faithful_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/crate
@@ -235,7 +305,10 @@ items:
   backrooms:faithful_box_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Box Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.faithful_box_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/box_crate
@@ -245,7 +318,10 @@ items:
   backrooms:faithful_plastic_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Plastic Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.faithful_plastic_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/plastic_crate
@@ -255,7 +331,10 @@ items:
   backrooms:faithful_reinforced_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Reinforced Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.faithful_reinforced_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/reinforced_crate
@@ -265,7 +344,10 @@ items:
   backrooms:faithful_wide_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Wide Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.faithful_wide_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/wide_crate
@@ -275,7 +357,10 @@ items:
   backrooms:faithful_cabinet:
     material: paper
     data:
-      item_name: <!i><white>Cabinet
+      item_name: "<!i><white><l10n:item.backrooms.faithful_cabinet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/cabinet
@@ -285,7 +370,10 @@ items:
   backrooms:faithful_filing_cabinet:
     material: paper
     data:
-      item_name: <!i><white>Filing Cabinet
+      item_name: "<!i><white><l10n:item.backrooms.faithful_filing_cabinet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/filing_cabinet
@@ -295,7 +383,10 @@ items:
   backrooms:faithful_bookshelf:
     material: paper
     data:
-      item_name: <!i><white>Empty Bookshelf
+      item_name: "<!i><white><l10n:item.backrooms.faithful_bookshelf>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/bookshelf
@@ -305,7 +396,10 @@ items:
   backrooms:faithful_bulletin_board:
     material: paper
     data:
-      item_name: <!i><gray>Bulletin Board
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_bulletin_board>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/bulletin_board
@@ -315,7 +409,10 @@ items:
   backrooms:faithful_wall_power_outlet:
     material: paper
     data:
-      item_name: <!i><gray>Wall Power Outlet
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_wall_power_outlet>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/wall_power_outlet
@@ -325,7 +422,10 @@ items:
   backrooms:faithful_modern_vent:
     material: paper
     data:
-      item_name: <!i><gray>Modern Vent
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_modern_vent>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/modern_vent
@@ -335,7 +435,10 @@ items:
   backrooms:faithful_plumbing_pipe:
     material: paper
     data:
-      item_name: <!i><gray>Plumbing Pipe
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_plumbing_pipe>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/plumbing_pipe
@@ -345,7 +448,10 @@ items:
   backrooms:faithful_rusty_plumbing_pipe:
     material: paper
     data:
-      item_name: <!i><gray>Rusty Plumbing Pipe
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_rusty_plumbing_pipe>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/rusty_plumbing_pipe
@@ -355,7 +461,10 @@ items:
   backrooms:faithful_drain_pipe:
     material: paper
     data:
-      item_name: <!i><gray>Drain Pipe
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_drain_pipe>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/drain_pipe
@@ -365,7 +474,10 @@ items:
   backrooms:faithful_skirting_board:
     material: paper
     data:
-      item_name: <!i><gray>Skirting Board
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_skirting_board>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/skirting_board
@@ -375,7 +487,10 @@ items:
   backrooms:faithful_white_skirting_board:
     material: paper
     data:
-      item_name: <!i><gray>White Skirting Board
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_white_skirting_board>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/white_skirting_board
@@ -385,7 +500,10 @@ items:
   backrooms:faithful_black_mould:
     material: paper
     data:
-      item_name: <!i><gray>Black Mould
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_black_mould>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/black_mould
@@ -395,7 +513,10 @@ items:
   backrooms:faithful_exit_sign:
     material: paper
     data:
-      item_name: <!i><gray>Exit Sign
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_exit_sign>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/exit_sign
@@ -405,7 +526,10 @@ items:
   backrooms:faithful_warning_sign:
     material: paper
     data:
-      item_name: <!i><gray>Warning Sign
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_warning_sign>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/warning_sign
@@ -415,7 +539,10 @@ items:
   backrooms:faithful_window_board:
     material: paper
     data:
-      item_name: <!i><gray>Window Board
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_window_board>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/window_board
@@ -425,7 +552,10 @@ items:
   backrooms:faithful_cctv_camera:
     material: paper
     data:
-      item_name: <!i><gray>CCTV Camera
+      item_name: "<!i><gray><l10n:item.backrooms.faithful_cctv_camera>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/cctv_camera
@@ -435,7 +565,10 @@ items:
   backrooms:faithful_cardboard_box:
     material: paper
     data:
-      item_name: <!i><white>Cardboard Box
+      item_name: "<!i><white><l10n:item.backrooms.faithful_cardboard_box>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.nonfull>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/cardboard_box
@@ -445,7 +578,10 @@ items:
   backrooms:faithful_metal_employee_door:
     material: paper
     data:
-      item_name: <!i><aqua>Metal Employee Door
+      item_name: "<!i><aqua><l10n:item.backrooms.faithful_metal_employee_door>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.door>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/metal_employee_door
@@ -455,7 +591,10 @@ items:
   backrooms:faithful_employee_door:
     material: paper
     data:
-      item_name: <!i><aqua>Employee Door
+      item_name: "<!i><aqua><l10n:item.backrooms.faithful_employee_door>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.door>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/employee_door
@@ -465,7 +604,10 @@ items:
   backrooms:faithful_locked_door:
     material: paper
     data:
-      item_name: <!i><aqua>Locked Door
+      item_name: "<!i><aqua><l10n:item.backrooms.faithful_locked_door>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.level0.door>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.faithful>"
     model:
       type: minecraft:model
       path: backrooms:item/faithful/locked_door
@@ -578,10 +720,14 @@ blocks:
         - default:sound/wood
         - default:hardness/wood
       overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: note_block
+      auto_state: lower_tripwire
       model:
         path: backrooms:block/faithful/yellow_wallpaper_half_wall
     loot:
@@ -803,7 +949,7 @@ blocks:
         - default:sound/glass
         - default:hardness/glass
       overrides:
-        luminance: 10
+        luminance: 12
         is_suffocating: false
         is_view_blocking: false
         is_redstone_conductor: false
@@ -888,11 +1034,11 @@ blocks:
   backrooms:faithful_reinforced_crate:
     settings:
       template:
-        - default:sound/metal
-        - default:hardness/stone
+        - default:sound/wood
+        - default:hardness/wood
       overrides:
         tags:
-          - minecraft:mineable/pickaxe
+          - minecraft:mineable/axe
     behavior:
       type: simple_storage_block
       title: "Reinforced Crate"
@@ -1141,7 +1287,6 @@ blocks:
         - default:sound/metal
         - default:hardness/stone
       overrides:
-        luminance: 6
         is_suffocating: false
         is_view_blocking: false
         is_redstone_conductor: false
@@ -1214,10 +1359,14 @@ blocks:
         - default:sound/wood
         - default:hardness/wood
       overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: note_block
+      auto_state: lower_tripwire
       model:
         path: backrooms:block/faithful/cardboard_box
     loot:
@@ -1228,10 +1377,14 @@ blocks:
         - default:sound/metal
         - default:hardness/stone
       overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: note_block
+      auto_state: lower_tripwire
       model:
         path: backrooms:block/faithful/metal_employee_door
     loot:
@@ -1239,13 +1392,17 @@ blocks:
   backrooms:faithful_employee_door:
     settings:
       template:
-        - default:sound/wood
-        - default:hardness/wood
+        - default:sound/metal
+        - default:hardness/stone
       overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
         tags:
-          - minecraft:mineable/axe
+          - minecraft:mineable/pickaxe
     state:
-      auto_state: note_block
+      auto_state: lower_tripwire
       model:
         path: backrooms:block/faithful/employee_door
     loot:
@@ -1256,10 +1413,14 @@ blocks:
         - default:sound/metal
         - default:hardness/stone
       overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: note_block
+      auto_state: lower_tripwire
       model:
         path: backrooms:block/faithful/locked_door
     loot:

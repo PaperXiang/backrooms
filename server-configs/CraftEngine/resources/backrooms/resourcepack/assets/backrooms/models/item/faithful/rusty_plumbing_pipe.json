@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/rusty_plumbing_pipe"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "backrooms:item/faithful/plumbingpipeitme"
+  },
+  "render_type": "translucent"
 }

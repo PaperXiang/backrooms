@@ -1,71 +1,115 @@
+# Backrooms CraftEngine materials.
+# Names and descriptions use l10n translations from configuration/translations.yml.
 items:
   backrooms:almond_water:
     material: honey_bottle
     data:
-      item_name: <!i><#F5E6B8>Almond Water
+      item_name: "<!i><#F5E6B8><l10n:item.backrooms.almond_water>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material.consumable>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/honey_bottle
   backrooms:dead_battery:
     material: paper
     data:
-      item_name: <!i><gray>Dead Battery
+      item_name: "<!i><gray><l10n:item.backrooms.dead_battery>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/redstone
   backrooms:charged_battery:
     material: paper
     data:
-      item_name: <!i><yellow>Charged Battery
+      item_name: "<!i><yellow><l10n:item.backrooms.charged_battery>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/glowstone_dust
   backrooms:scrap_metal:
     material: iron_nugget
     data:
-      item_name: <!i><gray>Scrap Metal
+      item_name: "<!i><gray><l10n:item.backrooms.scrap_metal>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/iron_nugget
   backrooms:copper_wire:
     material: string
     data:
-      item_name: <!i><#C87533>Copper Wire
+      item_name: "<!i><#C87533><l10n:item.backrooms.copper_wire>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/string
   backrooms:generator_part:
     material: copper_ingot
     data:
-      item_name: <!i><gold>Generator Part
+      item_name: "<!i><gold><l10n:item.backrooms.generator_part>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/copper_ingot
   backrooms:meg_chip:
     material: echo_shard
     data:
-      item_name: <!i><aqua>MEG Auth Chip
+      item_name: "<!i><aqua><l10n:item.backrooms.meg_chip>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/echo_shard
   backrooms:level1_keycard:
     material: paper
     data:
-      item_name: <!i><yellow>Level 1 Access Keycard
+      item_name: "<!i><yellow><l10n:item.backrooms.level1_keycard>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material.key>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/name_tag
   backrooms:field_note:
     material: paper
     data:
-      item_name: <!i><white>Field Note
+      item_name: "<!i><white><l10n:item.backrooms.field_note>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material.note>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/paper
   backrooms:fuse:
     material: redstone_torch
     data:
-      item_name: <!i><red>Electrical Fuse
+      item_name: "<!i><red><l10n:item.backrooms.fuse>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:block/redstone_torch
   backrooms:cloth_scrap:
     material: paper
     data:
-      item_name: <!i><white>Cloth Scrap
+      item_name: "<!i><white><l10n:item.backrooms.cloth_scrap>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/string
   backrooms:pipe_segment:
     material: iron_bars
     data:
-      item_name: <!i><gray>Pipe Segment
+      item_name: "<!i><gray><l10n:item.backrooms.pipe_segment>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:block/iron_bars
   backrooms:flashlight_frame:
     material: paper
     data:
-      item_name: <!i><yellow>Flashlight Frame
+      item_name: "<!i><yellow><l10n:item.backrooms.flashlight_frame>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/spyglass
   backrooms:toolbox:
     material: paper
     data:
-      item_name: <!i><gold>Toolbox
+      item_name: "<!i><gold><l10n:item.backrooms.toolbox>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/bundle

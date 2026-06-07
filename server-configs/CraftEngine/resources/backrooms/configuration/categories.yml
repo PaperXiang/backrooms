@@ -1,0 +1,128 @@
+# https://xiao-momi.github.io/craft-engine-wiki/configuration/category
+categories:
+  backrooms:backrooms:
+    priority: 20
+    name: "<!i><#F5E6B8><l10n:category.backrooms.root.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.root.lore>"
+    icon: backrooms:faithful_yellow_wallpaper
+    list:
+      - '#backrooms:materials'
+      - '#backrooms:mvp_blocks'
+      - '#backrooms:level0_structure'
+      - '#backrooms:level0_lighting'
+      - '#backrooms:level0_props'
+      - '#backrooms:level0_storage_doors'
+  backrooms:materials:
+    name: "<!i><white><l10n:category.backrooms.materials.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.materials.lore>"
+    hidden: true
+    icon: backrooms:almond_water
+    list:
+      - backrooms:almond_water
+      - backrooms:dead_battery
+      - backrooms:charged_battery
+      - backrooms:scrap_metal
+      - backrooms:copper_wire
+      - backrooms:generator_part
+      - backrooms:meg_chip
+      - backrooms:level1_keycard
+      - backrooms:field_note
+      - backrooms:fuse
+      - backrooms:cloth_scrap
+      - backrooms:pipe_segment
+      - backrooms:flashlight_frame
+      - backrooms:toolbox
+  backrooms:mvp_blocks:
+    name: "<!i><white><l10n:category.backrooms.mvp_blocks.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.mvp_blocks.lore>"
+    hidden: true
+    icon: backrooms:stairwell_marker
+    list:
+      - backrooms:loose_carpet_cache
+      - backrooms:scrap_pile
+      - backrooms:supply_crate
+      - backrooms:corpse_cache
+      - backrooms:stairwell_marker
+      - backrooms:maintenance_door_marker
+      - backrooms:evacuation_hatch_marker
+      - backrooms:base_claim_terminal
+      - backrooms:generator_core
+      - backrooms:flickering_fluorescent_light
+  backrooms:level0_structure:
+    name: "<!i><white><l10n:category.backrooms.level0_structure.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.level0_structure.lore>"
+    hidden: true
+    icon: backrooms:faithful_yellow_wallpaper
+    list:
+      - backrooms:faithful_yellow_wallpaper
+      - backrooms:faithful_formless_yellow_wallpaper
+      - backrooms:faithful_moist_wallpaper
+      - backrooms:faithful_strange_wallpaper
+      - backrooms:faithful_manilla_wallpaper
+      - backrooms:faithful_beige_wall
+      - backrooms:faithful_beige_drywall
+      - backrooms:faithful_yellow_wallpaper_half_wall
+      - backrooms:faithful_old_carpet
+      - backrooms:faithful_moist_carpet
+      - backrooms:faithful_office_carpet
+      - backrooms:faithful_pale_carpet
+      - backrooms:faithful_old_ceiling
+      - backrooms:faithful_modern_ceiling
+      - backrooms:faithful_remodelled_ceiling
+  backrooms:level0_lighting:
+    name: "<!i><white><l10n:category.backrooms.level0_lighting.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.level0_lighting.lore>"
+    hidden: true
+    icon: backrooms:faithful_ceiling_light
+    list:
+      - backrooms:faithful_ceiling_light
+      - backrooms:faithful_broken_ceiling_light
+      - backrooms:faithful_modern_ceiling_light
+      - backrooms:faithful_modern_ceiling_lightbar
+      - backrooms:faithful_industrial_wall_light
+      - backrooms:faithful_industrial_wall_light_small
+  backrooms:level0_props:
+    name: "<!i><white><l10n:category.backrooms.level0_props.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.level0_props.lore>"
+    hidden: true
+    icon: backrooms:faithful_skirting_board
+    list:
+      - backrooms:faithful_fallen_ceiling_tile
+      - backrooms:faithful_bulletin_board
+      - backrooms:faithful_wall_power_outlet
+      - backrooms:faithful_modern_vent
+      - backrooms:faithful_plumbing_pipe
+      - backrooms:faithful_rusty_plumbing_pipe
+      - backrooms:faithful_drain_pipe
+      - backrooms:faithful_skirting_board
+      - backrooms:faithful_white_skirting_board
+      - backrooms:faithful_black_mould
+      - backrooms:faithful_exit_sign
+      - backrooms:faithful_warning_sign
+      - backrooms:faithful_window_board
+      - backrooms:faithful_cctv_camera
+      - backrooms:faithful_cardboard_box
+  backrooms:level0_storage_doors:
+    name: "<!i><white><l10n:category.backrooms.level0_storage_doors.name>"
+    lore:
+      - "<!i><gray><l10n:category.backrooms.level0_storage_doors.lore>"
+    hidden: true
+    icon: backrooms:faithful_crate
+    list:
+      - backrooms:faithful_crate
+      - backrooms:faithful_box_crate
+      - backrooms:faithful_plastic_crate
+      - backrooms:faithful_reinforced_crate
+      - backrooms:faithful_wide_crate
+      - backrooms:faithful_cabinet
+      - backrooms:faithful_filing_cabinet
+      - backrooms:faithful_bookshelf
+      - backrooms:faithful_metal_employee_door
+      - backrooms:faithful_employee_door
+      - backrooms:faithful_locked_door

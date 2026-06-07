@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.monday.backrooms.Backrooms;
+import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
@@ -43,6 +44,9 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_LIST_PERMISSION = "backrooms.command.loot.list";
     private static final String LOOT_INFO_PERMISSION = "backrooms.command.loot.info";
     private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
+    private static final String ITEM_LIST_PERMISSION = "backrooms.command.item.list";
+    private static final String ITEM_INFO_PERMISSION = "backrooms.command.item.info";
+    private static final String ITEM_GIVE_PERMISSION = "backrooms.command.item.give";
     private static final String RESOURCE_LIST_PERMISSION = "backrooms.command.resource.list";
     private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
     private static final String WORLDGEN_TEMPLATES_PERMISSION = "backrooms.command.worldgen.templates";
@@ -90,6 +94,11 @@ public final class BrCommand implements TabExecutor {
             return true;
         }
 
+        if (is(args[0], "items")) {
+            sendItems(sender);
+            return true;
+        }
+
         if (is(args[0], "worldgen")) {
             if (args.length < 2 || is(args[1], "templates")) {
                 sendSchematicTemplates(sender);
@@ -130,6 +139,34 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 rollLootTable(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
+            return true;
+        }
+
+        if (is(args[0], "item")) {
+            if (args.length < 2 || is(args[1], "list")) {
+                sendItems(sender);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "item-info-usage");
+                    return true;
+                }
+                sendItemInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "give")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "item-give-usage");
+                    return true;
+                }
+                giveItem(sender, args[2], args.length >= 4 ? args[3] : null, args.length >= 5 ? args[4] : null);
                 return true;
             }
 
@@ -279,6 +316,7 @@ public final class BrCommand implements TabExecutor {
             boolean reloaded = plugin.reloadRuntimeConfig();
             plugin.messages().send(sender, reloaded ? "reload" : "reload-failed",
                     plugin.messages().text("count", String.valueOf(plugin.levels().size())),
+                    plugin.messages().text("item_count", String.valueOf(plugin.items().definitionCount())),
                     plugin.messages().text("loot_count", String.valueOf(plugin.lootTables().definitionCount())),
                     plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount())),
                     plugin.messages().text("room_count", String.valueOf(plugin.rooms().definitionCount()))
@@ -323,6 +361,14 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(LOOT_INFO_PERMISSION)
                     || sender.hasPermission(LOOT_ROLL_PERMISSION)) {
                 options.add("loot");
+            }
+            if (sender.hasPermission(ITEM_LIST_PERMISSION)) {
+                options.add("items");
+            }
+            if (sender.hasPermission(ITEM_LIST_PERMISSION)
+                    || sender.hasPermission(ITEM_INFO_PERMISSION)
+                    || sender.hasPermission(ITEM_GIVE_PERMISSION)) {
+                options.add("item");
             }
             if (sender.hasPermission(RESOURCE_LIST_PERMISSION)) {
                 options.add("resources");
@@ -407,6 +453,32 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
             return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
+        }
+
+        if (args.length == 2 && is(args[0], "item")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(ITEM_LIST_PERMISSION)) {
+                options.add("list");
+            }
+            if (sender.hasPermission(ITEM_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(ITEM_GIVE_PERMISSION)) {
+                options.add("give");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "item") && canCompleteItemIds(sender, args[1])) {
+            return filter(plugin.items().all().stream().map(BackroomsItemDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "item") && is(args[1], "give") && sender.hasPermission(ITEM_GIVE_PERMISSION)) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
+        }
+
+        if (args.length == 5 && is(args[0], "item") && is(args[1], "give") && sender.hasPermission(ITEM_GIVE_PERMISSION)) {
+            return filter(List.of("1", "2", "4", "8", "16", "32", "64"), args[4]);
         }
 
         if (args.length == 2 && is(args[0], "resource")) {
@@ -586,6 +658,102 @@ public final class BrCommand implements TabExecutor {
                         messages.text("replacement", resource.replacement().name()),
                         messages.text("cooldown", String.valueOf(resource.cooldownSeconds()))
                 ), () -> messages.send(sender, "resource-not-found", messages.text("id", id)));
+    }
+
+    private void sendItems(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ITEM_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.items().all().isEmpty()) {
+            messages.send(sender, "items-empty");
+            return;
+        }
+
+        messages.send(sender, "items-header");
+        for (BackroomsItemDefinition item : plugin.items().all()) {
+            messages.send(sender, "item-line",
+                    messages.text("id", item.id()),
+                    messages.mini("display", item.displayName()),
+                    messages.text("material", item.material().name()),
+                    messages.text("sanity", item.sanity().hasEffect()
+                            ? "+" + item.sanity().restore() + ", stable " + item.sanity().stabilizeSeconds() + "s"
+                            : "none"),
+                    messages.bool("enabled", item.enabled())
+            );
+        }
+    }
+
+    private void sendItemInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ITEM_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.items().get(id).ifPresentOrElse(item -> messages.send(sender, "item-info",
+                messages.text("id", item.id()),
+                messages.mini("display", item.displayName()),
+                messages.bool("enabled", item.enabled()),
+                messages.text("material", item.material().name()),
+                messages.text("custom_model_data", item.hasCustomModelData() ? String.valueOf(item.customModelData()) : "none"),
+                messages.bool("consume", item.consumeOnRightClick()),
+                messages.text("replacement", item.consumeReplacement().name()),
+                messages.text("cooldown", String.valueOf(item.useCooldownSeconds())),
+                messages.text("sanity_restore", String.valueOf(item.sanity().restore())),
+                messages.text("sanity_stabilize", String.valueOf(item.sanity().stabilizeSeconds())),
+                messages.text("message", item.hasConsumeMessage() ? item.consumeMessage() : "item-used")
+        ), () -> messages.send(sender, "item-not-found", messages.text("id", id)));
+    }
+
+    private void giveItem(CommandSender sender, String id, String targetName, String amountInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ITEM_GIVE_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int amount = parsePositiveInt(amountInput, 1);
+        Player target;
+        if (targetName == null || targetName.isBlank()) {
+            if (!(sender instanceof Player player)) {
+                messages.send(sender, "item-give-usage");
+                return;
+            }
+            target = player;
+        } else if (isPositiveInt(targetName) && sender instanceof Player player) {
+            target = player;
+            amount = parsePositiveInt(targetName, 1);
+        } else {
+            target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                messages.send(sender, "player-not-found", messages.text("player", targetName));
+                return;
+            }
+        }
+
+        var definition = plugin.items().get(id);
+        if (definition.isEmpty()) {
+            messages.send(sender, "item-not-found", messages.text("id", id));
+            return;
+        }
+        if (!definition.get().enabled()) {
+            messages.send(sender, "item-disabled", messages.text("id", definition.get().id()));
+            return;
+        }
+
+        ItemStack item = plugin.items().create(definition.get(), amount);
+        boolean droppedLeftovers = giveRolledItems(target, List.of(item));
+        messages.send(sender, "item-give-success",
+                messages.text("id", definition.get().id()),
+                messages.text("player", target.getName()),
+                messages.text("amount", String.valueOf(amount))
+        );
+        if (droppedLeftovers) {
+            messages.send(sender, "item-give-leftovers-dropped");
+        }
     }
 
     private void sendSchematicTemplates(CommandSender sender) {
@@ -1063,6 +1231,7 @@ public final class BrCommand implements TabExecutor {
                 messages.text("levels_enabled", String.valueOf(plugin.levels().enabledCount())),
                 messages.text("levels_disabled", String.valueOf(plugin.levels().disabledCount())),
                 messages.text("missing_worlds", describeList(missingLevelWorlds)),
+                messages.text("items", String.valueOf(plugin.items().definitionCount())),
                 messages.text("loot_tables", String.valueOf(plugin.lootTables().definitionCount())),
                 messages.text("resource_blocks", String.valueOf(plugin.resources().definitionCount())),
                 messages.text("transitions", String.valueOf(plugin.transitions().definitionCount())),
@@ -1093,6 +1262,33 @@ public final class BrCommand implements TabExecutor {
     private boolean canCompleteLootIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(LOOT_INFO_PERMISSION))
                 || (is(subcommand, "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION));
+    }
+
+    private boolean canCompleteItemIds(CommandSender sender, String subcommand) {
+        return (is(subcommand, "info") && sender.hasPermission(ITEM_INFO_PERMISSION))
+                || (is(subcommand, "give") && sender.hasPermission(ITEM_GIVE_PERMISSION));
+    }
+
+    private int parsePositiveInt(String input, int fallback) {
+        if (input == null || input.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Math.max(1, Integer.parseInt(input));
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
+
+    private boolean isPositiveInt(String input) {
+        if (input == null || input.isBlank()) {
+            return false;
+        }
+        try {
+            return Integer.parseInt(input) > 0;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     private String describeList(List<String> values) {

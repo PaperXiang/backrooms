@@ -4,7 +4,7 @@
     "all": "backrooms:block/faithful/unknown_24",
     "particle": "backrooms:block/faithful/unknown_24",
     "0": "backrooms:block/faithful/unknown_24",
-    "missing": "backrooms:block/faithful/lightskirtingboard"
+    "trim": "backrooms:block/faithful/lightskirtingboard"
   },
   "render_type": "solid"
 }

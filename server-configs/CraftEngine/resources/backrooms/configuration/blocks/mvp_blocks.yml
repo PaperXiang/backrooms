@@ -1,8 +1,13 @@
+# Backrooms CraftEngine MVP block items and marker blocks.
+# Descriptions use l10n translations from configuration/translations.yml.
 items:
   backrooms:loose_carpet_cache:
     material: paper
     data:
-      item_name: <!i><yellow>Loose Carpet Cache
+      item_name: "<!i><yellow><l10n:item.backrooms.loose_carpet_cache>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.resource>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/loose_carpet_cache
@@ -16,7 +21,10 @@ items:
   backrooms:scrap_pile:
     material: paper
     data:
-      item_name: <!i><gray>Scrap Pile
+      item_name: "<!i><gray><l10n:item.backrooms.scrap_pile>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.resource>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/scrap_pile
@@ -30,7 +38,10 @@ items:
   backrooms:supply_crate:
     material: paper
     data:
-      item_name: <!i><#B88A55>Supply Crate
+      item_name: "<!i><#B88A55><l10n:item.backrooms.supply_crate>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/supply_crate
@@ -44,7 +55,10 @@ items:
   backrooms:corpse_cache:
     material: paper
     data:
-      item_name: <!i><dark_red>Unknown Corpse Cache
+      item_name: "<!i><dark_red><l10n:item.backrooms.corpse_cache>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.storage>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/corpse_cache
@@ -58,7 +72,10 @@ items:
   backrooms:stairwell_marker:
     material: paper
     data:
-      item_name: <!i><aqua>Stairwell Marker
+      item_name: "<!i><aqua><l10n:item.backrooms.stairwell_marker>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.marker>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/stairwell_marker
@@ -72,7 +89,10 @@ items:
   backrooms:maintenance_door_marker:
     material: paper
     data:
-      item_name: <!i><gray>Maintenance Door Marker
+      item_name: "<!i><gray><l10n:item.backrooms.maintenance_door_marker>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.marker>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/maintenance_door_marker
@@ -86,7 +106,10 @@ items:
   backrooms:evacuation_hatch_marker:
     material: paper
     data:
-      item_name: <!i><green>Evacuation Hatch Marker
+      item_name: "<!i><green><l10n:item.backrooms.evacuation_hatch_marker>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.marker>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/evacuation_hatch_marker
@@ -100,7 +123,10 @@ items:
   backrooms:base_claim_terminal:
     material: paper
     data:
-      item_name: <!i><aqua>Base Claim Terminal
+      item_name: "<!i><aqua><l10n:item.backrooms.base_claim_terminal>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.facility>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/base_claim_terminal
@@ -114,7 +140,10 @@ items:
   backrooms:generator_core:
     material: paper
     data:
-      item_name: <!i><gold>Generator Core
+      item_name: "<!i><gold><l10n:item.backrooms.generator_core>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.facility>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/generator_core
@@ -128,7 +157,10 @@ items:
   backrooms:flickering_fluorescent_light:
     material: paper
     data:
-      item_name: <!i><yellow>Flickering Fluorescent Light
+      item_name: "<!i><yellow><l10n:item.backrooms.flickering_fluorescent_light>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.mvp.light>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     model:
       type: minecraft:model
       path: backrooms:item/flickering_fluorescent_light

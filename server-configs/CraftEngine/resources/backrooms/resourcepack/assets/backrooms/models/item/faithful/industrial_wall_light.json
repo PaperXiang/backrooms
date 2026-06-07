@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/industrial_wall_light"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "backrooms:item/faithful/industrialwalllightitem"
+  },
+  "render_type": "translucent"
 }

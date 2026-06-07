@@ -8,6 +8,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.monday.backrooms.command.BrCommand;
 import org.monday.backrooms.config.ConfigFileService;
+import org.monday.backrooms.hud.NoopSanityHudService;
+import org.monday.backrooms.hud.SanityHudListener;
+import org.monday.backrooms.hud.SanityHudService;
+import org.monday.backrooms.hud.VectorDisplaysSanityHudService;
+import org.monday.backrooms.items.BackroomsItemListener;
+import org.monday.backrooms.items.BackroomsItemService;
+import org.monday.backrooms.items.SanityService;
 import org.monday.backrooms.level.LevelConfigLoader;
 import org.monday.backrooms.level.LevelRegistry;
 import org.monday.backrooms.level.LevelTitleService;
@@ -30,6 +37,9 @@ public final class Backrooms extends JavaPlugin {
     private LevelConfigLoader levelConfigLoader;
     private LevelTitleService levelTitleService;
     private PlayerLevelTracker playerLevelTracker;
+    private BackroomsItemService itemService;
+    private SanityService sanityService;
+    private SanityHudService sanityHudService;
     private LootTableService lootTableService;
     private ResourceBlockService resourceBlockService;
     private TransitionService transitionService;
@@ -49,6 +59,9 @@ public final class Backrooms extends JavaPlugin {
         this.levelConfigLoader = new LevelConfigLoader(this);
         this.levelTitleService = new LevelTitleService(this);
         this.playerLevelTracker = new PlayerLevelTracker(this);
+        this.itemService = new BackroomsItemService(this);
+        this.sanityService = new SanityService(this);
+        this.sanityHudService = createSanityHudService();
         this.lootTableService = new LootTableService(this);
         this.resourceBlockService = new ResourceBlockService(this);
         this.transitionService = new TransitionService(this);
@@ -57,12 +70,14 @@ public final class Backrooms extends JavaPlugin {
         getLogger().info("Core services initialized.");
 
         reloadRuntimeConfig();
+        sanityService.start();
         registerListeners();
         registerCommands();
 
         getLogger().info("BackroomsCore enabled successfully: levels=" + levelRegistry.size()
                 + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
+                + ", items=" + itemService.definitionCount()
                 + ", lootTables=" + lootTableService.definitionCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
@@ -78,6 +93,16 @@ public final class Backrooms extends JavaPlugin {
         if (playerLevelTracker != null) {
             playerLevelTracker.clear();
         }
+        if (itemService != null) {
+            itemService.clear();
+        }
+        if (sanityService != null) {
+            sanityService.stop();
+            sanityService.clear();
+        }
+        if (sanityHudService != null) {
+            sanityHudService.clear();
+        }
     }
 
     public boolean reloadRuntimeConfig() {
@@ -88,6 +113,9 @@ public final class Backrooms extends JavaPlugin {
         MessageService previousMessageService = messageService;
         LevelRegistry previousRegistry = levelRegistry;
         LevelConfigLoader previousLevelConfigLoader = levelConfigLoader;
+        BackroomsItemService previousItemService = itemService;
+        SanityService previousSanityService = sanityService;
+        SanityHudService previousSanityHudService = sanityHudService;
         LootTableService previousLootTableService = lootTableService;
         ResourceBlockService previousResourceBlockService = resourceBlockService;
         TransitionService previousTransitionService = transitionService;
@@ -110,7 +138,7 @@ public final class Backrooms extends JavaPlugin {
             if (previousRegistry != null && previousRegistry.size() > 0 && loadedLevels.size() == 0) {
                 getLogger().severe("Reload aborted because no levels were loaded; keeping previous level registry to avoid fail-open protection.");
                 restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
-                        previousLootTableService, previousResourceBlockService, previousTransitionService,
+                        previousItemService, previousSanityService, previousSanityHudService, previousLootTableService, previousResourceBlockService, previousTransitionService,
                         previousRoomGenerationService, previousWorldGenerationService);
                 return false;
             }
@@ -118,6 +146,14 @@ public final class Backrooms extends JavaPlugin {
             // Build fresh service instances first; a failed reload cannot clear or corrupt the live runtime maps.
             levelRegistry = loadedLevels;
             levelConfigLoader = loadedLevelConfigLoader;
+            itemService = new BackroomsItemService(this);
+            itemService.reload();
+            sanityHudService = createSanityHudService();
+            sanityHudService.reload();
+            if (sanityService == null) {
+                sanityService = new SanityService(this);
+            }
+            sanityService.reload();
             lootTableService = new LootTableService(this);
             lootTableService.reload();
             resourceBlockService = new ResourceBlockService(this);
@@ -131,9 +167,15 @@ public final class Backrooms extends JavaPlugin {
             if (playerLevelTracker != null) {
                 playerLevelTracker.reconcileOnlinePlayers(false);
             }
+            if (previousSanityHudService != null && previousSanityHudService != sanityHudService) {
+                previousSanityHudService.clear();
+            }
         } catch (RuntimeException exception) {
+            if (sanityHudService != null && sanityHudService != previousSanityHudService) {
+                sanityHudService.clear();
+            }
             restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
-                    previousLootTableService, previousResourceBlockService, previousTransitionService,
+                    previousItemService, previousSanityService, previousSanityHudService, previousLootTableService, previousResourceBlockService, previousTransitionService,
                     previousRoomGenerationService, previousWorldGenerationService);
             getLogger().severe("Runtime config reload failed; restored previous runtime snapshot. Cause: " + exception.getMessage());
             exception.printStackTrace();
@@ -143,6 +185,7 @@ public final class Backrooms extends JavaPlugin {
         getLogger().info("Runtime config reloaded in " + (System.currentTimeMillis() - startMillis) + "ms: levels="
                 + levelRegistry.size() + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
+                + ", items=" + itemService.definitionCount()
                 + ", lootTables=" + lootTableService.definitionCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
@@ -157,6 +200,9 @@ public final class Backrooms extends JavaPlugin {
             MessageService previousMessageService,
             LevelRegistry previousRegistry,
             LevelConfigLoader previousLevelConfigLoader,
+            BackroomsItemService previousItemService,
+            SanityService previousSanityService,
+            SanityHudService previousSanityHudService,
             LootTableService previousLootTableService,
             ResourceBlockService previousResourceBlockService,
             TransitionService previousTransitionService,
@@ -174,6 +220,15 @@ public final class Backrooms extends JavaPlugin {
         }
         if (previousLevelConfigLoader != null) {
             levelConfigLoader = previousLevelConfigLoader;
+        }
+        if (previousItemService != null) {
+            itemService = previousItemService;
+        }
+        if (previousSanityService != null) {
+            sanityService = previousSanityService;
+        }
+        if (previousSanityHudService != null) {
+            sanityHudService = previousSanityHudService;
         }
         if (previousLootTableService != null) {
             lootTableService = previousLootTableService;
@@ -212,6 +267,30 @@ public final class Backrooms extends JavaPlugin {
         return playerLevelTracker;
     }
 
+    public BackroomsItemService items() {
+        return itemService;
+    }
+
+    public SanityService sanity() {
+        return sanityService;
+    }
+
+    public SanityHudService sanityHud() {
+        return sanityHudService;
+    }
+
+    private SanityHudService createSanityHudService() {
+        if (getServer().getPluginManager().getPlugin("VectorDisplays") == null) {
+            return new NoopSanityHudService(this, "VectorDisplays plugin is not installed or not loaded.");
+        }
+        try {
+            Class.forName("top.mrxiaom.hologram.vector.displays.TerminalManager", false, getClassLoader());
+            return new VectorDisplaysSanityHudService(this);
+        } catch (ClassNotFoundException | LinkageError exception) {
+            return new NoopSanityHudService(this, "VectorDisplays API is not on BackroomsCore classpath: " + exception.getMessage());
+        }
+    }
+
     public LootTableService lootTables() {
         return lootTableService;
     }
@@ -236,7 +315,9 @@ public final class Backrooms extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerLevelListener(this), this);
         getServer().getPluginManager().registerEvents(new TransitionListener(this), this);
         getServer().getPluginManager().registerEvents(new LevelRuleListener(this), this);
-        getLogger().info("Registered listeners: PlayerLevelListener, TransitionListener, LevelRuleListener.");
+        getServer().getPluginManager().registerEvents(new BackroomsItemListener(this), this);
+        getServer().getPluginManager().registerEvents(new SanityHudListener(this), this);
+        getLogger().info("Registered listeners: PlayerLevelListener, TransitionListener, LevelRuleListener, BackroomsItemListener, SanityHudListener.");
     }
 
     private void registerCommands() {

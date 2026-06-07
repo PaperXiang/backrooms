@@ -1,5 +1,177 @@
 # 开发记录
 
+## Step 025 - CraftEngine Faithful 物品迁移与分类/i18n 修复
+
+### 本次完成
+
+- 根据本地 `craft-engine-wiki` 文档补齐 CraftEngine category、lang、i18n/l10n 和 item lore 配置。
+- 为 Backrooms CraftEngine 资源新增 `/ce menu` 分类：materials、MVP blocks、Level 0 structure、lighting、props、storage/doors，避免方块和物品混在一起难以查找。
+- 为 CE 基础材料、MVP 方块和 47 个 `faithful_*` 方块物品增加 `data.item_name` + `data.lore` 描述，统一使用 `<l10n:...>` 文本 key。
+- 新增 `configuration/translations.yml`，提供英文与中文 server/client-aware l10n 文本。
+- 新增 `configuration/lang.yml`，提供 client-side lang key，并为自定义方块添加 `block_name:backrooms:*` 翻译。
+- 重新迁移 Faithful 原始 `models/item/*.json` 到 `models/item/faithful/*.json`：
+  - 保留原始 item `display` 变换，修复物品栏/手持显示过小、角度错误或模型不完整的问题。
+  - 恢复原包使用 `item/generated` 的门、灯、管道、踢脚线和 wide crate 等 2D 图标模型。
+- 补齐 Faithful item 贴图到 `resourcepack/assets/backrooms/textures/item/faithful/`。
+- 清理 Blockbench 导入时遗留的 `#missing` texture key，将半墙和出口牌模型里的占位 key 改成语义化 `#trim`。
+- 重新检查半墙、踢脚线、管道、牌子、CCTV、插座、黑霉等非完整/墙面装饰方块，使用 `lower_tripwire` + `is_suffocating: false` / `is_view_blocking: false` / `can_occlude: false`，避免使用不适合透明/非完整模型的完整方块 fallback 状态。
+- 同步修改项目版本化配置与测试服运行目录：
+  - `server-configs/CraftEngine/resources/backrooms/...`
+  - `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms/...`
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `docs/faithful-assets-ce.md`
+- `server-configs/CraftEngine/resources/backrooms/configuration/categories.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/lang.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/translations.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/item/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/exit_sign.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/yellow_wallpaper_half_wall.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/exitsign2.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/yellowwallpaperhalfwall.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/item/faithful/*.png`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\*.yml`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\resourcepack\assets\backrooms\models\item\faithful\*.json`
+- `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\resourcepack\assets\backrooms\textures\item\faithful\*.png`
+
+### 设计原因
+
+- 之前 Faithful item model 只是简单指向 block model，导致原资源包的物品栏/手持 `display` 变换和 `item/generated` 2D 图标丢失；这会表现为物品没有正确呈现，而不是单纯 YAML 注册失败。
+- CraftEngine 文档明确支持 `data.lore`、`categories`、`lang`、`translations`、`<l10n:...>` 和 `block_name:<id>`，因此这次直接按本地文档补齐 CE 原生分类与翻译能力。
+- 非完整方块如果使用完整方块视觉状态，容易出现遮挡、窒息、光照和透明面问题；`lower_tripwire` 更适合踢脚线、半墙、管道、牌子、CCTV、插座等薄装饰模型。
+- 同步修改 devserver 目录，避免项目配置已修复但测试服仍加载旧资源的问题。
+
+### 下一步建议
+
+- 在测试服执行 `/ce clean-cache`，再执行 `/ce reload all`。
+- 打开 `/ce menu`，检查 `Backrooms Assets` 分类和子分类是否显示、顺序是否合理、icon 是否正常。
+- 抽样获取并摆放：
+  - `/ce item get backrooms:faithful_yellow_wallpaper`
+  - `/ce item get backrooms:faithful_old_carpet`
+  - `/ce item get backrooms:faithful_skirting_board`
+  - `/ce item get backrooms:faithful_crate`
+  - `/ce item get backrooms:faithful_exit_sign`
+- 重点确认 Faithful 物品栏显示、手持显示、方块摆放模型、半墙/踢脚线/管道等非完整装饰遮挡与碰撞、灯具亮度、crate storage 打开行为。
+- 如果客户端仍看到旧模型，重新接收资源包或清理客户端资源包缓存后再测。
+
+### 测试与验证
+
+- 已运行本地 Python 检查，项目配置与 devserver 配置均满足：
+  - Faithful item models = 47。
+  - Faithful block models = 47。
+  - Faithful custom models = 28。
+  - Faithful block textures = 51。
+  - Faithful item textures = 9。
+  - 未发现 `faithfulbackrooms:`、`#missing`、乱码 `???` 或不允许的 `auto_state: solid/mushroom*` 匹配。
+- 已检查模型资源引用，未发现 unresolved `backrooms:block/faithful/*`、`backrooms:custom/faithful/*` 或 `backrooms:item/faithful/*` 引用。
+- 本次是 CraftEngine 配置/资源包修改，没有改 Java 代码；仍需通过测试服 `/ce reload all` 做实机验证。
+
+## Step 026 - VectorDisplays 理智 HUD 接入
+
+### 本次完成
+
+- 学习并接入 VectorDisplays API：使用 `SimpleTerminal`、`Label`、`Line`、`TerminalManager` 生成世界内悬浮终端 HUD。
+- 移除 Sanity Service 中的 Paper 动作栏发送逻辑，理智系统只向 HUD 抽象层提交 `SanityHudSnapshot`。
+- 新增 `src/main/java/org/monday/backrooms/hud/` 模块，包含 HUD snapshot、接口、VectorDisplays provider 和 Noop fallback。
+- `items.yml` 的 `sanity.hud` 改为 `provider: VECTOR_DISPLAYS`，支持标题、数值行、颜色、面板大小、距离、旋转和进度条配置。
+- `paper-plugin.yml` 增加 VectorDisplays 软依赖，`build.gradle` 增加 VectorDisplays API `compileOnly` 依赖。
+- 当服务器没有安装 VectorDisplays 或 API 不在 classpath 时，HUD 自动关闭并输出一次警告，不影响理智值和物品逻辑。
+
+### 修改文件
+
+- `build.gradle`
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/hud/SanityHudListener.java`
+- `src/main/java/org/monday/backrooms/hud/NoopSanityHudService.java`
+- `src/main/java/org/monday/backrooms/hud/SanityHudService.java`
+- `src/main/java/org/monday/backrooms/hud/SanityHudSnapshot.java`
+- `src/main/java/org/monday/backrooms/hud/VectorDisplaysSanityHudService.java`
+- `src/main/java/org/monday/backrooms/items/SanityService.java`
+- `src/main/resources/items.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 用户明确不需要 Paper 动作栏 HUD；VectorDisplays 更符合“世界内终端 UI / 无客户端 mod”的方向。
+- HUD 独立成 provider 抽象，后续可以继续增加 Paper display entity、scoreboard、TAB 或基地终端 UI，而不污染理智值核心逻辑。
+- 采用软依赖和 Noop fallback，保证没装 VectorDisplays 时 BackroomsCore 仍可启动，杏仁水和理智衰减仍然可测。
+
+### 下一步建议
+
+- 测试服安装 VectorDisplays 与前置 packetevents，然后完整重启服务器。
+- 执行 `/br reload`、`/br item give backrooms:almond_water <player> 1`，进入 Level 0/1 后观察玩家前方悬浮 HUD 是否跟随视角刷新。
+- 根据实机观感微调 `items.yml` 的 `distance`、`y-offset`、`pitch`、`width`、`height`、`bar-width` 和颜色。
+- 如果悬浮面板每秒跟随玩家过于明显，后续可增加固定世界锚点、手持设备开关或只在低理智时显示的策略。
+
+### 测试与验证
+
+- 已运行 `& "D:\\dev\\backrooms\\untitled\\gradlew.bat" -p "D:\\dev\\backrooms\\untitled" build`，构建通过。
+
+## Step 024 - Backrooms Item 与理智 HUD MVP
+
+### 本次完成
+
+- 新增 `src/main/java/org/monday/backrooms/items/` 物品模块。
+- 新增 `items.yml`，配置 Backrooms 物品定义、右键消耗、冷却、替换物、理智恢复和 HUD 基础格式。
+- 新增 Backrooms Item Service：可按 id 创建带 display name、lore、PDC 标记的 `ItemStack`，并通过 PDC 或显示名 fallback 识别物品。
+- 新增 Sanity Service：玩家在 Backrooms Level 中按配置持续降低理智，支持稳定期、低理智/危急提示和 HUD 更新入口。
+- 新增 Backrooms Item Listener：右键使用杏仁水、皇家杏仁水、记忆盐等消耗品时恢复理智并应用稳定时间。
+- 新增 `/br items`、`/br item info <id>`、`/br item give <id> [player] [amount]`，并补充 tab completion、权限和消息。
+- 扩展 `loot.yml` 和 `resources.yml`，支持 `item: backrooms:<id>` 产出配置物品，同时继续兼容 `material:`。
+- 将 Level 0 基础补给接入杏仁水、记忆盐、Field Note、Dead Battery，将 Level 1 废料缓存接入 Scrap Metal、Copper Wire、Fuse、Toolbox。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/items/BackroomsItemDefinition.java`
+- `src/main/java/org/monday/backrooms/items/BackroomsItemListener.java`
+- `src/main/java/org/monday/backrooms/items/BackroomsItemService.java`
+- `src/main/java/org/monday/backrooms/items/SanityItemEffect.java`
+- `src/main/java/org/monday/backrooms/items/SanityService.java`
+- `src/main/java/org/monday/backrooms/loot/LootEntry.java`
+- `src/main/java/org/monday/backrooms/loot/LootTableService.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceDrop.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/resources/items.yml`
+- `src/main/resources/loot.yml`
+- `src/main/resources/resources.yml`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 后室生存需要从“能拿到物品”升级到“物品有玩法逻辑”；杏仁水作为第一批核心物品，先承担恢复理智和稳定精神状态的功能。
+- 当前不强依赖 CraftEngine Java API，BackroomsCore 先用 Paper `ItemStack` + PDC 做可热重载、可测试的物品逻辑；同时保留显示名 fallback，方便识别部分外部插件生成的同名物品。
+- HUD 不依赖客户端 mod；后续应优先走 VectorDisplays、Item Display、TAB/scoreboard 或 display entity 方案。
+- Loot / Resource 支持 `item:` 后，配置可以逐步从原版 `Material` 掉落迁移到主题物品掉落，而不破坏旧配置。
+
+### 下一步建议
+
+- 部署新 jar 后完整重启测试服。
+- 执行 `/br reload`、`/br debug config`、`/br items`、`/br item info backrooms:almond_water`。
+- 用 `/br item give backrooms:almond_water <player> 1` 获取杏仁水，进入 Level 0/1 后观察理智 HUD，并右键饮用验证理智恢复与稳定时间。
+- 测试 `/br loot roll level0_basic_supplies <player>` 和资源点触发，确认自定义物品能进入背包或掉落。
+- 后续再评估是否直接接 CraftEngine API，以便识别 `/ce item get backrooms:almond_water` 生成物品的内部 id，而不是只靠显示名 fallback。
+
+### 测试与验证
+
+- 已运行 `& "D:\\dev\\backrooms\\untitled\\gradlew.bat" -p "D:\\dev\\backrooms\\untitled" build`，构建通过。
+
 ## Step 018 - synthetic enum switch 运行时修复
 
 ### 本次完成
@@ -370,7 +542,7 @@
 - 第一阶段先做稳定基础设施，不提前接入 CraftEngine、MythicMobs、WorldGuard 等外部插件，避免在服务器环境未确定前引入不必要的类加载和版本风险。
 - `/br` 使用 Bukkit `TabExecutor` 与 `paper-plugin.yml` 声明命令，避免过早使用 Paper Brigadier/lifecycle 命令 API。
 - Level 使用插件内部 `Map<String, BackroomsLevel>` 注册表，不使用 Paper/Minecraft Registry，因为 Backrooms Level 是业务概念，不是原版注册项。
-- 消息统一使用 Adventure MiniMessage，方便后续 Title、ActionBar、GUI 文本和 lore 复用同一套格式。
+- 消息统一使用 Adventure MiniMessage，方便后续 Title、HUD、GUI 文本和 lore 复用同一套格式。
 - 默认配置先把 `level_0`、`level_1` 放在 `config.yml`，后续内容复杂后再拆分到 `levels/`、`messages/` 等独立文件。
 
 ### 下一步建议

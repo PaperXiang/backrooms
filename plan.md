@@ -451,8 +451,12 @@ plugins/BackroomsCore/
 - 已新增 `/br debug config` 运行时配置摘要命令，用于实机快速检查 Level 世界缺失、Transition/Room 引用问题和模块数量。
 - 已新增第一版 Loot Table MVP：`loot.yml` 配置 Bukkit Material 战利品表，`/br loot list/info/roll` 可用于测试，资源方块可通过 `loot-tables` 复用命名掉落池。
 - 已扩展第二批 CraftEngine Backrooms 测试资产，增加维护门、撤离口、基地终端、发电机核心、荧光灯等地图制作 marker / 设施方块，以及保险丝、布料、管道、手电框架、工具箱等材料物品。
+- 已修正 CraftEngine Faithful Level 0 资产迁移问题：所有 `faithful_*` item model 重新从 Faithful 原始 `models/item/*.json` 迁移，保留原始 `display` 变换，并恢复原包使用 `item/generated` 的门、灯、管道、踢脚线和 wide crate 图标。
+- 已补齐 Faithful item texture 迁移到 `resourcepack/assets/backrooms/textures/item/faithful/`，并确认 block/custom/item 模型不再引用 `faithfulbackrooms:` 或缺失资源。
+- 已按 CraftEngine 本地文档新增 `categories.yml`、`translations.yml` 和 `lang.yml`，给 Backrooms CE 物品/方块增加 tooltip 描述、`/ce menu` 分类，以及 server-side l10n / client-side lang 翻译。
+- 已调整半墙、踢脚线、管道、牌子、CCTV、插座、黑霉等非完整装饰为 `lower_tripwire` + non-occluding 设置；完整墙体、地毯、天花板、crate 保持 `note_block`，避免使用不适合透明/非完整模型的完整方块 fallback 状态。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
-- 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
+- 下一阶段最高优先级：在测试服执行 `/ce clean-cache`、`/ce reload all` 和 `/ce menu`，实机验证 Backrooms 分类、tooltip/i18n、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；随后继续验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -620,3 +624,23 @@ plugins/BackroomsCore/
 - 已同步测试服 CraftEngine 配置到 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\blocks\`。
 - 已更新 `docs/faithful-assets-ce.md` 与 `docs/level0-cell-guide.md`，明确完整方块不要使用 `solid`，优先使用 `note_block`。
 - 下一步重点：执行 `/ce reload all`，验证墙体、地毯、天花板、crate 等完整方块不再出现 mushroom 相关透明/遮挡问题；如果 CE 提示 note_block 状态不足，再按方块类别拆分到其他稳定状态池。
+
+### 12.21 Step 024 Backrooms Item 与理智 HUD MVP 状态
+
+- 已新增 `src/main/java/org/monday/backrooms/items/` 模块，包含 Backrooms 物品定义、物品服务、右键监听、理智效果与理智服务。
+- 已新增 `items.yml`，统一配置 Backrooms Item、消耗行为、冷却、替换物、理智恢复、稳定时间和 VectorDisplays HUD 格式。
+- 已实现理智值 MVP：玩家在 Backrooms Level 中按配置持续降低理智，Level 1 衰减高于 Level 0；低理智和危急状态会定期发送提示。
+- 杏仁水已作为第一批核心物品接入：右键饮用恢复理智并给予稳定时间；同时新增皇家杏仁水、记忆盐等可扩展物品设定。
+- HUD 不走 Paper 动作栏，当前默认接入 VectorDisplays 世界内悬浮终端；后续可继续扩展 Item Display、TAB/scoreboard 或 display entity 做更强玩家 UI。
+- 已新增 `/br items`、`/br item info <id>`、`/br item give <id> [player] [amount]`，并加入 help、tab completion、messages 和 `paper-plugin.yml` 权限。
+- Loot Table 与 Resource Drop 已支持 `item: backrooms:<id>`，继续兼容旧的 `material:` 产出；Level 0/1 默认 loot 已接入 Backrooms 自定义物品。
+- 当前暂不硬依赖 CraftEngine Java API，BackroomsCore 生成的物品使用 PDC 识别；对外部插件生成的同名物品提供显示名 fallback。下一步需要实机确认 `/ce item get backrooms:almond_water` 是否能被稳定识别，必要时再引入 CE API 或更可靠的 namespace 标记识别。
+- 下一步重点：部署新 jar 后测试 `/br reload`、`/br debug config`、`/br items`、`/br item give backrooms:almond_water`、杏仁水右键恢复理智、VectorDisplays HUD，以及 `/br loot roll level0_basic_supplies` 是否产出配置物品。
+
+### 12.22 Step 026 VectorDisplays 理智 HUD 接入状态
+
+- 已学习 VectorDisplays API 用法，并在 `src/main/java/org/monday/backrooms/hud/` 新增 HUD 抽象与 VectorDisplays provider。
+- 理智系统不再发送 Paper 动作栏；`SanityService` 只生成 `SanityHudSnapshot`，由 HUD provider 决定怎么显示。
+- 默认 HUD provider 为 `VECTOR_DISPLAYS`，使用 `SimpleTerminal`、`Label`、`Line`、`TerminalManager` 在玩家前方生成世界内悬浮终端面板和理智进度条。
+- `paper-plugin.yml` 已声明 VectorDisplays 软依赖，`build.gradle` 已添加 `top.mrxiaom.hologram:VectorDisplays-API:1.1.1:for-plugin` compileOnly 依赖。
+- 如果服务器没有安装 VectorDisplays 或前置 packetevents，HUD 会 Noop 降级并只输出一次警告；理智衰减、低理智提示和杏仁水物品逻辑仍可运行。

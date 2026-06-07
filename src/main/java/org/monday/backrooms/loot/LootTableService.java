@@ -98,10 +98,21 @@ public final class LootTableService {
                 int min = Math.max(1, entry.min());
                 int max = Math.max(min, entry.max());
                 int amount = random.nextInt(min, max + 1);
-                items.add(new ItemStack(entry.material(), amount));
+                createStack(entry, amount).ifPresent(items::add);
             }
         }
         return items;
+    }
+
+    private Optional<ItemStack> createStack(LootEntry entry, int amount) {
+        if (entry.customItem()) {
+            Optional<ItemStack> stack = plugin.items().create(entry.itemId(), amount);
+            if (stack.isEmpty()) {
+                plugin.getLogger().warning("Loot entry references disabled or unknown item '" + entry.itemId() + "'.");
+            }
+            return stack;
+        }
+        return Optional.of(new ItemStack(entry.material(), amount));
     }
 
     private Optional<LootTableDefinition> loadDefinition(String id, ConfigurationSection section) {
@@ -126,6 +137,23 @@ public final class LootTableService {
     private List<LootEntry> loadEntries(List<Map<?, ?>> entryMaps, String tableId) {
         List<LootEntry> entries = new ArrayList<>();
         for (Map<?, ?> entryMap : entryMaps) {
+            String itemId = stringValue(entryMap, "item", "");
+            if (itemId.isBlank()) {
+                itemId = stringValue(entryMap, "custom-item", "");
+            }
+            if (!itemId.isBlank()) {
+                String normalizedItemId = normalize(itemId);
+                if (plugin.items().get(normalizedItemId).isEmpty()) {
+                    plugin.getLogger().warning("Skipping unknown item '" + itemId + "' in loot table '" + tableId + "'.");
+                    continue;
+                }
+                double chance = clamp(getDouble(entryMap, "chance", 1.0D), 0.0D, 1.0D);
+                int min = Math.max(1, getInt(entryMap, "min", 1));
+                int max = Math.max(min, getInt(entryMap, "max", min));
+                entries.add(new LootEntry(Material.AIR, normalizedItemId, chance, min, max));
+                continue;
+            }
+
             Object materialValue = entryMap.get("material");
             String materialName = materialValue == null ? "AIR" : String.valueOf(materialValue);
             Optional<Material> material = parseMaterial(materialName, "entry for loot table " + tableId);
@@ -137,9 +165,14 @@ public final class LootTableService {
             double chance = clamp(getDouble(entryMap, "chance", 1.0D), 0.0D, 1.0D);
             int min = Math.max(1, getInt(entryMap, "min", 1));
             int max = Math.max(min, getInt(entryMap, "max", min));
-            entries.add(new LootEntry(material.get(), chance, min, max));
+            entries.add(new LootEntry(material.get(), "", chance, min, max));
         }
         return entries;
+    }
+
+    private String stringValue(Map<?, ?> map, String key, String fallback) {
+        Object value = map.get(key);
+        return value == null ? fallback : String.valueOf(value);
     }
 
     private Optional<Material> parseMaterial(String name, String context) {

@@ -16,6 +16,10 @@ dependencies:
       load: BEFORE
       required: false
       join-classpath: true
+    VectorDisplays:
+      load: BEFORE
+      required: false
+      join-classpath: true
 permissions:
   backrooms.command.br:
     description: Allows using the Backrooms base command
@@ -62,6 +66,15 @@ permissions:
   backrooms.command.loot.roll:
     description: Allows manually rolling Backrooms loot tables
     default: op
+  backrooms.command.item.list:
+    description: Allows listing configured Backrooms items
+    default: op
+  backrooms.command.item.info:
+    description: Allows viewing Backrooms item details
+    default: op
+  backrooms.command.item.give:
+    description: Allows giving Backrooms items
+    default: op
   backrooms.command.resource.list:
     description: Allows listing configured Backrooms resource blocks
     default: op
@@ -102,6 +115,9 @@ permissions:
       backrooms.command.loot.list: true
       backrooms.command.loot.info: true
       backrooms.command.loot.roll: true
+      backrooms.command.item.list: true
+      backrooms.command.item.info: true
+      backrooms.command.item.give: true
       backrooms.command.resource.list: true
       backrooms.command.resource.info: true
       backrooms.command.worldgen.templates: true

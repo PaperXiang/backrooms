@@ -151,7 +151,7 @@
             2,
             1
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         }
       }
     },
@@ -228,7 +228,7 @@
             2,
             1
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         }
       }
     },

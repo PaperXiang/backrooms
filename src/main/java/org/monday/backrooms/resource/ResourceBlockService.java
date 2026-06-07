@@ -149,7 +149,7 @@ public final class ResourceBlockService {
             int min = Math.max(1, drop.min());
             int max = Math.max(min, drop.max());
             int amount = random.nextInt(min, max + 1);
-            block.getWorld().dropItemNaturally(dropLocation, new ItemStack(drop.material(), amount));
+            createStack(drop, amount).ifPresent(item -> block.getWorld().dropItemNaturally(dropLocation, item));
         }
 
         if (definition.removeBlock()) {
@@ -157,6 +157,17 @@ public final class ResourceBlockService {
         }
 
         startCooldown(block, definition);
+    }
+
+    private Optional<ItemStack> createStack(ResourceDrop drop, int amount) {
+        if (drop.customItem()) {
+            Optional<ItemStack> stack = plugin.items().create(drop.itemId(), amount);
+            if (stack.isEmpty()) {
+                plugin.getLogger().warning("Resource drop references disabled or unknown item '" + drop.itemId() + "'.");
+            }
+            return stack;
+        }
+        return Optional.of(new ItemStack(drop.material(), amount));
     }
 
     private Optional<ResourceBlockDefinition> loadDefinition(String id, ConfigurationSection section) {
@@ -251,6 +262,23 @@ public final class ResourceBlockService {
     private List<ResourceDrop> loadDrops(List<Map<?, ?>> dropMaps, String definitionId) {
         List<ResourceDrop> drops = new ArrayList<>();
         for (Map<?, ?> dropMap : dropMaps) {
+            String itemId = stringValue(dropMap, "item", "");
+            if (itemId.isBlank()) {
+                itemId = stringValue(dropMap, "custom-item", "");
+            }
+            if (!itemId.isBlank()) {
+                String normalizedItemId = itemId.toLowerCase(Locale.ROOT);
+                if (plugin.items().get(normalizedItemId).isEmpty()) {
+                    plugin.getLogger().warning("Skipping unknown item '" + itemId + "' in resource block '" + definitionId + "'.");
+                    continue;
+                }
+                double chance = getDouble(dropMap, "chance", 1.0D);
+                int min = getInt(dropMap, "min", 1);
+                int max = getInt(dropMap, "max", min);
+                drops.add(new ResourceDrop(Material.AIR, normalizedItemId, Math.max(0.0D, Math.min(1.0D, chance)), min, max));
+                continue;
+            }
+
             Object materialValue = dropMap.get("material");
             String materialName = materialValue == null ? "AIR" : String.valueOf(materialValue);
             Optional<Material> material = parseMaterial(materialName, "drop for resource block " + definitionId);
@@ -262,9 +290,14 @@ public final class ResourceBlockService {
             double chance = getDouble(dropMap, "chance", 1.0D);
             int min = getInt(dropMap, "min", 1);
             int max = getInt(dropMap, "max", min);
-            drops.add(new ResourceDrop(material.get(), Math.max(0.0D, Math.min(1.0D, chance)), min, max));
+            drops.add(new ResourceDrop(material.get(), "", Math.max(0.0D, Math.min(1.0D, chance)), min, max));
         }
         return drops;
+    }
+
+    private String stringValue(Map<?, ?> map, String key, String fallback) {
+        Object value = map.get(key);
+        return value == null ? fallback : String.valueOf(value);
     }
 
     private Optional<Material> parseMaterial(String name, String context) {

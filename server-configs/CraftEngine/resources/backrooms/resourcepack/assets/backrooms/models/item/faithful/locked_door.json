@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/locked_door"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "minecraft:item/iron_door"
+  },
+  "render_type": "translucent"
 }

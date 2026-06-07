@@ -1,0 +1,131 @@
+items:
+  enabled: true
+  definitions:
+    backrooms:almond_water:
+      enabled: true
+      material: HONEY_BOTTLE
+      display-name: "<!i><#F5E6B8>Almond Water"
+      lore:
+        - "<gray>后室里最稳定的饮用物资。</gray>"
+        - "<dark_gray>右键饮用：恢复理智并短时间减缓崩溃。</dark_gray>"
+      consume:
+        right-click: true
+        replacement: GLASS_BOTTLE
+        cooldown-seconds: 8
+        message: almond-water-used
+      sanity:
+        restore: 25.0
+        stabilize-seconds: 45.0
+    backrooms:royal_almond_water:
+      enabled: true
+      material: HONEY_BOTTLE
+      display-name: "<!i><gold>Royal Almond Water"
+      lore:
+        - "<gray>稀有的高纯度杏仁水，味道像来自错误时间线的急救包。</gray>"
+        - "<dark_gray>右键饮用：大幅恢复理智并延长稳定时间。</dark_gray>"
+      consume:
+        right-click: true
+        replacement: GLASS_BOTTLE
+        cooldown-seconds: 20
+        message: almond-water-used
+      sanity:
+        restore: 60.0
+        stabilize-seconds: 120.0
+    backrooms:memory_salt:
+      enabled: true
+      material: SUGAR
+      display-name: "<!i><aqua>Memory Salt"
+      lore:
+        - "<gray>入口即化的白色结晶，会让你想起自己的名字。</gray>"
+        - "<dark_gray>右键使用：少量恢复理智。</dark_gray>"
+      consume:
+        right-click: true
+        replacement: AIR
+        cooldown-seconds: 12
+        message: item-used
+      sanity:
+        restore: 8.0
+        stabilize-seconds: 15.0
+    backrooms:field_note:
+      enabled: true
+      material: PAPER
+      display-name: "<!i><white>Field Note"
+      lore:
+        - "<gray>写着路线、幻觉和不完整的 MEG 标记。</gray>"
+      consume:
+        right-click: false
+      sanity:
+        restore: 0.0
+        stabilize-seconds: 0.0
+    backrooms:dead_battery:
+      enabled: true
+      material: PAPER
+      display-name: "<!i><gray>Dead Battery"
+      lore:
+        - "<dark_gray>几乎没电，但也许能拆出有用的外壳。</dark_gray>"
+    backrooms:charged_battery:
+      enabled: true
+      material: PAPER
+      display-name: "<!i><yellow>Charged Battery"
+      lore:
+        - "<gray>未来可接入手电、基地电力或 HUD 设备。</gray>"
+    backrooms:scrap_metal:
+      enabled: true
+      material: IRON_NUGGET
+      display-name: "<!i><gray>Scrap Metal"
+      lore:
+        - "<dark_gray>Level 1 基地升级基础材料。</dark_gray>"
+    backrooms:copper_wire:
+      enabled: true
+      material: STRING
+      display-name: "<!i><#C87533>Copper Wire"
+      lore:
+        - "<gray>发电机、门禁和临时天线都需要它。</gray>"
+    backrooms:fuse:
+      enabled: true
+      material: REDSTONE_TORCH
+      display-name: "<!i><red>Electrical Fuse"
+      lore:
+        - "<gray>用于维修灯光、撤离点或基地电路。</gray>"
+    backrooms:toolbox:
+      enabled: true
+      material: PAPER
+      display-name: "<!i><gold>Toolbox"
+      lore:
+        - "<gray>沉重但可靠，后续可作为维修动作的消耗或钥匙。</gray>"
+
+sanity:
+  enabled: true
+  max: 100.0
+  default: 100.0
+  thresholds:
+    low: 35.0
+    critical: 15.0
+  decay:
+    default-per-second: 0.012
+    levels:
+      level_0: 0.010
+      level_1: 0.025
+  hud:
+    enabled: true
+    # 不走 Paper 动作栏；默认接入 VectorDisplays 世界内悬浮终端 HUD，无需客户端 mod/资源包。
+    # 服务器需要安装 VectorDisplays 和它的前置 packetevents；未安装时 HUD 会自动降级为关闭。
+    provider: VECTOR_DISPLAYS
+    title-format: "<yellow>MENTAL SIGNAL</yellow> <dark_gray>//</dark_gray> <gray><level></gray>"
+    line-format: "<state_color><sanity></state_color><gray>/<max></gray> <dark_gray>|</dark_gray> <aqua>stable <stable>s</aqua>"
+    vector-displays:
+      render-mode: VIEWER_LIST
+      width: 112.0
+      height: 34.0
+      distance: 1.55
+      y-offset: 0.72
+      pitch: -14.0
+      nearby-distance: 24.0
+      title-scale: 0.28
+      line-scale: 0.33
+      bar-width: 96.0
+      background-color: "0x50000000"
+      bar-background-color: "0x50FFFFFF"
+      bar-good-color: "0xC05AF27A"
+      bar-low-color: "0xC0FFD35A"
+      bar-critical-color: "0xC0FF4040"

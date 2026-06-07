@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/modern_ceiling_lightbar"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "backrooms:item/faithful/modernlightbar"
+  },
+  "render_type": "translucent"
 }

@@ -6,7 +6,7 @@
     "0": "backrooms:block/faithful/exitsign4",
     "1": "backrooms:block/faithful/exitsign2",
     "2": "backrooms:block/faithful/exitsign3",
-    "missing": "backrooms:block/faithful/exitsign4"
+    "trim": "backrooms:block/faithful/exitsign4"
   },
   "render_type": "solid"
 }

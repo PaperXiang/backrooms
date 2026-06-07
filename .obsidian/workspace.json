@@ -1,0 +1,215 @@
+{
+  "main": {
+    "id": "fe7ac044ed2d4466",
+    "type": "split",
+    "children": [
+      {
+        "id": "a677c2411fa66ba0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "91d9f527600d06d0",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/level0-cell-guide.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "level0-cell-guide"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "62cc13ccaa81eea5",
+    "type": "split",
+    "children": [
+      {
+        "id": "05b84bfabcb1dc53",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "26cdc11678c4b3cf",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "fe970726bb109e67",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "9f5c5f1016070bf1",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "2badf440fb751dcd",
+    "type": "split",
+    "children": [
+      {
+        "id": "0f8f0fe528ed1bc5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1b621cd4e40da927",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs/level0-cell-guide.md",
+                "collapseAll": true,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "level0-cell-guide 的反向链接列表"
+            }
+          },
+          {
+            "id": "442783e838d76b4f",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs/level0-cell-guide.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "level0-cell-guide 的出链列表"
+            }
+          },
+          {
+            "id": "6db6b4efd005e6a7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "a55c50e5f2dec25a",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "9fc6af83659b0f5e",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs/level0-cell-guide.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "level0-cell-guide 的大纲"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "91d9f527600d06d0",
+  "lastOpenFiles": [
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/yellow_wallpaper_half_wall.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/yellow_wallpaper.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/window_board.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/wide_crate.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/white_skirting_board.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/warning_sign.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/wall_power_outlet.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/strange_wallpaper.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/skirting_board.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/rusty_plumbing_pipe.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/remodelled_ceiling.json",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/widecrate.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/whiteventkiur.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/whiteskirtingboard.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/warningsign3.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/warningsign.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/walllight2.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/unknown_25.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/unknown_24.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/unknown_23.png",
+    "server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/unknown_22.png",
+    "docs/faithful-assets-ce.md",
+    "未命名.md",
+    "plan.md",
+    "docs/level0-cell-guide.md",
+    "step.md"
+  ]
+}

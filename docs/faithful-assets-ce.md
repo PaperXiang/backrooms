@@ -9,17 +9,25 @@ server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/mod
 server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/
 server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/item/faithful/
 server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/item/faithful/
+server-configs/CraftEngine/resources/backrooms/configuration/categories.yml
+server-configs/CraftEngine/resources/backrooms/configuration/lang.yml
+server-configs/CraftEngine/resources/backrooms/configuration/translations.yml
 server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml
 ```
 
 ## CraftEngine 配置原则
 
 - item 使用 `behavior: block_item` 绑定同名 block。
+- item 使用 `data.item_name` 和 `data.lore` 增加名称与描述；当前使用 CraftEngine `<l10n:...>`，翻译文本在 `configuration/translations.yml`。
+- `/ce menu` 分类在 `configuration/categories.yml`，已拆分为 materials、MVP blocks、Level 0 structure、lighting、props、storage/doors，避免 blocks/items 混在一起难以查找。
+- client/resource-pack 翻译在 `configuration/lang.yml`，同时配置 `item.backrooms.*` 和 `block_name:backrooms:*`。
 - 已有 pre-made model file 的 block 只配置 `state.model.path`，不再让 CE 重新 generation。
-- 墙体、地毯、天花板、crate 等完整方块使用 `auto_state: note_block`，不要使用 `solid`，因为 `solid` 可能自动分配到 mushroom 系列状态，透明/遮挡表现不适合当前资源包。
-- 灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire`，并关闭 suffocation / view blocking / occlusion。
+- 墙体、地毯、天花板、crate 等完整方块使用 `auto_state: note_block`，不要使用 `solid`，因为 `solid` 可能自动分配到不适合当前模型的完整方块 fallback 状态，透明/遮挡表现不适合当前资源包。
+- 灯具、管道、踢脚线、半墙、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire`，并关闭 suffocation / view blocking / occlusion。
 - crate 系列临时使用 `simple_storage_block`，方便后续接 loot container。
 - 贴图路径统一改写为 `backrooms:block/faithful/<texture>`，模型路径统一改写为 `backrooms:block/faithful/<model>` 或 `backrooms:custom/faithful/<model>`。
+- item model 现在从 Faithful 原始 `models/item/*.json` 重新迁移，保留原始 `display` 变换；原包使用 `item/generated` 图标的门、灯、管道、踢脚线、wide crate 等也恢复为 2D item 图标，并补齐 `textures/item/faithful/*.png`。
 - 注意：CraftEngine 资源包文件需要放在资源目录的 `resourcepack/assets/...` 下；直接放在 `assets/...` 会导致 `/ce reload all` 提示缺少模型文件。
 
 ## 本次配置的 CE 方块

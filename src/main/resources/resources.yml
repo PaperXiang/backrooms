@@ -18,8 +18,12 @@ resource-blocks:
       loot-tables:
         - level0_basic_supplies
       drops:
-        - material: PAPER
+        - item: backrooms:field_note
           chance: 0.05
+          min: 1
+          max: 1
+        - item: backrooms:memory_salt
+          chance: 0.03
           min: 1
           max: 1
     level1_scrap_ore:
@@ -41,11 +45,11 @@ resource-blocks:
       loot-tables:
         - level1_scrap_cache
       drops:
-        - material: IRON_NUGGET
+        - item: backrooms:scrap_metal
           chance: 0.25
           min: 1
           max: 2
-        - material: STRING
+        - item: backrooms:copper_wire
           chance: 0.05
           min: 1
           max: 1

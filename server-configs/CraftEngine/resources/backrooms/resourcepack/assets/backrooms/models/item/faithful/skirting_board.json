@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/skirting_board"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "backrooms:item/faithful/skirtingboarditem"
+  },
+  "render_type": "translucent"
 }

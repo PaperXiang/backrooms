@@ -1,3 +1,7 @@
 {
-  "parent": "backrooms:block/faithful/wide_crate"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "backrooms:item/faithful/widecrateitem"
+  },
+  "render_type": "translucent"
 }

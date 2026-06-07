@@ -107,7 +107,7 @@
             16,
             3
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "east": {
           "uv": [
@@ -116,7 +116,7 @@
             1,
             11
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "south": {
           "uv": [
@@ -125,7 +125,7 @@
             16,
             6
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "west": {
           "uv": [
@@ -134,7 +134,7 @@
             2,
             11
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "up": {
           "uv": [
@@ -143,7 +143,7 @@
             0,
             6
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "down": {
           "uv": [
@@ -152,7 +152,7 @@
             0,
             8
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         }
       }
     },
@@ -184,7 +184,7 @@
             16,
             3
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "east": {
           "uv": [
@@ -193,7 +193,7 @@
             1,
             11
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "south": {
           "uv": [
@@ -202,7 +202,7 @@
             16,
             6
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "west": {
           "uv": [
@@ -211,7 +211,7 @@
             2,
             11
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "up": {
           "uv": [
@@ -220,7 +220,7 @@
             0,
             6
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         },
         "down": {
           "uv": [
@@ -229,7 +229,7 @@
             0,
             8
           ],
-          "texture": "#missing"
+          "texture": "#trim"
         }
       }
     }
