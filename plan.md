@@ -883,3 +883,13 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify craftengine`；当前 PASS：Faithful block behavior `blocks=47, noteBlock=24, lowerTripwire=23`，Faithful lighting `lights=6, lit=5, dark=1`，Faithful storage `crates=5, simpleStorage=5`。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后实际摆放 `faithful_*` 方块，确认客户端模型、真实碰撞手感、灯光效果和 storage 打开体验与静态配置一致。
+
+### 12.46 Step 050 Base claim 管理员持久化命令状态
+
+- 已新增 `/br base force-claim <id> <owner-uuid> [owner-name]` 与 `/br base unclaim <id>`，权限为 `backrooms.command.base.admin`，并加入 `backrooms.admin`。
+- `force-claim` 不依赖在线玩家和位置，直接按 Base id 写入 `base-claims.yml`；`unclaim` 会清理对应 claim，并在保存失败时恢复内存状态。
+- 已通过 RCON 执行 `br base force-claim level1_utility_room_a 00000000-0000-0000-0000-000000000050 RconTest`；随后 `br verify bases` PASS：`runtimeClaims=1, storedClaims=1`。
+- 已执行 `br reload` 后再次 `br verify bases`，确认 claim 持久化后仍为 `runtimeClaims=1, storedClaims=1`。
+- 已执行 `br base unclaim level1_utility_room_a`、`br reload`、`br verify bases`，确认已清理回 `runtimeClaims=0, storedClaims=0`。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后右键 Base terminal 做真实 claim，并测试 owner 区域内建造放行、非 owner 和区域外保护拦截。

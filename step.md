@@ -1,5 +1,54 @@
 # 开发记录
 
+## Step 050 - Base claim 管理员持久化命令
+
+### 本次完成
+
+- 新增 `/br base force-claim <id> <owner-uuid> [owner-name]`。
+- 新增 `/br base unclaim <id>`。
+- 新增权限：
+  - `backrooms.command.base.admin`
+- 新增 help、usage 与 tab completion。
+- `BaseService` 新增：
+  - `forceClaim(...)`：无在线玩家写入 claim。
+  - `unclaim(...)`：清理 claim，保存失败时恢复内存 claim。
+  - `BaseUnclaimResult` / `BaseUnclaimStatus`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/base/BaseService.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 玩家 claim 和 terminal 右键仍需要在线玩家与正确位置；RCON 无法独立验证 `base-claims.yml` 写入、reload 持久化和清理。
+- 管理员命令不替代玩家 claim 规则，只作为测试服和运维用的显式管理入口。
+- `unclaim` 保证测试后能把 claim 数据恢复到干净状态，避免污染后续验证。
+
+### 下一步建议
+
+- 玩家进服后右键 Level 1 terminal 占位方块，确认真实 claim 路径、消息和持久化。
+- claim 后测试 owner 在区域内可建造/破坏，非 owner 与区域外仍被 Level 保护拦截。
+- 后续接入 Survivor Cell 成员权限和基地升级前，继续保留 force-claim/unclaim 做测试数据准备与清理。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify bases`，初始全 PASS：`runtimeClaims=0, storedClaims=0`。
+- 已通过 RCON 执行 `br base force-claim level1_utility_room_a 00000000-0000-0000-0000-000000000050 RconTest`。
+- force-claim 后执行 `br verify bases`，全 PASS：`runtimeClaims=1, storedClaims=1`。
+- 已执行 `br reload` 后再次执行 `br verify bases`，全 PASS：`runtimeClaims=1, storedClaims=1`。
+- 已通过 RCON 执行 `br base unclaim level1_utility_room_a`。
+- unclaim 后执行 `br reload` 与 `br verify bases`，全 PASS：`runtimeClaims=0, storedClaims=0`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 049 - Faithful CraftEngine 静态行为 verifier
 
 ### 本次完成

@@ -144,6 +144,45 @@ public final class BaseService {
         return BaseClaimResult.success(definition, claim);
     }
 
+    public BaseClaimResult forceClaim(String id, UUID owner, String ownerName) {
+        BaseDefinition definition = definitions.get(normalize(id));
+        if (definition == null) {
+            return BaseClaimResult.failed(BaseClaimStatus.NOT_FOUND, null, null);
+        }
+        if (!enabled || !definition.enabled()) {
+            return BaseClaimResult.failed(BaseClaimStatus.DISABLED, definition, claims.get(definition.id()));
+        }
+        if (claims.containsKey(definition.id())) {
+            return BaseClaimResult.failed(BaseClaimStatus.ALREADY_CLAIMED, definition, claims.get(definition.id()));
+        }
+
+        BaseClaim claim = new BaseClaim(definition.id(), owner, ownerName == null || ownerName.isBlank() ? owner.toString() : ownerName, Instant.now());
+        claims.put(definition.id(), claim);
+        if (!saveClaims()) {
+            claims.remove(definition.id());
+            return BaseClaimResult.failed(BaseClaimStatus.SAVE_FAILED, definition, claim);
+        }
+        plugin.getLogger().info("Base '" + definition.id() + "' force-claimed by " + claim.ownerName() + " (" + owner + ").");
+        return BaseClaimResult.success(definition, claim);
+    }
+
+    public BaseUnclaimResult unclaim(String id) {
+        BaseDefinition definition = definitions.get(normalize(id));
+        if (definition == null) {
+            return new BaseUnclaimResult(BaseUnclaimStatus.NOT_FOUND, null, null);
+        }
+        BaseClaim claim = claims.remove(definition.id());
+        if (claim == null) {
+            return new BaseUnclaimResult(BaseUnclaimStatus.NOT_CLAIMED, definition, null);
+        }
+        if (!saveClaims()) {
+            claims.put(definition.id(), claim);
+            return new BaseUnclaimResult(BaseUnclaimStatus.SAVE_FAILED, definition, claim);
+        }
+        plugin.getLogger().info("Base '" + definition.id() + "' unclaimed from " + claim.ownerName() + " (" + claim.owner() + ").");
+        return new BaseUnclaimResult(BaseUnclaimStatus.SUCCESS, definition, claim);
+    }
+
     private Optional<BaseDefinition> loadDefinition(String id, ConfigurationSection section) {
         String normalizedId = normalize(id);
         String level = normalize(section.getString("level", ""));
@@ -251,5 +290,19 @@ public final class BaseService {
 
     private String normalize(String id) {
         return id.toLowerCase(Locale.ROOT);
+    }
+
+    public enum BaseUnclaimStatus {
+        SUCCESS,
+        NOT_FOUND,
+        NOT_CLAIMED,
+        SAVE_FAILED
+    }
+
+    public record BaseUnclaimResult(
+            BaseUnclaimStatus status,
+            BaseDefinition definition,
+            BaseClaim claim
+    ) {
     }
 }

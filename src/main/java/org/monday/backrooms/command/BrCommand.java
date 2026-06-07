@@ -30,6 +30,7 @@ import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.base.BaseClaimResult;
 import org.monday.backrooms.base.BaseClaimStatus;
 import org.monday.backrooms.base.BaseDefinition;
+import org.monday.backrooms.base.BaseService.BaseUnclaimResult;
 import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootEntry;
@@ -91,6 +92,7 @@ public final class BrCommand implements TabExecutor {
     private static final String BASE_LIST_PERMISSION = "backrooms.command.base.list";
     private static final String BASE_INFO_PERMISSION = "backrooms.command.base.info";
     private static final String BASE_CLAIM_PERMISSION = "backrooms.command.base.claim";
+    private static final String BASE_ADMIN_PERMISSION = "backrooms.command.base.admin";
     private static final String VERIFY_RUNTIME_PERMISSION = "backrooms.command.verify.runtime";
 
     private final Backrooms plugin;
@@ -231,6 +233,24 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 claimBase(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "force-claim")) {
+                if (args.length < 4) {
+                    plugin.messages().send(sender, "base-force-claim-usage");
+                    return true;
+                }
+                forceClaimBase(sender, args[2], args[3], args.length >= 5 ? args[4] : null);
+                return true;
+            }
+
+            if (is(args[1], "unclaim")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "base-unclaim-usage");
+                    return true;
+                }
+                unclaimBase(sender, args[2]);
                 return true;
             }
 
@@ -665,13 +685,22 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(BASE_CLAIM_PERMISSION)) {
                 options.add("claim");
             }
+            if (sender.hasPermission(BASE_ADMIN_PERMISSION)) {
+                options.add("force-claim");
+                options.add("unclaim");
+            }
             return filter(options, args[1]);
         }
 
         if (args.length == 3 && is(args[0], "base")
                 && ((is(args[1], "info") && sender.hasPermission(BASE_INFO_PERMISSION))
-                || (is(args[1], "claim") && sender.hasPermission(BASE_CLAIM_PERMISSION)))) {
+                || (is(args[1], "claim") && sender.hasPermission(BASE_CLAIM_PERMISSION))
+                || ((is(args[1], "force-claim") || is(args[1], "unclaim")) && sender.hasPermission(BASE_ADMIN_PERMISSION)))) {
             return filter(plugin.bases().all().stream().map(BaseDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "base") && is(args[1], "force-claim") && sender.hasPermission(BASE_ADMIN_PERMISSION)) {
+            return filter(List.of("00000000-0000-0000-0000-000000000050"), args[3]);
         }
 
         if (args.length == 3 && is(args[0], "loot") && canCompleteLootIds(sender, args[1])) {
@@ -1003,6 +1032,63 @@ public final class BrCommand implements TabExecutor {
             case CLAIM_LIMIT_REACHED -> messages.send(sender, "base-claim-limit");
             case SAVE_FAILED -> messages.send(sender, "base-claim-save-failed", messages.text("id", result.definition().id()));
             default -> messages.send(sender, "unknown-command");
+        }
+    }
+
+    private void forceClaimBase(CommandSender sender, String id, String ownerInput, String ownerName) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(BASE_ADMIN_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        UUID owner;
+        try {
+            owner = UUID.fromString(ownerInput);
+        } catch (IllegalArgumentException exception) {
+            messages.send(sender, "base-force-claim-invalid-owner", messages.text("owner", ownerInput));
+            return;
+        }
+
+        String resolvedName = ownerName == null || ownerName.isBlank() ? "admin-test" : ownerName;
+        BaseClaimResult result = plugin.bases().forceClaim(id, owner, resolvedName);
+        switch (result.status()) {
+            case SUCCESS -> messages.send(sender, "base-force-claim-success",
+                    messages.text("id", result.definition().id()),
+                    messages.mini("display", result.definition().displayName()),
+                    messages.text("owner", result.claim().ownerName()),
+                    messages.text("uuid", result.claim().owner().toString())
+            );
+            case NOT_FOUND -> messages.send(sender, "base-not-found", messages.text("id", id));
+            case DISABLED -> messages.send(sender, "base-disabled", messages.text("id", result.definition().id()));
+            case ALREADY_CLAIMED -> messages.send(sender, "base-already-claimed",
+                    messages.text("id", result.definition().id()),
+                    messages.text("owner", result.claim().ownerName())
+            );
+            case SAVE_FAILED -> messages.send(sender, "base-claim-save-failed", messages.text("id", result.definition().id()));
+            case WRONG_LEVEL, CLAIM_LIMIT_REACHED -> messages.send(sender, "unknown-command");
+        }
+    }
+
+    private void unclaimBase(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(BASE_ADMIN_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        BaseUnclaimResult result = plugin.bases().unclaim(id);
+        switch (result.status()) {
+            case SUCCESS -> messages.send(sender, "base-unclaim-success",
+                    messages.text("id", result.definition().id()),
+                    messages.mini("display", result.definition().displayName()),
+                    messages.text("owner", result.claim().ownerName())
+            );
+            case NOT_FOUND -> messages.send(sender, "base-not-found", messages.text("id", id));
+            case NOT_CLAIMED -> messages.send(sender, "base-unclaim-not-claimed",
+                    messages.text("id", result.definition().id())
+            );
+            case SAVE_FAILED -> messages.send(sender, "base-claim-save-failed", messages.text("id", result.definition().id()));
         }
     }
 

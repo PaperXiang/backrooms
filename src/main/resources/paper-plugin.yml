@@ -117,6 +117,9 @@ permissions:
   backrooms.command.base.claim:
     description: Allows claiming Backrooms base regions
     default: true
+  backrooms.command.base.admin:
+    description: Allows force-claiming and unclaiming Backrooms base regions
+    default: op
   backrooms.base.bypass:
     description: Allows bypassing Backrooms base ownership checks
     default: op
@@ -165,6 +168,7 @@ permissions:
       backrooms.command.base.list: true
       backrooms.command.base.info: true
       backrooms.command.base.claim: true
+      backrooms.command.base.admin: true
       backrooms.base.bypass: true
       backrooms.transition.use: true
       backrooms.transition.bypass.cooldown: true
