@@ -587,7 +587,7 @@ plugins/BackroomsCore/
 - 已从 `D:\dev\backrooms\faithfulbackrooms` 筛选适合 Level 0 建图的模型资产，导入到 CraftEngine `backrooms` 资源包的 `assets/backrooms/models/*/faithful/` 与 `assets/backrooms/textures/block/faithful/`。
 - 已导入 47 个 block model、28 个 custom model、47 个 item wrapper model 和 51 张 block texture，用于墙纸、地毯、天花板、灯具、crate、柜子、管道、踢脚线、标牌、门和监控等 Level 0 建图素材。
 - 已新增 `configuration/blocks/faithful_level0_blocks.yml`，将导入模型配置为 `backrooms:faithful_*` CraftEngine 方块与 block item。
-- 配置原则：完整墙体/地面/天花板/箱子使用 `auto_state: solid`；灯具、管道、牌子、插座、CCTV 等装饰使用 `auto_state: lower_tripwire` 并关闭 suffocation、view blocking 与 occlusion；crate 系列临时使用 `simple_storage_block`。
+- 配置原则：完整墙体/地面/天花板/箱子使用 `auto_state: note_block`，避免 `solid` 自动分配到 mushroom 系列透明/遮挡不合适的状态；灯具、管道、牌子、插座、CCTV 等装饰使用 `auto_state: lower_tripwire` 并关闭 suffocation、view blocking 与 occlusion；crate 系列临时使用 `simple_storage_block`。
 - 已新增 `docs/level0-cell-guide.md`，系统说明 `16x16x6` cell 规格、门洞位置、模板类型、marker 放置和真/假楼梯井区分。
 - 已新增 `docs/faithful-assets-ce.md`，说明本次 Faithful 资产导入路径、CE 配置原则、方块 ID 和实机验证命令。
 - README 已补充 Faithful Level 0 CE 建图资产状态和实机验证 TODO。
@@ -611,3 +611,12 @@ plugins/BackroomsCore/
 - 已更新 `docs/faithful-assets-ce.md`，明确 CE 资源包文件必须位于资源目录的 `resourcepack/assets/...` 下。
 - 已确认项目与测试服旧 `assets` 目录均不存在，新目录下存在 `resourcepack/assets/backrooms/models/item/faithful/manilla_wallpaper.json`。
 - 下一步重点：执行 `/ce clean-cache` 后再 `/ce reload all`，确认 Faithful item model 缺失警告消失；如果仍缺失，检查 CE 最终生成资源包 zip 中是否包含 `assets/backrooms/models/item/faithful/*.json`。
+
+### 12.20 Step 023 CraftEngine solid 状态改为 note_block 状态
+
+- 已根据实机观察修正 CraftEngine 透明/遮挡状态选择：`solid` 自动状态可能分配到 mushroom 系列 block state，当前资源包下透明/遮挡表现不适合 Level 0 建图方块。
+- 已将项目内 `mvp_blocks.yml` 与 `faithful_level0_blocks.yml` 中完整方块的 `auto_state: solid` 改为 `auto_state: note_block`。
+- 非完整装饰方块继续使用 `auto_state: lower_tripwire`，并保留关闭 suffocation、view blocking、occlusion 的设置。
+- 已同步测试服 CraftEngine 配置到 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\blocks\`。
+- 已更新 `docs/faithful-assets-ce.md` 与 `docs/level0-cell-guide.md`，明确完整方块不要使用 `solid`，优先使用 `note_block`。
+- 下一步重点：执行 `/ce reload all`，验证墙体、地毯、天花板、crate 等完整方块不再出现 mushroom 相关透明/遮挡问题；如果 CE 提示 note_block 状态不足，再按方块类别拆分到其他稳定状态池。

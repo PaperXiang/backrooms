@@ -175,7 +175,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/scrap_pile
         generation:
@@ -205,7 +205,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/supply_crate
         generation:
@@ -252,7 +252,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/stairwell_marker
         generation:
@@ -270,7 +270,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/maintenance_door_marker
         generation:
@@ -288,7 +288,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/evacuation_hatch_marker
         generation:
@@ -306,7 +306,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/base_claim_terminal
         generation:
@@ -324,7 +324,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/generator_core
         generation:
@@ -347,7 +347,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/flickering_fluorescent_light
         generation:

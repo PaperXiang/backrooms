@@ -118,7 +118,7 @@
 - 根据 CraftEngine 26.6 本地文档确认并采用：
   - item `behavior: block_item` 绑定对应 block。
   - 已有 pre-made model file 时使用 `state.model.path`，不让 CE 重新 generation。
-  - 完整墙体/地面/天花板/crate 使用 `auto_state: solid`。
+  - 完整墙体/地面/天花板/crate 使用 `auto_state: note_block`，避免 `solid` 自动分配到 mushroom 系列状态。
   - 灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire` 并关闭 suffocation、view blocking、occlusion。
   - crate 系列临时使用 `simple_storage_block`，方便后续接入 loot container。
 - 新增 `docs/level0-cell-guide.md`，系统记录 `16x16x6` cell、门洞、模板类型、marker 放置、真/假楼梯井区分和第一批模板制作建议。
@@ -133,16 +133,16 @@
 - `docs/level0-cell-guide.md`
 - `docs/faithful-assets-ce.md`
 - `server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml`
-- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/block/faithful/*.json`
-- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/custom/faithful/*.json`
-- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/item/faithful/*.json`
-- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/textures/block/faithful/*.png`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/item/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/*.png`
 
 ### 设计原因
 
 - Level 0 的阈限感需要大量相似但略有差异的墙纸、地毯、天花板、灯具和办公/维护装饰；只靠原版材质很难快速建出稳定风格。
 - 先把 Faithful Backrooms 中“建图必需、低风险、可复用”的模型/纹理导入 CE，避免导入无关垃圾文件或完整外部包。
-- 结构方块和装饰方块分开选择 `solid` / `lower_tripwire`，减少装饰模型造成完整方块碰撞、窒息或遮挡的问题。
+- 结构方块和装饰方块分开选择 `note_block` / `lower_tripwire`，减少装饰模型造成完整方块碰撞、窒息或遮挡的问题，并避免 `solid` 自动分配到 mushroom 系列状态。
 - 当前仍不假设 CE 方块一定能稳定进入 schematic；`docs/level0-cell-guide.md` 继续保留 vanilla marker 方案，用于 FAWE/WorldEdit 兼容测试。
 
 ### 下一步建议
@@ -1118,3 +1118,40 @@
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+## Step 023 - CraftEngine 完整方块状态池修正
+
+### 本次完成
+
+- 根据实机反馈修正 CraftEngine 透明方块/完整方块的状态池选择。
+- 将 `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml` 中完整方块的 `auto_state: solid` 改为 `auto_state: note_block`。
+- 将 `server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml` 中 Faithful Level 0 完整方块的 `auto_state: solid` 改为 `auto_state: note_block`。
+- 保留灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰的 `auto_state: lower_tripwire`。
+- 同步测试服 CraftEngine 配置到 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\blocks\`。
+- 更新 `docs/faithful-assets-ce.md` 与 `docs/level0-cell-guide.md`，明确不要用 `solid`，因为它可能自动分配到 mushroom 系列状态，导致透明/遮挡表现不符合当前资源包。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `docs/faithful-assets-ce.md`
+- `docs/level0-cell-guide.md`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml`
+
+### 设计原因
+
+- CraftEngine 文档中 `solid` 是“任意 solid block”，包含 note block 和 mushroom block 等状态池；实机显示 mushroom 系列不适合当前透明/遮挡表现。
+- `note_block` 更稳定，适合当前墙体、地毯、天花板、crate 等完整方块先作为 MVP 状态池。
+- 非完整装饰仍用 `lower_tripwire`，避免占满完整方块碰撞并减少窒息、遮挡和 occlusion 问题。
+
+### 下一步建议
+
+- 在测试服执行 `/ce reload all`。
+- 使用 `/ce item get backrooms:faithful_yellow_wallpaper`、`/ce item get backrooms:faithful_old_carpet`、`/ce item get backrooms:faithful_crate` 放置验证。
+- 重点看是否还出现 mushroom 相关透明、遮挡、碰撞异常。
+- 如果 CE 提示 note_block 可用状态不足，再按方块类别分配到更细的稳定状态池。
+
+### 测试与验证
+
+- 本次为 CraftEngine YAML 与文档变更，未修改 Java 代码。
+- 已同步配置到测试服 CraftEngine 目录，等待 `/ce reload all` 实机验证。

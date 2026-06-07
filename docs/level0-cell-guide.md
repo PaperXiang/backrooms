@@ -218,10 +218,10 @@ Level 0 的重点不是复杂结构，而是：
 ## 导入位置
 
 ```text
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/block/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/custom/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/item/faithful/
-server-configs/CraftEngine/resources/backrooms/assets/backrooms/textures/block/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/block/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/custom/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/models/item/faithful/
+server-configs/CraftEngine/resources/backrooms/resourcepack/assets/backrooms/textures/block/faithful/
 server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml
 ```
 
@@ -229,7 +229,7 @@ server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_lev
 
 - item 使用 `behavior: block_item` 绑定同名 block。
 - 已有 pre-made model file 的 block 只配置 `state.model.path`，不再让 CE 重新 generation。
-- 墙体、地毯、天花板、crate 等完整方块使用 `auto_state: solid`。
+- 墙体、地毯、天花板、crate 等完整方块使用 `auto_state: note_block`，不要使用 `solid`，因为 `solid` 可能自动分配到 mushroom 系列状态，透明/遮挡表现不适合当前资源包。
 - 灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire`，并关闭 suffocation / view blocking / occlusion。
 - crate 系列临时使用 `simple_storage_block`，方便后续接 loot container。
 - 贴图路径统一改写为 `backrooms:block/faithful/<texture>`，模型路径统一改写为 `backrooms:block/faithful/<model>` 或 `backrooms:custom/faithful/<model>`。

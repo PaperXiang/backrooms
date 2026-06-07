@@ -483,7 +483,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/yellow_wallpaper
     loot:
@@ -497,7 +497,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/formless_yellow_wallpaper
     loot:
@@ -511,7 +511,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/moist_wallpaper
     loot:
@@ -525,7 +525,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/strange_wallpaper
     loot:
@@ -539,7 +539,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/manilla_wallpaper
     loot:
@@ -553,7 +553,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/beige_wall
     loot:
@@ -567,7 +567,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/beige_drywall
     loot:
@@ -581,7 +581,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/yellow_wallpaper_half_wall
     loot:
@@ -595,7 +595,7 @@ blocks:
         tags:
           - minecraft:mineable/hoe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/old_carpet
     loot:
@@ -609,7 +609,7 @@ blocks:
         tags:
           - minecraft:mineable/hoe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/moist_carpet
     loot:
@@ -623,7 +623,7 @@ blocks:
         tags:
           - minecraft:mineable/hoe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/office_carpet
     loot:
@@ -637,7 +637,7 @@ blocks:
         tags:
           - minecraft:mineable/hoe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/pale_carpet
     loot:
@@ -651,7 +651,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/old_ceiling
     loot:
@@ -665,7 +665,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/modern_ceiling
     loot:
@@ -679,7 +679,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/remodelled_ceiling
     loot:
@@ -716,7 +716,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/ceiling_light
     loot:
@@ -754,7 +754,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/modern_ceiling_light
     loot:
@@ -834,7 +834,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/crate
     loot:
@@ -857,7 +857,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/box_crate
     loot:
@@ -880,7 +880,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/plastic_crate
     loot:
@@ -903,7 +903,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/reinforced_crate
     loot:
@@ -926,7 +926,7 @@ blocks:
       allow_input: true
       allow_output: true
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/wide_crate
     loot:
@@ -940,7 +940,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/cabinet
     loot:
@@ -954,7 +954,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/filing_cabinet
     loot:
@@ -968,7 +968,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/bookshelf
     loot:
@@ -1217,7 +1217,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/cardboard_box
     loot:
@@ -1231,7 +1231,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/metal_employee_door
     loot:
@@ -1245,7 +1245,7 @@ blocks:
         tags:
           - minecraft:mineable/axe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/employee_door
     loot:
@@ -1259,7 +1259,7 @@ blocks:
         tags:
           - minecraft:mineable/pickaxe
     state:
-      auto_state: solid
+      auto_state: note_block
       model:
         path: backrooms:block/faithful/locked_door
     loot:
