@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "backrooms:block/faithful/kiurlevel7carpet",
+    "particle": "backrooms:block/faithful/kiurlevel7carpet"
+  },
+  "render_type": "solid"
+}

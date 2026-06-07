@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "backrooms:block/faithful/lockedcratetop",
+    "up": "backrooms:block/faithful/lockedcratetop",
+    "north": "backrooms:block/faithful/lockedcratelabel",
+    "east": "backrooms:block/faithful/lockedcrateside",
+    "south": "backrooms:block/faithful/lockedcrateside",
+    "west": "backrooms:block/faithful/lockedcrateside",
+    "particle": "backrooms:block/faithful/lockedcratetop"
+  },
+  "render_type": "solid"
+}

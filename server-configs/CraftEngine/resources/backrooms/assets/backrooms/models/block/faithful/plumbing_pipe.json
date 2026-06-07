@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/pipe1",
+  "textures": {
+    "all": "backrooms:block/faithful/pipe1",
+    "particle": "backrooms:block/faithful/pipe1",
+    "0": "backrooms:block/faithful/pipe1"
+  },
+  "render_type": "solid"
+}

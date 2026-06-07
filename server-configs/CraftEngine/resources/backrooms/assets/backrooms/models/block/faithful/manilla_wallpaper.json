@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "backrooms:block/faithful/downloadmanilla",
+    "particle": "backrooms:block/faithful/downloadmanilla"
+  },
+  "render_type": "solid"
+}

@@ -581,3 +581,14 @@ plugins/BackroomsCore/
 - 已新增 `backrooms.command.worldgen.templates`、`backrooms.command.worldgen.generate` 权限，并接入 `/br help`、tab completion、`/br debug config`、README 和插件启动/重载日志。
 - WorldEdit 依赖使用 `compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.10")`，这是为 Paper 1.21.4 / Java 21 选择的可编译版本；运行时仍需要测试服安装 WorldEdit 或 FAWE。
 - 下一步重点：制作真实 `plugins/BackroomsCore/templates/level_0/*.schem`，实机测试 `/br worldgen templates` 与 `/br worldgen generate level_0 9 seed123`，再继续做房间编辑框和 schematic 保存流程。
+
+### 12.17 Step 020 Faithful Level 0 建图资产导入状态
+
+- 已从 `D:\dev\backrooms\faithfulbackrooms` 筛选适合 Level 0 建图的模型资产，导入到 CraftEngine `backrooms` 资源包的 `assets/backrooms/models/*/faithful/` 与 `assets/backrooms/textures/block/faithful/`。
+- 已导入 47 个 block model、28 个 custom model、47 个 item wrapper model 和 51 张 block texture，用于墙纸、地毯、天花板、灯具、crate、柜子、管道、踢脚线、标牌、门和监控等 Level 0 建图素材。
+- 已新增 `configuration/blocks/faithful_level0_blocks.yml`，将导入模型配置为 `backrooms:faithful_*` CraftEngine 方块与 block item。
+- 配置原则：完整墙体/地面/天花板/箱子使用 `auto_state: solid`；灯具、管道、牌子、插座、CCTV 等装饰使用 `auto_state: lower_tripwire` 并关闭 suffocation、view blocking 与 occlusion；crate 系列临时使用 `simple_storage_block`。
+- 已新增 `docs/level0-cell-guide.md`，系统说明 `16x16x6` cell 规格、门洞位置、模板类型、marker 放置和真/假楼梯井区分。
+- 已新增 `docs/faithful-assets-ce.md`，说明本次 Faithful 资产导入路径、CE 配置原则、方块 ID 和实机验证命令。
+- README 已补充 Faithful Level 0 CE 建图资产状态和实机验证 TODO。
+- 下一步重点：同步资源到测试服后执行 `/ce reload all`，验证 `backrooms:faithful_yellow_wallpaper`、`backrooms:faithful_old_carpet`、`backrooms:faithful_ceiling_light`、`backrooms:faithful_crate`、`backrooms:faithful_exit_sign` 的模型、碰撞、灯光和 storage 行为。

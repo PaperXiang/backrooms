@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "backrooms:block/faithful/unknown_22",
+    "particle": "backrooms:block/faithful/unknown_22"
+  },
+  "render_type": "solid"
+}

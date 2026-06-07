@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "backrooms:block/faithful/moistwallpaper",
+    "up": "backrooms:block/faithful/moistwallpaper",
+    "north": "backrooms:block/faithful/unknown_24",
+    "east": "backrooms:block/faithful/unknown_24",
+    "south": "backrooms:block/faithful/unknown_24",
+    "west": "backrooms:block/faithful/unknown_24",
+    "particle": "backrooms:block/faithful/moistwallpaper"
+  },
+  "render_type": "solid"
+}

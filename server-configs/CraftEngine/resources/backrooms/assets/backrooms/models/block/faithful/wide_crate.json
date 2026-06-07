@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/widecrate",
+  "textures": {
+    "all": "backrooms:block/faithful/widecrate",
+    "particle": "backrooms:block/faithful/widecrate",
+    "0": "backrooms:block/faithful/widecrate"
+  },
+  "render_type": "solid"
+}

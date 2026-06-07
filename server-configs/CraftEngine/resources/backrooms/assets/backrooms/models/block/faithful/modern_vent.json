@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/whiteventkiur",
+  "textures": {
+    "all": "backrooms:block/faithful/whiteventkiur",
+    "particle": "backrooms:block/faithful/whiteventkiur",
+    "1": "backrooms:block/faithful/whiteventkiur"
+  },
+  "render_type": "solid"
+}

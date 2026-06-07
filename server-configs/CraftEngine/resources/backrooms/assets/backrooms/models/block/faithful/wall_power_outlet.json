@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/wallpoweroutlet",
+  "textures": {
+    "all": "minecraft:block/chiseled_quartz_block_top",
+    "particle": "minecraft:block/chiseled_quartz_block_top",
+    "0": "minecraft:block/chiseled_quartz_block_top"
+  },
+  "render_type": "solid"
+}

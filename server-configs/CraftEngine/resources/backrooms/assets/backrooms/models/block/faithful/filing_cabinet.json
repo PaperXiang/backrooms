@@ -1,0 +1,10 @@
+{
+  "parent": "backrooms:custom/faithful/filingcabinet",
+  "textures": {
+    "all": "backrooms:block/faithful/filingcabinet",
+    "particle": "backrooms:block/faithful/filingcabinet",
+    "0": "backrooms:block/faithful/filingcabinet",
+    "1": "backrooms:block/faithful/filingcabinetfront"
+  },
+  "render_type": "solid"
+}

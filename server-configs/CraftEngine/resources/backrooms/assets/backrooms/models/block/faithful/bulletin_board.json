@@ -1,0 +1,10 @@
+{
+  "parent": "backrooms:custom/faithful/bulletinboard1",
+  "textures": {
+    "all": "backrooms:block/faithful/bulletinboard1",
+    "particle": "backrooms:block/faithful/bulletinboard1",
+    "0": "backrooms:block/faithful/bulletinboard2",
+    "1": "backrooms:block/faithful/bulletinboardglass"
+  },
+  "render_type": "translucent"
+}

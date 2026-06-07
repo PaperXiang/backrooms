@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/skirtingboard",
+  "textures": {
+    "all": "backrooms:block/faithful/lightskirtingboard",
+    "particle": "backrooms:block/faithful/lightskirtingboard",
+    "0": "backrooms:block/faithful/lightskirtingboard"
+  },
+  "render_type": "solid"
+}

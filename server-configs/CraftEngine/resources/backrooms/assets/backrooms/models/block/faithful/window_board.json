@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/window_board",
+  "textures": {
+    "all": "minecraft:block/beehive_end",
+    "particle": "minecraft:block/beehive_end",
+    "0": "minecraft:block/beehive_end"
+  },
+  "render_type": "solid"
+}

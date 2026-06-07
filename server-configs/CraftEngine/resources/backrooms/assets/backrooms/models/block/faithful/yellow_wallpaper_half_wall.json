@@ -1,0 +1,10 @@
+{
+  "parent": "backrooms:custom/faithful/yellowwallpaperhalfwall",
+  "textures": {
+    "all": "backrooms:block/faithful/unknown_24",
+    "particle": "backrooms:block/faithful/unknown_24",
+    "0": "backrooms:block/faithful/unknown_24",
+    "missing": "backrooms:block/faithful/lightskirtingboard"
+  },
+  "render_type": "solid"
+}

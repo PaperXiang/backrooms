@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/smallwalllight",
+  "textures": {
+    "all": "backrooms:block/faithful/smallwalllight",
+    "particle": "backrooms:block/faithful/smallwalllight",
+    "0": "backrooms:block/faithful/smallwalllight"
+  },
+  "render_type": "solid"
+}

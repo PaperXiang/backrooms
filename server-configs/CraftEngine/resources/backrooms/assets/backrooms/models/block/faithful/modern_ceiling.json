@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "backrooms:block/faithful/ceilingtilekiur",
+    "particle": "backrooms:block/faithful/ceilingtilekiur"
+  },
+  "render_type": "solid"
+}

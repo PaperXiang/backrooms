@@ -104,6 +104,65 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 020 - Faithful Level 0 CE 建图资产导入
+
+### 本次完成
+
+- 从 `D:\dev\backrooms\faithfulbackrooms` 筛选并导入适合 Level 0 建图的资源包资产。
+- 导入到 CraftEngine `backrooms` 资源包：
+  - 47 个 block model：墙纸、地毯、天花板、灯具、箱子、柜子、管道、标牌、门等。
+  - 28 个 custom model：复杂装饰模型依赖，如 crate、vent、pipe、door top、wall light 等。
+  - 47 个 item wrapper model：用于 CraftEngine block item 展示。
+  - 51 张 block texture：导入模型实际引用的贴图。
+- 新增 `faithful_level0_blocks.yml`，将导入资产配置为 `backrooms:faithful_*` CraftEngine 方块和可放置物品。
+- 根据 CraftEngine 26.6 本地文档确认并采用：
+  - item `behavior: block_item` 绑定对应 block。
+  - 已有 pre-made model file 时使用 `state.model.path`，不让 CE 重新 generation。
+  - 完整墙体/地面/天花板/crate 使用 `auto_state: solid`。
+  - 灯具、管道、踢脚线、牌子、CCTV、插座等非完整装饰使用 `auto_state: lower_tripwire` 并关闭 suffocation、view blocking、occlusion。
+  - crate 系列临时使用 `simple_storage_block`，方便后续接入 loot container。
+- 新增 `docs/level0-cell-guide.md`，系统记录 `16x16x6` cell、门洞、模板类型、marker 放置、真/假楼梯井区分和第一批模板制作建议。
+- 新增 `docs/faithful-assets-ce.md`，记录 Faithful 资产导入位置、CE 配置原则、方块 id 和实机验证命令。
+- README 与 plan 已补充 Faithful Level 0 建图资产状态和后续实机验证事项。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `docs/level0-cell-guide.md`
+- `docs/faithful-assets-ce.md`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/faithful_level0_blocks.yml`
+- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/block/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/custom/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/models/item/faithful/*.json`
+- `server-configs/CraftEngine/resources/backrooms/assets/backrooms/textures/block/faithful/*.png`
+
+### 设计原因
+
+- Level 0 的阈限感需要大量相似但略有差异的墙纸、地毯、天花板、灯具和办公/维护装饰；只靠原版材质很难快速建出稳定风格。
+- 先把 Faithful Backrooms 中“建图必需、低风险、可复用”的模型/纹理导入 CE，避免导入无关垃圾文件或完整外部包。
+- 结构方块和装饰方块分开选择 `solid` / `lower_tripwire`，减少装饰模型造成完整方块碰撞、窒息或遮挡的问题。
+- 当前仍不假设 CE 方块一定能稳定进入 schematic；`docs/level0-cell-guide.md` 继续保留 vanilla marker 方案，用于 FAWE/WorldEdit 兼容测试。
+
+### 下一步建议
+
+- 同步 `server-configs/CraftEngine/resources/backrooms/**` 到测试服 CraftEngine 资源目录。
+- 在测试服执行 `/ce reload all`。
+- 用以下命令抽样验证：
+  - `/ce item get backrooms:faithful_yellow_wallpaper`
+  - `/ce item get backrooms:faithful_old_carpet`
+  - `/ce item get backrooms:faithful_ceiling_light`
+  - `/ce item get backrooms:faithful_crate`
+  - `/ce item get backrooms:faithful_exit_sign`
+- 重点检查模型是否显示、碰撞是否合理、灯具是否发光、crate storage 是否可打开。
+- 确认 CE 方块能否被 WorldEdit/FAWE 保存和粘贴；如果不稳定，继续使用 vanilla marker 扫描再替换 CE 方块。
+
+### 测试与验证
+
+- 已统计导入资产：textures=51，blockModels=47，customModels=28，itemModels=47。
+- 后续仍需在测试服通过 CraftEngine `/ce reload all` 做实机验证。
+
 ## Step 019 - FAWE schematic 有限区域 worldgen MVP
 
 ### 本次完成

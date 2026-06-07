@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/lockeddoortop",
+  "textures": {
+    "all": "backrooms:block/faithful/lockdoorfull",
+    "particle": "backrooms:block/faithful/lockdoorfull",
+    "0": "backrooms:block/faithful/lockdoorfull"
+  },
+  "render_type": "solid"
+}

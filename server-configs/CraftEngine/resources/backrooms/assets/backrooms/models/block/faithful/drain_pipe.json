@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/drainpipesmall",
+  "textures": {
+    "all": "minecraft:block/black_concrete_powder",
+    "particle": "minecraft:block/black_concrete_powder",
+    "0": "minecraft:block/black_concrete_powder"
+  },
+  "render_type": "solid"
+}

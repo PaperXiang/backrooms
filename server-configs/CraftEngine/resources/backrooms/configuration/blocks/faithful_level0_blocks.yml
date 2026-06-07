@@ -1,0 +1,1266 @@
+# Generated from D:/dev/backrooms/faithfulbackrooms selected Level 0 assets.
+# These entries use imported pre-made models under assets/backrooms/models/*/faithful/.
+# Decorative non-full-cube props use lower_tripwire to avoid full-block suffocation/occlusion.
+items:
+  backrooms:faithful_yellow_wallpaper:
+    material: paper
+    data:
+      item_name: <!i><yellow>Level 0 Yellow Wallpaper
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/yellow_wallpaper
+    behavior:
+      type: block_item
+      block: backrooms:faithful_yellow_wallpaper
+  backrooms:faithful_formless_yellow_wallpaper:
+    material: paper
+    data:
+      item_name: <!i><yellow>Formless Yellow Wallpaper
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/formless_yellow_wallpaper
+    behavior:
+      type: block_item
+      block: backrooms:faithful_formless_yellow_wallpaper
+  backrooms:faithful_moist_wallpaper:
+    material: paper
+    data:
+      item_name: <!i><yellow>Moist Wallpaper
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/moist_wallpaper
+    behavior:
+      type: block_item
+      block: backrooms:faithful_moist_wallpaper
+  backrooms:faithful_strange_wallpaper:
+    material: paper
+    data:
+      item_name: <!i><yellow>Strange Wallpaper
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/strange_wallpaper
+    behavior:
+      type: block_item
+      block: backrooms:faithful_strange_wallpaper
+  backrooms:faithful_manilla_wallpaper:
+    material: paper
+    data:
+      item_name: <!i><yellow>Manilla Wallpaper
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/manilla_wallpaper
+    behavior:
+      type: block_item
+      block: backrooms:faithful_manilla_wallpaper
+  backrooms:faithful_beige_wall:
+    material: paper
+    data:
+      item_name: <!i><yellow>Beige Wall
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/beige_wall
+    behavior:
+      type: block_item
+      block: backrooms:faithful_beige_wall
+  backrooms:faithful_beige_drywall:
+    material: paper
+    data:
+      item_name: <!i><yellow>Beige Drywall
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/beige_drywall
+    behavior:
+      type: block_item
+      block: backrooms:faithful_beige_drywall
+  backrooms:faithful_yellow_wallpaper_half_wall:
+    material: paper
+    data:
+      item_name: <!i><yellow>Yellow Wallpaper Half Wall
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/yellow_wallpaper_half_wall
+    behavior:
+      type: block_item
+      block: backrooms:faithful_yellow_wallpaper_half_wall
+  backrooms:faithful_old_carpet:
+    material: paper
+    data:
+      item_name: <!i><#C9B45A>Old Carpet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/old_carpet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_old_carpet
+  backrooms:faithful_moist_carpet:
+    material: paper
+    data:
+      item_name: <!i><#C9B45A>Moist Carpet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/moist_carpet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_moist_carpet
+  backrooms:faithful_office_carpet:
+    material: paper
+    data:
+      item_name: <!i><#C9B45A>Office Carpet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/office_carpet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_office_carpet
+  backrooms:faithful_pale_carpet:
+    material: paper
+    data:
+      item_name: <!i><#C9B45A>Pale Carpet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/pale_carpet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_pale_carpet
+  backrooms:faithful_old_ceiling:
+    material: paper
+    data:
+      item_name: <!i><gray>Old Ceiling Tile
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/old_ceiling
+    behavior:
+      type: block_item
+      block: backrooms:faithful_old_ceiling
+  backrooms:faithful_modern_ceiling:
+    material: paper
+    data:
+      item_name: <!i><gray>Modern Ceiling Tile
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/modern_ceiling
+    behavior:
+      type: block_item
+      block: backrooms:faithful_modern_ceiling
+  backrooms:faithful_remodelled_ceiling:
+    material: paper
+    data:
+      item_name: <!i><gray>Remodelled Ceiling Tile
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/remodelled_ceiling
+    behavior:
+      type: block_item
+      block: backrooms:faithful_remodelled_ceiling
+  backrooms:faithful_fallen_ceiling_tile:
+    material: paper
+    data:
+      item_name: <!i><gray>Fallen Ceiling Tile
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/fallen_ceiling_tile
+    behavior:
+      type: block_item
+      block: backrooms:faithful_fallen_ceiling_tile
+  backrooms:faithful_ceiling_light:
+    material: paper
+    data:
+      item_name: <!i><yellow>Ceiling Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/ceiling_light
+    behavior:
+      type: block_item
+      block: backrooms:faithful_ceiling_light
+  backrooms:faithful_broken_ceiling_light:
+    material: paper
+    data:
+      item_name: <!i><yellow>Broken Ceiling Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/broken_ceiling_light
+    behavior:
+      type: block_item
+      block: backrooms:faithful_broken_ceiling_light
+  backrooms:faithful_modern_ceiling_light:
+    material: paper
+    data:
+      item_name: <!i><yellow>Modern Ceiling Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/modern_ceiling_light
+    behavior:
+      type: block_item
+      block: backrooms:faithful_modern_ceiling_light
+  backrooms:faithful_modern_ceiling_lightbar:
+    material: paper
+    data:
+      item_name: <!i><yellow>Modern Ceiling Lightbar
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/modern_ceiling_lightbar
+    behavior:
+      type: block_item
+      block: backrooms:faithful_modern_ceiling_lightbar
+  backrooms:faithful_industrial_wall_light:
+    material: paper
+    data:
+      item_name: <!i><yellow>Industrial Wall Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/industrial_wall_light
+    behavior:
+      type: block_item
+      block: backrooms:faithful_industrial_wall_light
+  backrooms:faithful_industrial_wall_light_small:
+    material: paper
+    data:
+      item_name: <!i><yellow>Small Industrial Wall Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/industrial_wall_light_small
+    behavior:
+      type: block_item
+      block: backrooms:faithful_industrial_wall_light_small
+  backrooms:faithful_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/crate
+    behavior:
+      type: block_item
+      block: backrooms:faithful_crate
+  backrooms:faithful_box_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Box Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/box_crate
+    behavior:
+      type: block_item
+      block: backrooms:faithful_box_crate
+  backrooms:faithful_plastic_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Plastic Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/plastic_crate
+    behavior:
+      type: block_item
+      block: backrooms:faithful_plastic_crate
+  backrooms:faithful_reinforced_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Reinforced Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/reinforced_crate
+    behavior:
+      type: block_item
+      block: backrooms:faithful_reinforced_crate
+  backrooms:faithful_wide_crate:
+    material: paper
+    data:
+      item_name: <!i><#B88A55>Wide Crate
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/wide_crate
+    behavior:
+      type: block_item
+      block: backrooms:faithful_wide_crate
+  backrooms:faithful_cabinet:
+    material: paper
+    data:
+      item_name: <!i><white>Cabinet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/cabinet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_cabinet
+  backrooms:faithful_filing_cabinet:
+    material: paper
+    data:
+      item_name: <!i><white>Filing Cabinet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/filing_cabinet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_filing_cabinet
+  backrooms:faithful_bookshelf:
+    material: paper
+    data:
+      item_name: <!i><white>Empty Bookshelf
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/bookshelf
+    behavior:
+      type: block_item
+      block: backrooms:faithful_bookshelf
+  backrooms:faithful_bulletin_board:
+    material: paper
+    data:
+      item_name: <!i><gray>Bulletin Board
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/bulletin_board
+    behavior:
+      type: block_item
+      block: backrooms:faithful_bulletin_board
+  backrooms:faithful_wall_power_outlet:
+    material: paper
+    data:
+      item_name: <!i><gray>Wall Power Outlet
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/wall_power_outlet
+    behavior:
+      type: block_item
+      block: backrooms:faithful_wall_power_outlet
+  backrooms:faithful_modern_vent:
+    material: paper
+    data:
+      item_name: <!i><gray>Modern Vent
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/modern_vent
+    behavior:
+      type: block_item
+      block: backrooms:faithful_modern_vent
+  backrooms:faithful_plumbing_pipe:
+    material: paper
+    data:
+      item_name: <!i><gray>Plumbing Pipe
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/plumbing_pipe
+    behavior:
+      type: block_item
+      block: backrooms:faithful_plumbing_pipe
+  backrooms:faithful_rusty_plumbing_pipe:
+    material: paper
+    data:
+      item_name: <!i><gray>Rusty Plumbing Pipe
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/rusty_plumbing_pipe
+    behavior:
+      type: block_item
+      block: backrooms:faithful_rusty_plumbing_pipe
+  backrooms:faithful_drain_pipe:
+    material: paper
+    data:
+      item_name: <!i><gray>Drain Pipe
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/drain_pipe
+    behavior:
+      type: block_item
+      block: backrooms:faithful_drain_pipe
+  backrooms:faithful_skirting_board:
+    material: paper
+    data:
+      item_name: <!i><gray>Skirting Board
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/skirting_board
+    behavior:
+      type: block_item
+      block: backrooms:faithful_skirting_board
+  backrooms:faithful_white_skirting_board:
+    material: paper
+    data:
+      item_name: <!i><gray>White Skirting Board
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/white_skirting_board
+    behavior:
+      type: block_item
+      block: backrooms:faithful_white_skirting_board
+  backrooms:faithful_black_mould:
+    material: paper
+    data:
+      item_name: <!i><gray>Black Mould
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/black_mould
+    behavior:
+      type: block_item
+      block: backrooms:faithful_black_mould
+  backrooms:faithful_exit_sign:
+    material: paper
+    data:
+      item_name: <!i><gray>Exit Sign
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/exit_sign
+    behavior:
+      type: block_item
+      block: backrooms:faithful_exit_sign
+  backrooms:faithful_warning_sign:
+    material: paper
+    data:
+      item_name: <!i><gray>Warning Sign
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/warning_sign
+    behavior:
+      type: block_item
+      block: backrooms:faithful_warning_sign
+  backrooms:faithful_window_board:
+    material: paper
+    data:
+      item_name: <!i><gray>Window Board
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/window_board
+    behavior:
+      type: block_item
+      block: backrooms:faithful_window_board
+  backrooms:faithful_cctv_camera:
+    material: paper
+    data:
+      item_name: <!i><gray>CCTV Camera
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/cctv_camera
+    behavior:
+      type: block_item
+      block: backrooms:faithful_cctv_camera
+  backrooms:faithful_cardboard_box:
+    material: paper
+    data:
+      item_name: <!i><white>Cardboard Box
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/cardboard_box
+    behavior:
+      type: block_item
+      block: backrooms:faithful_cardboard_box
+  backrooms:faithful_metal_employee_door:
+    material: paper
+    data:
+      item_name: <!i><aqua>Metal Employee Door
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/metal_employee_door
+    behavior:
+      type: block_item
+      block: backrooms:faithful_metal_employee_door
+  backrooms:faithful_employee_door:
+    material: paper
+    data:
+      item_name: <!i><aqua>Employee Door
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/employee_door
+    behavior:
+      type: block_item
+      block: backrooms:faithful_employee_door
+  backrooms:faithful_locked_door:
+    material: paper
+    data:
+      item_name: <!i><aqua>Locked Door
+    model:
+      type: minecraft:model
+      path: backrooms:item/faithful/locked_door
+    behavior:
+      type: block_item
+      block: backrooms:faithful_locked_door
+
+blocks:
+  backrooms:faithful_yellow_wallpaper:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/yellow_wallpaper
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_formless_yellow_wallpaper:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/formless_yellow_wallpaper
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_moist_wallpaper:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/moist_wallpaper
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_strange_wallpaper:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/strange_wallpaper
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_manilla_wallpaper:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/manilla_wallpaper
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_beige_wall:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/beige_wall
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_beige_drywall:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/beige_drywall
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_yellow_wallpaper_half_wall:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/yellow_wallpaper_half_wall
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_old_carpet:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/old_carpet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_moist_carpet:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/moist_carpet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_office_carpet:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/office_carpet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_pale_carpet:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/pale_carpet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_old_ceiling:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/old_ceiling
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_modern_ceiling:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/modern_ceiling
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_remodelled_ceiling:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/remodelled_ceiling
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_fallen_ceiling_tile:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/fallen_ceiling_tile
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_ceiling_light:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 12
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/ceiling_light
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_broken_ceiling_light:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 0
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/broken_ceiling_light
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_modern_ceiling_light:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 13
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/modern_ceiling_light
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_modern_ceiling_lightbar:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 14
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/modern_ceiling_lightbar
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_industrial_wall_light:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 12
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/industrial_wall_light
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_industrial_wall_light_small:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 10
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/industrial_wall_light_small
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_crate:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    behavior:
+      type: simple_storage_block
+      title: "Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/crate
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_box_crate:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    behavior:
+      type: simple_storage_block
+      title: "Box Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/box_crate
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_plastic_crate:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    behavior:
+      type: simple_storage_block
+      title: "Plastic Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/plastic_crate
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_reinforced_crate:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    behavior:
+      type: simple_storage_block
+      title: "Reinforced Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/reinforced_crate
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_wide_crate:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    behavior:
+      type: simple_storage_block
+      title: "Wide Crate"
+      rows: 3
+      sounds:
+        open: minecraft:block.barrel.open
+        close: minecraft:block.barrel.close
+      allow_input: true
+      allow_output: true
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/wide_crate
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_cabinet:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/cabinet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_filing_cabinet:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/filing_cabinet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_bookshelf:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/bookshelf
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_bulletin_board:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/bulletin_board
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_wall_power_outlet:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/wall_power_outlet
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_modern_vent:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/modern_vent
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_plumbing_pipe:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/plumbing_pipe
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_rusty_plumbing_pipe:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/rusty_plumbing_pipe
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_drain_pipe:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/drain_pipe
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_skirting_board:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/skirting_board
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_white_skirting_board:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/white_skirting_board
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_black_mould:
+    settings:
+      template:
+        - default:sound/grass
+        - default:hardness/wool
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/hoe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/black_mould
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_exit_sign:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        luminance: 6
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/exit_sign
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_warning_sign:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/warning_sign
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_window_board:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/window_board
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_cctv_camera:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: lower_tripwire
+      model:
+        path: backrooms:block/faithful/cctv_camera
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_cardboard_box:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/cardboard_box
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_metal_employee_door:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/metal_employee_door
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_employee_door:
+    settings:
+      template:
+        - default:sound/wood
+        - default:hardness/wood
+      overrides:
+        tags:
+          - minecraft:mineable/axe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/employee_door
+    loot:
+      template: default:loot_table/self
+  backrooms:faithful_locked_door:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/faithful/locked_door
+    loot:
+      template: default:loot_table/self

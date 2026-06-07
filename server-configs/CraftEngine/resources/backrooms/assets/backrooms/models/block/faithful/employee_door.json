@@ -1,0 +1,9 @@
+{
+  "parent": "backrooms:custom/faithful/employeedoortop",
+  "textures": {
+    "all": "backrooms:block/faithful/employeedoor",
+    "particle": "backrooms:block/faithful/employeedoor",
+    "0": "backrooms:block/faithful/employeedoor"
+  },
+  "render_type": "solid"
+}

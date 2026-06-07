@@ -1,0 +1,10 @@
+{
+  "parent": "backrooms:custom/faithful/plasticcrateblack",
+  "textures": {
+    "all": "backrooms:block/faithful/plasticcrateblack",
+    "particle": "backrooms:block/faithful/plasticcrateblack",
+    "0": "backrooms:block/faithful/plasticcrateblack",
+    "1": "backrooms:block/faithful/plasticcrateblackcontent"
+  },
+  "render_type": "cutout"
+}
