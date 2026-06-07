@@ -6,6 +6,10 @@ resource-blocks:
         - level_0
       materials:
         - YELLOW_CARPET
+      locations:
+        - x: 0
+          y: 64
+          z: 0
       triggers:
         - right_click
       cancel-original-event: true
@@ -22,6 +26,10 @@ resource-blocks:
       materials:
         - IRON_ORE
         - COPPER_ORE
+      locations:
+        - x: 0
+          y: 64
+          z: 0
       triggers:
         - break
       cancel-original-event: true

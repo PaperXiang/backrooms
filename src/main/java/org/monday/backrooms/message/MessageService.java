@@ -37,6 +37,10 @@ public final class MessageService {
         sender.sendMessage(parseWithPrefix(String.valueOf(value == null ? key : value), resolvers));
     }
 
+    public boolean has(String key) {
+        return messagesConfig().contains("messages." + key);
+    }
+
     public TagResolver text(String key, String value) {
         return Placeholder.unparsed(key, value);
     }

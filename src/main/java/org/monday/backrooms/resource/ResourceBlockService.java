@@ -114,7 +114,7 @@ public final class ResourceBlockService {
 
         return definitions.stream()
                 .filter(definition -> definition.appliesToLevel(level.id()))
-                .filter(definition -> definition.matches(block.getType(), trigger))
+                .filter(definition -> definition.matches(block, trigger))
                 .findFirst();
     }
 
@@ -158,6 +158,7 @@ public final class ResourceBlockService {
             plugin.getLogger().warning("Skipping resource block '" + id + "' because it has no valid materials.");
             return Optional.empty();
         }
+        Set<ResourceBlockPosition> positions = loadPositions(section.getMapList("locations"), id);
 
         Set<ResourceTrigger> triggers = new HashSet<>();
         for (String trigger : section.getStringList("triggers")) {
@@ -188,6 +189,7 @@ public final class ResourceBlockService {
                 id,
                 levels,
                 materials,
+                positions,
                 triggers,
                 section.getBoolean("cancel-original-event", true),
                 removeBlock,
@@ -195,6 +197,21 @@ public final class ResourceBlockService {
                 section.getLong("cooldown-seconds", 0L),
                 drops
         ));
+    }
+
+    private Set<ResourceBlockPosition> loadPositions(List<Map<?, ?>> maps, String definitionId) {
+        Set<ResourceBlockPosition> positions = new HashSet<>();
+        for (Map<?, ?> map : maps) {
+            Object x = map.get("x");
+            Object y = map.get("y");
+            Object z = map.get("z");
+            if (!(x instanceof Number xNumber) || !(y instanceof Number yNumber) || !(z instanceof Number zNumber)) {
+                plugin.getLogger().warning("Skipping invalid location in resource block '" + definitionId + "'.");
+                continue;
+            }
+            positions.add(new ResourceBlockPosition(xNumber.intValue(), yNumber.intValue(), zNumber.intValue()));
+        }
+        return positions;
     }
 
     private Set<Material> loadMaterials(List<String> names, String context) {

@@ -187,8 +187,8 @@ public final class BrCommand implements TabExecutor {
             }
 
             plugin.getLogger().info("Reload requested by " + sender.getName() + ".");
-            plugin.reloadRuntimeConfig();
-            plugin.messages().send(sender, "reload",
+            boolean reloaded = plugin.reloadRuntimeConfig();
+            plugin.messages().send(sender, reloaded ? "reload" : "reload-failed",
                     plugin.messages().text("count", String.valueOf(plugin.levels().size())),
                     plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount())),
                     plugin.messages().text("room_count", String.valueOf(plugin.rooms().definitionCount()))
@@ -645,6 +645,9 @@ public final class BrCommand implements TabExecutor {
             }
             if (Bukkit.getWorld(transition.triggerWorld()) == null) {
                 transitionIssues.add(transition.id() + ":triggerWorld=" + transition.triggerWorld());
+            }
+            if (!messages.has(transition.messageKey())) {
+                transitionIssues.add(transition.id() + ":messageKey=" + transition.messageKey());
             }
             if (transition.target().type().name().equals("LEVEL")) {
                 plugin.levels().get(transition.target().level()).ifPresentOrElse(targetLevel -> {

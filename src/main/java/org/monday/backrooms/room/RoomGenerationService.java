@@ -33,7 +33,7 @@ public final class RoomGenerationService {
 
         this.enabled = plugin.configFiles().rooms().getBoolean("rooms.enabled", true);
         this.maxBlocksPerGenerate = plugin.configFiles().rooms().getInt("rooms.defaults.max-blocks-per-generate", 5000);
-        this.replaceAirOnly = plugin.configFiles().rooms().getBoolean("rooms.defaults.replace-air-only", false);
+        this.replaceAirOnly = plugin.configFiles().rooms().getBoolean("rooms.defaults.replace-air-only", true);
         if (!enabled) {
             plugin.getLogger().info("Room generation disabled by config.");
             return;
@@ -100,11 +100,17 @@ public final class RoomGenerationService {
         if (estimatedBlocks > maxBlocksPerGenerate) {
             return failure("room-generate-too-large", room, level, origin);
         }
+        if (!withinWorldHeight(room, origin)) {
+            return failure("room-generate-out-of-bounds", room, level, origin);
+        }
 
         int changed = switch (room.shape()) {
             case ROOM -> generateRoom(room, origin);
             case CORRIDOR -> generateCorridor(room, origin);
         };
+        if (changed == 0) {
+            return failure("room-generate-no-changes", room, level, origin);
+        }
 
         return new RoomGenerationResult(true, "room-generate-success", changed, room.id(), level.id(), origin.getWorld().getName(),
                 origin.getBlockX(), origin.getBlockY(), origin.getBlockZ());
@@ -176,7 +182,7 @@ public final class RoomGenerationService {
             }
         }
 
-        changed += setBlock(origin.getWorld(), origin.getBlockX(), ceilingY, origin.getBlockZ(), room.light());
+        changed += setBlock(origin.getWorld(), origin.getBlockX(), ceilingY, origin.getBlockZ(), room.light(), true);
         changed += placeMarker(room, origin.getWorld(), origin.getBlockX(), floorY + 1, origin.getBlockZ());
         return changed;
     }
@@ -202,10 +208,17 @@ public final class RoomGenerationService {
 
         int centerX = origin.getBlockX();
         for (int z = minZ + 2; z <= maxZ; z += 5) {
-            changed += setBlock(origin.getWorld(), centerX, ceilingY, z, room.light());
+            changed += setBlock(origin.getWorld(), centerX, ceilingY, z, room.light(), true);
         }
         changed += placeMarker(room, origin.getWorld(), centerX, floorY + 1, minZ + room.length() / 2);
         return changed;
+    }
+
+    private boolean withinWorldHeight(RoomDefinition room, Location origin) {
+        World world = origin.getWorld();
+        int floorY = origin.getBlockY() - 1;
+        int ceilingY = floorY + room.height() - 1;
+        return floorY >= world.getMinHeight() && ceilingY < world.getMaxHeight();
     }
 
     private Material materialFor(RoomDefinition room, int y, int floorY, int ceilingY, boolean wall) {
@@ -226,8 +239,12 @@ public final class RoomGenerationService {
     }
 
     private int setBlock(World world, int x, int y, int z, Material material) {
+        return setBlock(world, x, y, z, material, false);
+    }
+
+    private int setBlock(World world, int x, int y, int z, Material material, boolean ignoreReplaceAirOnly) {
         Block block = world.getBlockAt(x, y, z);
-        if (replaceAirOnly && !block.getType().isAir()) {
+        if (!ignoreReplaceAirOnly && replaceAirOnly && !block.getType().isAir()) {
             return 0;
         }
         if (block.getType() == material) {

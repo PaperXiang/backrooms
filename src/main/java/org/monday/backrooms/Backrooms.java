@@ -67,20 +67,39 @@ public final class Backrooms extends JavaPlugin {
         }
     }
 
-    public void reloadRuntimeConfig() {
+    public boolean reloadRuntimeConfig() {
         long startMillis = System.currentTimeMillis();
         getLogger().info("Reloading runtime config...");
-        reloadConfig();
-        configFileService.reload();
-        messageService.reload();
-        levelRegistry.clear();
-        levelConfigLoader.loadInto(levelRegistry);
-        resourceBlockService.reload();
-        transitionService.reload();
-        roomGenerationService.reload();
-        if (playerLevelTracker != null) {
-            playerLevelTracker.reconcileOnlinePlayers(false);
+
+        LevelRegistry previousRegistry = levelRegistry;
+        try {
+            reloadConfig();
+            configFileService.reload();
+            messageService.reload();
+
+            LevelRegistry loadedLevels = new LevelRegistry();
+            levelConfigLoader.loadInto(loadedLevels);
+            if (previousRegistry != null && previousRegistry.size() > 0 && loadedLevels.size() == 0) {
+                getLogger().severe("Reload aborted because no levels were loaded; keeping previous level registry to avoid fail-open protection.");
+                return false;
+            }
+
+            levelRegistry = loadedLevels;
+            resourceBlockService.reload();
+            transitionService.reload();
+            roomGenerationService.reload();
+            if (playerLevelTracker != null) {
+                playerLevelTracker.reconcileOnlinePlayers(false);
+            }
+        } catch (RuntimeException exception) {
+            if (previousRegistry != null) {
+                levelRegistry = previousRegistry;
+            }
+            getLogger().severe("Runtime config reload failed; kept previous level registry. Cause: " + exception.getMessage());
+            exception.printStackTrace();
+            return false;
         }
+
         getLogger().info("Runtime config reloaded in " + (System.currentTimeMillis() - startMillis) + "ms: levels="
                 + levelRegistry.size() + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
@@ -88,6 +107,7 @@ public final class Backrooms extends JavaPlugin {
                 + ", transitions=" + transitionService.definitionCount()
                 + ", rooms=" + roomGenerationService.definitionCount()
                 + ", onlinePlayers=" + getServer().getOnlinePlayers().size() + ".");
+        return true;
     }
 
     public ConfigFileService configFiles() {

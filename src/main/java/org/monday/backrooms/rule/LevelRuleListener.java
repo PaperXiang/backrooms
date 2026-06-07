@@ -4,12 +4,22 @@ import java.util.Optional;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.projectiles.ProjectileSource;
@@ -72,6 +82,114 @@ public final class LevelRuleListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+        Optional<BackroomsLevel> level = currentLevel(event.getPlayer());
+        if (level.isEmpty()) {
+            return;
+        }
+
+        if (!level.get().rules().allowBlockPlace() && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)) {
+            event.setCancelled(true);
+            plugin.messages().send(event.getPlayer(), "build-place-denied");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+        Optional<BackroomsLevel> level = currentLevel(event.getPlayer());
+        if (level.isEmpty()) {
+            return;
+        }
+
+        if (!level.get().rules().allowBlockBreak() && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)) {
+            event.setCancelled(true);
+            plugin.messages().send(event.getPlayer(), "build-break-denied");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockIgnite(BlockIgniteEvent event) {
+        Optional<BackroomsLevel> level = levelByWorld(event.getBlock().getWorld().getName());
+        if (level.isEmpty() || level.get().rules().allowBlockPlace()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (player != null && player.hasPermission(BUILD_BYPASS_PERMISSION)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        if (player != null) {
+            plugin.messages().send(player, "build-place-denied");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockBurn(BlockBurnEvent event) {
+        levelByWorld(event.getBlock().getWorld().getName())
+                .filter(level -> !level.rules().allowBlockBreak())
+                .ifPresent(level -> event.setCancelled(true));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        levelByWorld(event.getLocation().getWorld().getName())
+                .filter(level -> !level.rules().allowBlockBreak())
+                .ifPresent(level -> event.blockList().clear());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        levelByWorld(event.getBlock().getWorld().getName())
+                .filter(level -> !level.rules().allowBlockBreak())
+                .ifPresent(level -> event.blockList().clear());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        levelByWorld(event.getBlock().getWorld().getName())
+                .filter(level -> !level.rules().allowBlockBreak() || !level.rules().allowBlockPlace())
+                .ifPresent(level -> event.setCancelled(true));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        Optional<BackroomsLevel> level = levelByWorld(event.getEntity().getWorld().getName());
+        if (level.isEmpty() || level.get().rules().allowBlockBreak()) {
+            return;
+        }
+
+        Entity remover = event.getRemover();
+        if (remover instanceof Player player && player.hasPermission(BUILD_BYPASS_PERMISSION)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        if (remover instanceof Player player) {
+            plugin.messages().send(player, "build-break-denied");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        Optional<BackroomsLevel> level = levelByWorld(event.getEntity().getWorld().getName());
+        if (level.isEmpty() || level.get().rules().allowBlockPlace()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (player != null && player.hasPermission(BUILD_BYPASS_PERMISSION)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        if (player != null) {
+            plugin.messages().send(player, "build-place-denied");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) {
             return;
@@ -99,7 +217,12 @@ public final class LevelRuleListener implements Listener {
     private Optional<BackroomsLevel> currentLevel(Player player) {
         return plugin.playerLevels().current(player)
                 .map(PlayerLevelState::levelId)
-                .flatMap(levelId -> plugin.levels().get(levelId).filter(BackroomsLevel::enabled));
+                .flatMap(levelId -> plugin.levels().get(levelId).filter(BackroomsLevel::enabled))
+                .or(() -> levelByWorld(player.getWorld().getName()));
+    }
+
+    private Optional<BackroomsLevel> levelByWorld(String worldName) {
+        return plugin.levels().getByWorld(worldName).filter(BackroomsLevel::enabled);
     }
 
     private Player attackingPlayer(Entity damager) {
@@ -112,6 +235,10 @@ public final class LevelRuleListener implements Listener {
             if (shooter instanceof Player player) {
                 return player;
             }
+        }
+
+        if (damager instanceof Tameable tameable && tameable.getOwner() instanceof Player player) {
+            return player;
         }
 
         return null;

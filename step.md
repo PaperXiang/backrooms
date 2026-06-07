@@ -453,6 +453,57 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 011 - 运行时安全审查与保护加固
+
+### 本次完成
+
+- 对当前 Paper 1.21.4 插件实现做了一轮最小安全审查修复，优先处理会导致测试服地图被误破坏或配置重载 fail-open 的问题。
+- `/br reload` 改为根据 `reloadRuntimeConfig()` 的真实结果反馈成功或失败；如果重载被拒绝或抛出运行时异常，会发送 `reload-failed` 文案而不是误报成功。
+- `reloadRuntimeConfig()` 在已有 Level registry 的情况下，如果新配置没有加载到任何 Level，会保留旧 registry 并中止本次切换，避免保护规则因为 Level 为空而直接失效。
+- Level 规则监听器增加 world fallback：当玩家追踪状态缺失或过期时，仍会按玩家所在 world 识别已启用 Level。
+- 补充桶、火焰、燃烧、爆炸、实体改方块、展示实体破坏/放置等常见绕过路径的保护事件。
+- 爆炸事件现在只清空 `blockList()` 阻止地形破坏，不直接取消整个爆炸事件，降低对其他插件或实体效果的干扰。
+- Resource 方块定义新增 `locations` 坐标限制，可把资源点限定到显式坐标，避免同材质普通地形全部变成资源点。
+- Room 生成默认改为 `replace-air-only: true`，并增加世界高度边界检查、0 改动失败提示和光源覆盖放置，降低管理员误覆盖地图或误判生成成功的风险。
+- `/br debug config` 增加 Transition `feedback.message-key` 缺失检查，便于实机发现消息配置问题。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/message/MessageService.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockDefinition.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockPosition.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/java/org/monday/backrooms/room/RoomGenerationService.java`
+- `src/main/java/org/monday/backrooms/rule/LevelRuleListener.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/resources.yml`
+- `src/main/resources/rooms.yml`
+
+### 设计原因
+
+- 当前 MVP 即将进入测试服实机验证，最重要的是先避免明显的地图破坏绕过和配置错误导致保护失效。
+- 不在本 step 做大规模事务化重构，先用最小改动保证 Level 识别与保护规则在常见异常状态下尽量 fail-closed。
+- Resource `locations` 保留空列表时按材质匹配的旧行为，避免破坏后续想做整类资源矿脉的配置方式；默认示例则改为坐标限定，减少新手误用风险。
+- Room 生成默认只替换空气，更适合作为测试服管理员命令；之后引入 WorldEdit/FAWE schematic 或 marker 扫描时再做更细的覆盖策略。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后先执行 `/br reload` 和 `/br debug config`，确认失败反馈、消息 key 检查和配置摘要正常。
+- 在 `level_0` / `level_1` 世界验证普通玩家无法通过放桶、点火、爆炸、实体方块变化、展示实体操作绕过保护。
+- 把 `resources.yml` 中示例 `locations` 改成真实地图资源点坐标，再验证右键/破坏触发资源掉落。
+- 在空旷区域测试 `/br room generate level0_basic_room level_0`，再在非空气区域测试无改动提示。
+- 后续集中处理更完整的 reload 事务化、异步传送 API 迁移和实机验证发现的问题。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已运行 `./gradlew.bat deployDevServer`，jar 已部署到本地测试服插件目录。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 010 - 运行时配置摘要调试命令
 
 ### 本次完成

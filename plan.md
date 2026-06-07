@@ -500,3 +500,16 @@ plugins/BackroomsCore/
 - Transition 检查会报告来源 Level 不存在、触发世界未加载、目标 Level 不存在/禁用、目标 world 未加载等常见实机问题。
 - Room 检查会报告模板引用了不存在的 Level，方便修改 `rooms.yml` 后快速验证。
 - 下一步继续以实机验证为核心：重启测试服后先执行 `/br reload` 和 `/br debug config`，再验证 `/br transition guide` 与 `/br room generate`。
+
+### 12.8 Step 011 安全审查修复状态
+
+- 已完成一次 Paper 1.21.4 插件安全审查，并先做最小安全修复，不做大块重构。
+- `/br reload` 不再先清空旧 Level registry；如果 reload 后没有加载到任何 Level，会保留旧 Level registry，避免保护规则 fail-open。
+- Level 规则监听器已增加 world fallback；即使玩家运行时追踪状态缺失，也会按玩家所在 world 识别已配置 Level。
+- 已补充桶、火焰、爆炸、实体改方块、展示实体破坏等常见世界破坏事件拦截，降低普通玩家绕过 break/place 保护破坏地图的风险。
+- Resource 方块支持 `locations` 显式坐标限制；默认测试资源已改为坐标限定样例，避免同材质地形全部变成资源点。
+- Room 生成默认改为 `replace-air-only: true`，并增加世界高度边界校验、光源覆盖放置和无方块改变提示，降低管理员误生成覆盖地图或误判成功的风险。
+- `/br debug config` 已增加 Transition `feedback.message-key` 缺失检查。
+- `/br reload` 现在会根据实际重载结果反馈成功或失败，避免配置被拒绝时仍显示成功。
+- 当前仍保留同步 `Player#teleport`，Paper 1.21.4 可编译运行，但后续应集中迁移到现代异步传送 API。
+- 下一步最高优先级仍是重启测试服实机验证 `/br reload`、`/br debug config`、资源点坐标、房间生成和 Transition 闭环。

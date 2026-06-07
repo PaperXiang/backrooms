@@ -3,6 +3,7 @@ messages:
   no-permission: "<red>你没有权限使用这个命令。"
   player-only: "<red>这个命令只能由玩家执行。"
   reload: "<green>配置已重载。当前已加载 <yellow><count></yellow> 个 Level、<yellow><transition_count></yellow> 个 Transition、<yellow><room_count></yellow> 个 Room。"
+  reload-failed: "<red>配置重载失败或已中止，已尽量保留上一份安全运行时状态。当前仍为 <yellow><count></yellow> 个 Level、<yellow><transition_count></yellow> 个 Transition、<yellow><room_count></yellow> 个 Room。请查看控制台错误。"
   player-not-found: "<red>找不到在线玩家：<yellow><player></yellow>"
   unknown-command: "<red>未知子命令。输入 <yellow>/br help</yellow> 查看帮助。"
   help:
@@ -29,7 +30,7 @@ messages:
   level-disabled: "<red>Level <yellow><id></yellow> 当前未启用。"
   level-tp-usage: "<red>用法：<yellow>/br level tp <id></yellow>"
   level-world-not-loaded: "<red>Level <yellow><id></yellow> 的世界 <yellow><world></yellow> 未加载。请先用 Multiverse 或服务端配置加载该世界。"
-  level-teleport-success: "<green>已传送到 <yellow><id></yellow> <gray>(<display><gray>)。"
+  level-teleport-success: "<green>已传送到 <yellow><id></yellow> <gray>(<display>)</gray>。"
   level-teleport-failed: "<red>传送到 Level <yellow><id></yellow> 失败。"
   build-break-denied: "<red>这个 Level 中不能破坏普通建筑。"
   build-place-denied: "<red>这个 Level 中不能放置普通方块。"
@@ -64,6 +65,8 @@ messages:
   room-generate-level-required: "<red>无法确定目标 Level。请站在已配置 Level 世界内，或使用 <yellow>/br room generate <id> <level></yellow>。"
   room-generate-level-not-allowed: "<red>Room <yellow><id></yellow> 不允许生成在 Level <yellow><level></yellow>。"
   room-generate-too-large: "<red>Room <yellow><id></yellow> 超过单次生成方块上限。"
+  room-generate-out-of-bounds: "<red>Room <yellow><id></yellow> 超出当前世界高度边界，已取消生成。"
+  room-generate-no-changes: "<yellow>Room <yellow><id></yellow> 没有改变任何方块。当前位置可能不是空气，或模板已存在。"
   room-generate-wrong-world: "<red>你必须在 Level <yellow><level></yellow> 对应世界 <yellow><world></yellow> 内生成这个 Room。"
   room-generate-success: "<green>已在 <yellow><world></yellow> 的 <yellow><x>,<y>,<z></yellow> 为 Level <yellow><level></yellow> 生成 Room <yellow><id></yellow>，改变 <yellow><blocks></yellow> 个方块。"
   debug-current-none:

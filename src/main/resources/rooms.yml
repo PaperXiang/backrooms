@@ -2,7 +2,7 @@ rooms:
   enabled: true
   defaults:
     max-blocks-per-generate: 5000
-    replace-air-only: false
+    replace-air-only: true
 
   definitions:
     level0_basic_room:
