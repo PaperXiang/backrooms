@@ -563,3 +563,10 @@ plugins/BackroomsCore/
 - 当前 BackroomsCore 不提供自定义 world generator，也不会自动创建世界；MVP 测试建议用 Multiverse `-t FLAT` 创建平地世界，不需要指定 `-g`。
 - README 已说明已有世界文件夹时使用 `/mv import`，创建或导入后执行 `/br reload` 和 `/br debug config` 检查 missing worlds。
 - 下一步仍是实机重启验证 `/br` 启动修复，然后按 README 创建世界、检查配置、测试 Transition/Room/Resource 闭环。
+
+### 12.15 Step 018 synthetic enum switch 运行时修复状态
+
+- 已修复 `/br transition info level0_to_level1_stairwell` 触发的 `NoClassDefFoundError: TransitionDefinition$1`。
+- 已移除 Transition/Room 运行路径中的 enum switch 表达式，避免生成 `TransitionDefinition$1`、`TransitionService$1`、`RoomGenerationService$1` 这类 synthetic helper class。
+- 已通过 `clean build` 验证新 jar 中不再包含这些 `$1.class` 文件。
+- 下一步实机验证重点：部署新 jar 并完整重启后，测试 `/br transition info level0_to_level1_stairwell`、`/br transition guide level0_to_level1_stairwell` 和 `/br room generate ...`。

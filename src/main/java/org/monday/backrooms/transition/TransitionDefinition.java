@@ -35,9 +35,12 @@ public record TransitionDefinition(
     }
 
     public String triggerDescription() {
-        return switch (triggerType) {
-            case REGION -> "region:" + triggerWorld + ":" + (region == null ? "none" : region.describe());
-            case RIGHT_CLICK_BLOCK -> "right_click_block:" + triggerWorld + ":materials=" + materials.size() + ":positions=" + blockPositions.size();
-        };
+        if (triggerType == TransitionTriggerType.REGION) {
+            return "region:" + triggerWorld + ":" + (region == null ? "none" : region.describe());
+        }
+        if (triggerType == TransitionTriggerType.RIGHT_CLICK_BLOCK) {
+            return "right_click_block:" + triggerWorld + ":materials=" + materials.size() + ":positions=" + blockPositions.size();
+        }
+        return triggerType.name().toLowerCase() + ":" + triggerWorld;
     }
 }

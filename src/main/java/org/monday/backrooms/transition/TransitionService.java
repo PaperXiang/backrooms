@@ -279,11 +279,13 @@ public final class TransitionService {
     }
 
     private Location resolveLocation(World world, TransitionTarget target, BackroomsLevel targetLevel) {
-        return switch (target.spawnMode()) {
-            case POINT -> new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
-            case LEVEL_SPAWN -> targetLevel == null || targetLevel.spawn() == null ? world.getSpawnLocation() : targetLevel.spawn().toLocation(world);
-            case WORLD_SPAWN -> world.getSpawnLocation();
-        };
+        if (target.spawnMode() == TransitionSpawnMode.POINT) {
+            return new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
+        }
+        if (target.spawnMode() == TransitionSpawnMode.LEVEL_SPAWN) {
+            return targetLevel == null || targetLevel.spawn() == null ? world.getSpawnLocation() : targetLevel.spawn().toLocation(world);
+        }
+        return world.getSpawnLocation();
     }
 
     private Optional<TransitionDefinition> loadDefinition(String id, ConfigurationSection section) {

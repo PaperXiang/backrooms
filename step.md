@@ -1,5 +1,41 @@
 # 开发记录
 
+## Step 018 - synthetic enum switch 运行时修复
+
+### 本次完成
+
+- 修复 `/br transition info level0_to_level1_stairwell` 触发的 `NoClassDefFoundError: org/monday/backrooms/transition/TransitionDefinition$1`。
+- 将 `TransitionDefinition#triggerDescription()` 中的 enum switch 改为普通 `if` 判断。
+- 将 `TransitionService#resolveLocation()` 中的 enum switch 改为普通 `if` 判断。
+- 将 `RoomGenerationService#generate()` 中的 enum switch 改为普通 `if` 判断。
+- 通过 `clean build` 清理旧 class 输出，确认新 jar 不再包含相关 `$1.class` synthetic helper class。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/transition/TransitionDefinition.java`
+- `src/main/java/org/monday/backrooms/transition/TransitionService.java`
+- `src/main/java/org/monday/backrooms/room/RoomGenerationService.java`
+
+### 设计原因
+
+- 当前测试服在执行 Transition 详情命令时运行时找不到 enum switch 生成的 synthetic class，导致主线程异常。
+- 这些 switch 只负责小型分支选择，改成 `if` 不改变业务行为，但能避免依赖额外 `$1.class`。
+- 同时处理 Transition 目标解析和 Room 生成中的同类 enum switch，降低后续命令再遇到同类问题的风险。
+
+### 下一步建议
+
+- 部署新 jar 后完整重启测试服。
+- 测试 `/br transition info level0_to_level1_stairwell`。
+- 继续测试 `/br transition guide level0_to_level1_stairwell` 和 `/br room generate level0_basic_room level_0`，确认同类 synthetic class 错误不再出现。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat clean build`，构建通过。
+- 已检查 `build/classes` 和 `build/libs/untitled-1.0-SNAPSHOT.jar`，不再包含 `TransitionDefinition$1.class`、`TransitionService$1.class`、`RoomGenerationService$1.class`。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 017 - README 世界创建说明补充
 
 ### 本次完成

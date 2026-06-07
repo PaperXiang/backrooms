@@ -104,10 +104,12 @@ public final class RoomGenerationService {
             return failure("room-generate-out-of-bounds", room, level, origin);
         }
 
-        int changed = switch (room.shape()) {
-            case ROOM -> generateRoom(room, origin);
-            case CORRIDOR -> generateCorridor(room, origin);
-        };
+        int changed;
+        if (room.shape() == RoomShape.ROOM) {
+            changed = generateRoom(room, origin);
+        } else {
+            changed = generateCorridor(room, origin);
+        }
         if (changed == 0) {
             return failure("room-generate-no-changes", room, level, origin);
         }
