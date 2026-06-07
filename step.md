@@ -1,5 +1,71 @@
 # 开发记录
 
+## Step 032 - 尸体缓存 MVP
+
+### 本次完成
+
+- 新增 `corpses.yml`，用于配置死亡/尸体缓存：
+  - `enabled`
+  - `levels`
+  - `container-material`
+  - `inventory-title`
+  - `insurance-slots`
+  - `placement-search-radius`
+  - `placement-search-height`
+  - `drop-leftovers`
+  - `drop-if-no-container-space`
+- 新增 `CorpseService`：
+  - 玩家在 Backrooms Level 死亡时，将死亡掉落转移到死亡点附近的原版容器。
+  - 从死亡掉落中取出配置数量的保险物品堆，重生后返还给玩家。
+  - 尸体容器写入 PDC：owner uuid、owner name、created at。
+  - `/br reload` 替换运行时时复制 pending insurance 状态。
+- 新增 `CorpseListener`：
+  - 监听 `PlayerDeathEvent`
+  - 监听 `PlayerRespawnEvent`
+- `/br debug config` 新增 `Pending insurance`。
+- `syncDevServerConfig` 已纳入 `corpses.yml`。
+- README 已新增 Death / Corpse 测试流程。
+
+### 修改文件
+
+- `README.md`
+- `build.gradle`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/corpse/CorpseListener.java`
+- `src/main/java/org/monday/backrooms/corpse/CorpseService.java`
+- `src/main/resources/corpses.yml`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- 先用原版 `CHEST` 做尸体缓存，避免当前阶段强依赖 CraftEngine Java API；后续可用 CE 尸体方块替换视觉表现。
+- 保险箱先按“物品堆”实现，默认 1 堆，符合 MVP 中“保险箱 1 格”的设计。
+- 尸体容器写 PDC 元数据，是为了后续做本人/他人搜刮权限、衰变、状态切换和低级 loot source。
+- 如果死亡点附近没有可放置容器的位置，默认保留原版掉落，避免吞物品。
+
+### 下一步建议
+
+- 玩家进服后在 `level_0` 或 `level_1` 携带多件物品死亡，确认死亡点附近生成 `CHEST` 尸体缓存。
+- 重生后确认保险物品堆返还，普通物品留在尸体容器里。
+- 后续将尸体容器替换为 CraftEngine `corpse_cache` / `faithful_crate` 等表现，并补权限与衰变状态。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat compileJava`，编译通过。
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Loaded corpse config: enabled=true, levels=2, container=CHEST, insuranceSlots=1, pendingInsurance=0`
+  - `Runtime config reloaded ... pendingInsurance=0`
+  - `Registered listeners: ... CorpseListener`
+  - `BackroomsCore enabled successfully ... pendingInsurance=0`
+- 当前有 1 个 Bukkit `Nameable#setCustomName(String)` deprecation warning，属于原版容器标题兼容写法，不影响构建。
+
 ## Step 031 - Loot Source direct reward
 
 ### 本次完成

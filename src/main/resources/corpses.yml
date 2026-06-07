@@ -1,0 +1,12 @@
+corpses:
+  enabled: true
+  levels:
+    - level_0
+    - level_1
+  container-material: CHEST
+  inventory-title: "Corpse Cache"
+  insurance-slots: 1
+  placement-search-radius: 2
+  placement-search-height: 2
+  drop-leftovers: true
+  drop-if-no-container-space: true

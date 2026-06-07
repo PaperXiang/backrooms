@@ -78,6 +78,7 @@ tasks.register('syncDevServerConfig', Copy) {
         include 'config.yml'
         include 'items.yml'
         include 'loot.yml'
+        include 'corpses.yml'
         include 'messages.yml'
         include 'resources.yml'
         include 'rooms.yml'

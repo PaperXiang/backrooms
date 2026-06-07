@@ -463,12 +463,13 @@ plugins/BackroomsCore/
 - 已用 Java 21 重启测试服并验证 BackroomsCore 启动日志：`lootSources=2`、`lootTables=2`、`resourceBlocks=2`、`transitions=2`、`rooms=3`；CraftEngine 在 Java 21 下不再出现 Java 26 的 ASM class major 70 警告。
 - 已新增 Loot Source 调试命令：`/br loot sources` 和 `/br loot source info <id>`，用于实机查看容器源的 Level、材质、坐标、loot table、one-time 和 fill-empty-only。
 - 已新增 Loot Source direct reward：`event_reward` 与 `command_reward` 类型可通过 `LootSourceService#triggerReward(...)` 对玩家发放 Loot Table 产物，`/br loot source trigger <id> [player]` 可用于管理员测试和脚本触发。
+- 已新增尸体缓存 MVP：`corpses.yml` 配置启用 Level、原版容器材料、保险物品堆数量和死亡点附近搜索半径；玩家在 Backrooms Level 死亡时，普通掉落进入尸体容器，保险物品在重生后返还。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
-当前阶段重点是把服务器跑起来并形成可测试闭环：Level 配置、跨世界传送、Level 规则、资源方块抽象、CE 测试资产、基础显示配置。世界生成、房间拼接、尸体背包保存、基地 claim、组织系统和真实 loot 刷新仍属于后续 MVP 任务，因为它们依赖已稳定的 Level/资源/切层基础设施。先做小而稳的闭环，能降低后续 WorldEdit/CE/Multiverse 实机集成时的排错成本。
+当前阶段重点是把服务器跑起来并形成可测试闭环：Level 配置、跨世界传送、Level 规则、资源方块抽象、CE 测试资产、基础显示配置。世界生成、房间拼接、基地 claim、组织系统和真实 loot 刷新仍属于后续 MVP 任务，因为它们依赖已稳定的 Level/资源/切层基础设施。先做小而稳的闭环，能降低后续 WorldEdit/CE/Multiverse 实机集成时的排错成本。
 
 ### 12.3 Step 006 完成状态
 
@@ -700,3 +701,13 @@ plugins/BackroomsCore/
 - 默认 `loot.yml` 新增 `level0_event_supply_reward` 与 `admin_scrap_reward`，分别覆盖一次性 Level 0 事件补给与可重复管理员/脚本奖励。
 - 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；BackroomsCore 启动日志显示 `lootSources=4`。
 - 下一步重点：把 CE 尸体/容器交互或未来事件系统接到 `triggerReward(...)`，继续减少手动命令和占位坐标。
+
+### 12.28 Step 032 尸体缓存 MVP 状态
+
+- 已新增 `corpses.yml`，配置尸体系统启用状态、适用 Level、原版容器材料、保险物品堆数量、死亡点附近搜索半径和剩余物品处理策略。
+- 已新增 `CorpseService` 与 `CorpseListener`：监听 `PlayerDeathEvent`，在 Backrooms Level 中把普通死亡掉落转移到死亡点附近的原版容器；监听 `PlayerRespawnEvent`，把保险物品堆返还给玩家。
+- 尸体容器写入 PDC：owner uuid、owner name、created at，后续可用于权限、衰变、搜刮状态和 CE 尸体方块替换。
+- `/br reload` staged runtime 已接入 `CorpseService`，并复制 pending insurance 状态，避免 reload 后丢失等待重生返还的保险物品。
+- `/br debug config` 已显示 `Pending insurance`，用于检查等待返还保险物品的玩家数量。
+- 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；BackroomsCore 启动日志显示 corpse config 加载成功、`pendingInsurance=0`、`CorpseListener` 注册成功。
+- 下一步重点：实机让玩家在 `level_0` / `level_1` 死亡，确认尸体 `CHEST` 生成、掉落物转移、保险物品重生返还和容器无空间时的 fallback。

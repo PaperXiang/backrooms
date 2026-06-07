@@ -133,6 +133,7 @@ messages:
   item-cooldown: "<yellow>你还不能再次使用这个物品，请等待 <seconds> 秒。"
   item-used: "<green>已使用 <yellow><item></yellow>。<gray>理智：</gray><yellow><sanity></yellow><gray>/<max></gray>"
   almond-water-used: "<#F5E6B8>杏仁水让噪音暂时远离了你。<gray>理智：</gray><yellow><sanity></yellow><gray>/<max></gray> <gray>稳定：</gray><aqua><stable>s</aqua>"
+  corpse-insurance-restored: "<green>保险箱已返还 <yellow><items></yellow> 个物品堆。"
   sanity-low: "<yellow>你的理智正在下降：<sanity>/<max>。荧光灯的声音变得更近了。"
   sanity-critical: "<red>你的理智濒临崩溃：<sanity>/<max>。你不确定走廊是否还在原来的位置。"
   item-info:
@@ -175,6 +176,7 @@ messages:
     - "<gray>Items：</gray><white><items></white>"
     - "<gray>Loot tables：</gray><white><loot_tables></white>"
     - "<gray>Loot sources：</gray><white><loot_sources></white>"
+    - "<gray>Pending insurance：</gray><white><pending_insurance></white>"
     - "<gray>Resource blocks：</gray><white><resource_blocks></white>"
     - "<gray>Transitions：</gray><white><transitions></white> <dark_gray>(disabled:</dark_gray> <white><transitions_disabled></white><dark_gray>)</dark_gray>"
     - "<gray>Transition issues：</gray><white><transition_issues></white>"

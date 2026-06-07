@@ -1405,6 +1405,7 @@ public final class BrCommand implements TabExecutor {
                 messages.text("items", String.valueOf(plugin.items().definitionCount())),
                 messages.text("loot_tables", String.valueOf(plugin.lootTables().definitionCount())),
                 messages.text("loot_sources", String.valueOf(plugin.lootSources().definitionCount())),
+                messages.text("pending_insurance", String.valueOf(plugin.corpses().pendingInsuranceCount())),
                 messages.text("resource_blocks", String.valueOf(plugin.resources().definitionCount())),
                 messages.text("transitions", String.valueOf(plugin.transitions().definitionCount())),
                 messages.text("transitions_disabled", String.valueOf(disabledTransitions)),

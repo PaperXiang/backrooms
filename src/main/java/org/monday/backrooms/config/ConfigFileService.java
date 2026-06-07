@@ -15,6 +15,7 @@ public final class ConfigFileService {
     private FileConfiguration settings;
     private FileConfiguration items;
     private FileConfiguration loot;
+    private FileConfiguration corpses;
     private FileConfiguration resources;
     private FileConfiguration transitions;
     private FileConfiguration rooms;
@@ -29,6 +30,7 @@ public final class ConfigFileService {
         saveDefault("messages.yml");
         saveDefault("items.yml");
         saveDefault("loot.yml");
+        saveDefault("corpses.yml");
         saveDefault("resources.yml");
         saveDefault("transitions.yml");
         saveDefault("rooms.yml");
@@ -43,6 +45,7 @@ public final class ConfigFileService {
         this.settings = loadFile("settings/config.yml");
         this.items = loadFile("items.yml");
         this.loot = loadFile("loot.yml");
+        this.corpses = loadFile("corpses.yml");
         this.resources = loadFile("resources.yml");
         this.transitions = loadFile("transitions.yml");
         this.rooms = loadFile("rooms.yml");
@@ -53,6 +56,7 @@ public final class ConfigFileService {
         warnIgnoredLegacySection("level-title", "settings/config.yml");
         warnIgnoredLegacySection("items", "items.yml");
         warnIgnoredLegacySection("loot-tables", "loot.yml");
+        warnIgnoredLegacySection("corpses", "corpses.yml");
         warnIgnoredLegacySection("resource-blocks", "resources.yml");
         warnIgnoredLegacySection("transitions", "transitions.yml");
         warnIgnoredLegacySection("rooms", "rooms.yml");
@@ -74,6 +78,10 @@ public final class ConfigFileService {
 
     public FileConfiguration loot() {
         return loot;
+    }
+
+    public FileConfiguration corpses() {
+        return corpses;
     }
 
     public FileConfiguration resources() {
