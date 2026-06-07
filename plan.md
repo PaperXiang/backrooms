@@ -841,3 +841,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify transitions`；当前 PASS：configured vs loaded transitions、transition definitions。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后真实触发 Level 0 -> Level 1 和 Level 1 -> lobby 的 region transition，确认 cooldown、title/message、异步传送和 post-teleport immunity。
+
+### 12.41 Step 045 Room 配置 verifier 状态
+
+- 已新增 `/br verify rooms`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`rooms.yml` 配置定义数量是否全部加载、Room Level/world 引用、palette 材质是否为可放置方块、size 是否合理、估算方块数是否超过 `rooms.defaults.max-blocks-per-generate`、`replace-air-only` 当前值，以及按当前 world spawn 高度生成是否会越界。
+- 已通过 RCON 执行 `br verify rooms`；当前 PASS：configured vs loaded rooms、room definitions、room generation limits。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后执行 `/br room generate ...` 做真实方块生成观察，确认 replace-air-only、无改动提示、光源覆盖、marker 放置和保护规则交互。

@@ -1,5 +1,50 @@
 # 开发记录
 
+## Step 045 - Room 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify rooms`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify rooms`
+- room verifier 检查：
+  - Configured vs loaded rooms：确认 `rooms.yml` 中配置的 Room 模板均已进入运行时。
+  - Room definitions：检查 Level/world 引用、shape、size 和 palette 材质是否可放置。
+  - Room generation limits：检查 `max-blocks-per-generate`、`replace-air-only`、估算方块数和按当前 world spawn 高度生成是否越界。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br debug config` 只粗略报告 Room issues，不能确认 palette、尺寸、生成上限和世界高度边界。
+- Room 真实生成会改地图；先提供只读 verifier，能够在不放方块的情况下提前发现配置错误。
+- 当前 Room 仍是占位生成器，verifier 可以作为后续替换为 schematic/marker 流程前的配置基线。
+
+### 下一步建议
+
+- 玩家进服后在空旷区域执行 `/br room generate level0_basic_room level_0` 和 `/br room generate level0_corridor level_0`，确认真实方块生成。
+- 继续验证 `replace-air-only`、无改动提示、光源覆盖和 marker 放置。
+- 后续用真实 schematic 替换当前占位 Room 后，继续保留 `/br verify rooms` 做配置前置检查。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify rooms`，当前全 PASS：
+  - Configured vs loaded rooms：`rooms=3`。
+  - Room definitions：`rooms=3, enabled=3, roomShapes=2, corridorShapes=1`。
+  - Room generation limits：`maxBlocks=5000, replaceAirOnly=true`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 044 - Transition 配置 verifier
 
 ### 本次完成

@@ -43,6 +43,7 @@ import org.monday.backrooms.resource.ResourceBlockDefinition;
 import org.monday.backrooms.resource.ResourceDrop;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
+import org.monday.backrooms.room.RoomShape;
 import org.monday.backrooms.transition.BlockPosition;
 import org.monday.backrooms.transition.CuboidRegion;
 import org.monday.backrooms.transition.TransitionDefinition;
@@ -184,6 +185,10 @@ public final class BrCommand implements TabExecutor {
             }
             if (is(args[1], "transitions")) {
                 sendTransitionsVerification(sender);
+                return true;
+            }
+            if (is(args[1], "rooms")) {
+                sendRoomsVerification(sender);
                 return true;
             }
             plugin.messages().send(sender, "verify-usage");
@@ -619,7 +624,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases", "transitions"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases", "transitions", "rooms"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1362,6 +1367,157 @@ public final class BrCommand implements TabExecutor {
         messages.send(sender, "verify-transitions-header");
         verifyTransitionConfiguredCounts(sender);
         verifyTransitionDefinitions(sender);
+    }
+
+    private void sendRoomsVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-rooms-header");
+        verifyRoomConfiguredCounts(sender);
+        verifyRoomDefinitions(sender);
+        verifyRoomGenerationLimits(sender);
+    }
+
+    private void verifyRoomConfiguredCounts(CommandSender sender) {
+        int configuredRooms = configuredDefinitionCount(plugin.configFiles().rooms(), "rooms.definitions");
+        int loadedRooms = plugin.rooms().definitionCount();
+        sendVerifyLine(sender, configuredRooms == loadedRooms ? "pass" : "fail", "Configured vs loaded rooms",
+                configuredRooms == loadedRooms
+                        ? "rooms=" + loadedRooms
+                        : "configured=" + configuredRooms + ", loaded=" + loadedRooms);
+    }
+
+    private void verifyRoomDefinitions(CommandSender sender) {
+        int rooms = 0;
+        int enabled = 0;
+        int roomShapes = 0;
+        int corridorShapes = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (RoomDefinition room : plugin.rooms().all()) {
+            rooms++;
+            if (room.enabled()) {
+                enabled++;
+            }
+            if (room.shape() == RoomShape.ROOM) {
+                roomShapes++;
+            } else if (room.shape() == RoomShape.CORRIDOR) {
+                corridorShapes++;
+            }
+            verifyRoomLevels(room, issues);
+            verifyRoomPalette(room, issues, warnings);
+            if (room.width() < 3 || room.length() < 3 || room.height() < 3) {
+                issues.add(room.id() + ":size=" + room.sizeDescription());
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Room definitions",
+                "rooms=" + rooms + ", enabled=" + enabled + ", roomShapes=" + roomShapes + ", corridorShapes=" + corridorShapes
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyRoomGenerationLimits(CommandSender sender) {
+        int maxBlocks = plugin.configFiles().rooms().getInt("rooms.defaults.max-blocks-per-generate", 5000);
+        boolean replaceAirOnly = plugin.configFiles().rooms().getBoolean("rooms.defaults.replace-air-only", true);
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        if (maxBlocks < 1) {
+            issues.add("max-blocks-per-generate=" + maxBlocks);
+        }
+        for (RoomDefinition room : plugin.rooms().all()) {
+            long estimatedBlocks = (long) room.width() * room.length() * room.height();
+            if (estimatedBlocks > maxBlocks) {
+                issues.add(room.id() + ":estimatedBlocks=" + estimatedBlocks + ">" + maxBlocks);
+            }
+            for (BackroomsLevel level : applicableRoomLevels(room)) {
+                World world = Bukkit.getWorld(level.world());
+                if (world == null) {
+                    issues.add(room.id() + "@" + level.id() + ":world missing " + level.world());
+                    continue;
+                }
+                int originY = world.getSpawnLocation().getBlockY();
+                int floorY = originY - 1;
+                int ceilingY = floorY + room.height() - 1;
+                if (floorY < world.getMinHeight() || ceilingY >= world.getMaxHeight()) {
+                    issues.add(room.id() + "@" + level.id() + ":height " + floorY + ".." + ceilingY);
+                }
+            }
+            if (room.marker().isAir()) {
+                warnings.add(room.id() + ":no marker");
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Room generation limits",
+                "maxBlocks=" + maxBlocks + ", replaceAirOnly=" + replaceAirOnly
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyRoomLevels(RoomDefinition room, List<String> issues) {
+        List<BackroomsLevel> levels = applicableRoomLevels(room);
+        if (!room.levels().isEmpty()) {
+            for (String levelId : room.levels()) {
+                if (plugin.levels().get(levelId).isEmpty()) {
+                    issues.add(room.id() + ":unknown level " + levelId);
+                }
+            }
+        }
+        for (BackroomsLevel level : levels) {
+            if (!level.enabled()) {
+                issues.add(room.id() + ":level disabled " + level.id());
+            }
+            if (Bukkit.getWorld(level.world()) == null) {
+                issues.add(room.id() + ":world missing " + level.world());
+            }
+        }
+        if (room.levels().isEmpty() && levels.isEmpty()) {
+            issues.add(room.id() + ":no configured levels");
+        }
+    }
+
+    private List<BackroomsLevel> applicableRoomLevels(RoomDefinition room) {
+        if (room.levels().isEmpty()) {
+            return plugin.levels().all().stream().toList();
+        }
+        List<BackroomsLevel> levels = new ArrayList<>();
+        for (String levelId : room.levels()) {
+            plugin.levels().get(levelId).ifPresentOrElse(levels::add, () -> {
+            });
+        }
+        return levels;
+    }
+
+    private void verifyRoomPalette(RoomDefinition room, List<String> issues, List<String> warnings) {
+        verifyRoomBlockMaterial(room.id(), "floor", room.floor(), issues, false);
+        verifyRoomBlockMaterial(room.id(), "wall", room.wall(), issues, false);
+        verifyRoomBlockMaterial(room.id(), "ceiling", room.ceiling(), issues, false);
+        verifyRoomBlockMaterial(room.id(), "light", room.light(), issues, false);
+        verifyRoomBlockMaterial(room.id(), "marker", room.marker(), issues, true);
+    }
+
+    private void verifyRoomBlockMaterial(String roomId, String field, Material material, List<String> issues, boolean allowAir) {
+        if (material == null) {
+            issues.add(roomId + ":" + field + "=null");
+            return;
+        }
+        if (material.isAir()) {
+            if (!allowAir) {
+                issues.add(roomId + ":" + field + "=AIR");
+            }
+            return;
+        }
+        if (!material.isBlock()) {
+            issues.add(roomId + ":" + field + " not block " + material.name());
+        }
     }
 
     private void verifyTransitionConfiguredCounts(CommandSender sender) {
