@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,6 +29,7 @@ import org.monday.backrooms.base.BaseClaimStatus;
 import org.monday.backrooms.base.BaseDefinition;
 import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
+import org.monday.backrooms.loot.LootEntry;
 import org.monday.backrooms.loot.LootSourceDefinition;
 import org.monday.backrooms.loot.LootSourceRewardResult;
 import org.monday.backrooms.loot.LootSourceRewardStatus;
@@ -35,6 +37,7 @@ import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
 import org.monday.backrooms.resource.ResourceBlockDefinition;
+import org.monday.backrooms.resource.ResourceDrop;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.TransitionDefinition;
@@ -157,6 +160,10 @@ public final class BrCommand implements TabExecutor {
             }
             if (is(args[1], "map")) {
                 sendMapVerification(sender);
+                return true;
+            }
+            if (is(args[1], "loot")) {
+                sendLootVerification(sender);
                 return true;
             }
             plugin.messages().send(sender, "verify-usage");
@@ -573,7 +580,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1255,6 +1262,197 @@ public final class BrCommand implements TabExecutor {
         verifyBaseTerminals(sender);
     }
 
+    private void sendLootVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-loot-header");
+        verifyLootResourceConfiguredCounts(sender);
+        verifyLootTableEntries(sender);
+        verifyLootSourceLinks(sender);
+        verifyResourceRewardLinks(sender);
+        verifyLootCoverage(sender);
+    }
+
+    private void verifyLootResourceConfiguredCounts(CommandSender sender) {
+        int configuredTables = configuredDefinitionCount(plugin.configFiles().loot(), "loot-tables.definitions");
+        int configuredSources = configuredDefinitionCount(plugin.configFiles().loot(), "loot-sources.definitions");
+        int configuredResources = configuredDefinitionCount(plugin.configFiles().resources(), "resource-blocks.definitions");
+        int loadedTables = plugin.lootTables().definitionCount();
+        int loadedSources = plugin.lootSources().definitionCount();
+        int loadedResources = plugin.resources().definitionCount();
+
+        List<String> mismatches = new ArrayList<>();
+        if (configuredTables != loadedTables) {
+            mismatches.add("lootTables configured=" + configuredTables + " loaded=" + loadedTables);
+        }
+        if (configuredSources != loadedSources) {
+            mismatches.add("lootSources configured=" + configuredSources + " loaded=" + loadedSources);
+        }
+        if (configuredResources != loadedResources) {
+            mismatches.add("resources configured=" + configuredResources + " loaded=" + loadedResources);
+        }
+
+        sendVerifyLine(sender, mismatches.isEmpty() ? "pass" : "fail", "Configured vs loaded definitions",
+                mismatches.isEmpty()
+                        ? "lootTables=" + loadedTables + ", lootSources=" + loadedSources + ", resources=" + loadedResources
+                        : describeList(mismatches));
+    }
+
+    private void verifyLootTableEntries(CommandSender sender) {
+        int entries = 0;
+        int customEntries = 0;
+        int materialEntries = 0;
+        int disabledTables = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (LootTableDefinition table : plugin.lootTables().all()) {
+            if (!table.enabled()) {
+                disabledTables++;
+            }
+            if (table.entries().isEmpty()) {
+                issues.add(table.id() + ":no entries");
+            }
+            if (table.rollsMin() < 1 || table.rollsMax() < table.rollsMin()) {
+                issues.add(table.id() + ":rolls=" + table.rollsDescription());
+            }
+            for (LootEntry entry : table.entries()) {
+                entries++;
+                verifyRollRange(table.id(), entry.chance(), entry.min(), entry.max(), issues, warnings);
+                if (entry.customItem()) {
+                    customEntries++;
+                    verifyItemRef("loot " + table.id(), entry.itemId(), issues, warnings);
+                } else {
+                    materialEntries++;
+                    verifyItemMaterial("loot " + table.id(), entry.material(), issues);
+                }
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Loot table entries",
+                "entries=" + entries + ", custom=" + customEntries + ", material=" + materialEntries + ", disabledTables=" + disabledTables
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyLootSourceLinks(CommandSender sender) {
+        int sources = 0;
+        int containerSources = 0;
+        int directSources = 0;
+        int tableRefs = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (LootSourceDefinition source : plugin.lootSources().all()) {
+            sources++;
+            if (source.type().requiresBlockMaterial()) {
+                containerSources++;
+                if (source.materials().isEmpty()) {
+                    issues.add(source.id() + ":no materials");
+                }
+                if (source.locations().isEmpty()) {
+                    warnings.add(source.id() + ":global container match");
+                }
+            }
+            if (source.type().supportsDirectReward()) {
+                directSources++;
+            }
+            verifyLevelRefs("loot source " + source.id(), source.levels(), issues);
+            if (source.lootTables().isEmpty()) {
+                issues.add(source.id() + ":no loot tables");
+            }
+            for (String tableId : source.lootTables()) {
+                tableRefs++;
+                verifyLootTableRef("loot source " + source.id(), tableId, issues, warnings);
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Loot source links",
+                "sources=" + sources + ", containers=" + containerSources + ", direct=" + directSources + ", tableRefs=" + tableRefs
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyResourceRewardLinks(CommandSender sender) {
+        int resources = 0;
+        int tableRefs = 0;
+        int drops = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (ResourceBlockDefinition resource : plugin.resources().all()) {
+            resources++;
+            verifyLevelRefs("resource " + resource.id(), resource.levels(), issues);
+            if (resource.materials().isEmpty()) {
+                issues.add(resource.id() + ":no materials");
+            }
+            if (resource.positions().isEmpty()) {
+                warnings.add(resource.id() + ":global material match");
+            }
+            if (resource.triggers().isEmpty()) {
+                issues.add(resource.id() + ":no triggers");
+            }
+            if (resource.cooldownSeconds() < 0L) {
+                issues.add(resource.id() + ":negative cooldown");
+            }
+            if (resource.lootTables().isEmpty() && resource.drops().isEmpty() && !resource.removeBlock()) {
+                warnings.add(resource.id() + ":no reward");
+            }
+            for (String tableId : resource.lootTables()) {
+                tableRefs++;
+                verifyLootTableRef("resource " + resource.id(), tableId, issues, warnings);
+            }
+            for (ResourceDrop drop : resource.drops()) {
+                drops++;
+                verifyRollRange(resource.id(), drop.chance(), drop.min(), drop.max(), issues, warnings);
+                if (drop.customItem()) {
+                    verifyItemRef("resource " + resource.id(), drop.itemId(), issues, warnings);
+                } else {
+                    verifyItemMaterial("resource " + resource.id(), drop.material(), issues);
+                }
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Resource reward links",
+                "resources=" + resources + ", tableRefs=" + tableRefs + ", drops=" + drops
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyLootCoverage(CommandSender sender) {
+        Set<String> enabledTables = new LinkedHashSet<>();
+        for (LootTableDefinition table : plugin.lootTables().all()) {
+            if (table.enabled()) {
+                enabledTables.add(table.id().toLowerCase(Locale.ROOT));
+            }
+        }
+
+        Set<String> referencedTables = new LinkedHashSet<>();
+        for (LootSourceDefinition source : plugin.lootSources().all()) {
+            for (String tableId : source.lootTables()) {
+                referencedTables.add(tableId.toLowerCase(Locale.ROOT));
+            }
+        }
+        for (ResourceBlockDefinition resource : plugin.resources().all()) {
+            for (String tableId : resource.lootTables()) {
+                referencedTables.add(tableId.toLowerCase(Locale.ROOT));
+            }
+        }
+
+        Set<String> unreferenced = new LinkedHashSet<>(enabledTables);
+        unreferenced.removeAll(referencedTables);
+        sendVerifyLine(sender, unreferenced.isEmpty() ? "pass" : "warn", "Loot table coverage",
+                "referenced=" + (enabledTables.size() - unreferenced.size()) + "/" + enabledTables.size()
+                        + detailList(" unreferenced=", unreferenced));
+    }
+
     private void verifyResourceAnchors(CommandSender sender) {
         int checked = 0;
         List<String> mismatches = new ArrayList<>();
@@ -1364,6 +1562,52 @@ public final class BrCommand implements TabExecutor {
                 .map(BackroomsLevel::world)
                 .map(Bukkit::getWorld)
                 .orElse(null);
+    }
+
+    private int configuredDefinitionCount(ConfigurationSection configuration, String path) {
+        ConfigurationSection section = configuration.getConfigurationSection(path);
+        return section == null ? 0 : section.getKeys(false).size();
+    }
+
+    private void verifyLevelRefs(String context, Set<String> levels, List<String> issues) {
+        for (String levelId : levels) {
+            if (plugin.levels().get(levelId).isEmpty()) {
+                issues.add(context + ":unknown level " + levelId);
+            }
+        }
+    }
+
+    private void verifyLootTableRef(String context, String tableId, List<String> issues, List<String> warnings) {
+        plugin.lootTables().get(tableId).ifPresentOrElse(table -> {
+            if (!table.enabled()) {
+                warnings.add(context + ":disabled table " + table.id());
+            }
+        }, () -> issues.add(context + ":unknown table " + tableId));
+    }
+
+    private void verifyItemRef(String context, String itemId, List<String> issues, List<String> warnings) {
+        plugin.items().get(itemId).ifPresentOrElse(item -> {
+            if (!item.enabled()) {
+                warnings.add(context + ":disabled item " + item.id());
+            }
+        }, () -> issues.add(context + ":unknown item " + itemId));
+    }
+
+    private void verifyItemMaterial(String context, Material material, List<String> issues) {
+        if (material == null || material.isAir() || !material.isItem()) {
+            issues.add(context + ":invalid item material " + (material == null ? "null" : material.name()));
+        }
+    }
+
+    private void verifyRollRange(String context, double chance, int min, int max, List<String> issues, List<String> warnings) {
+        if (chance < 0.0D || chance > 1.0D) {
+            issues.add(context + ":chance=" + chance);
+        } else if (chance == 0.0D) {
+            warnings.add(context + ":zero chance entry");
+        }
+        if (min < 1 || max < min) {
+            issues.add(context + ":amount=" + min + "-" + max);
+        }
     }
 
     private void sendPluginCheck(CommandSender sender, String label, String pluginName, boolean required) {

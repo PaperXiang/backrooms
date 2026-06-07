@@ -800,3 +800,11 @@ plugins/BackroomsCore/
   - `level_1 52 64 32`：`observer`，用于 base terminal 占位。
 - 已通过 RCON 执行 `br verify map`；当前 Resource anchors、Loot source anchors、Transition anchors、Base terminals 均为 PASS。
 - 下一步重点：玩家进服实测右键 Level 0 资源点、打开 Level 0/1 容器、右键 base terminal claim；真实地图制作后再用正式坐标替换这些占位点。
+
+### 12.36 Step 040 Loot/Resource 配置 verifier 状态
+
+- 已新增 `/br verify loot`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`loot.yml` / `resources.yml` 配置定义数量是否全部加载、Loot Table 条目是否引用有效 Backrooms item 或 Bukkit item material、roll/chance/amount 范围是否合理、Loot Source 与 Resource 是否引用存在且启用的 loot table、Resource drop 是否引用有效物品，以及启用的 loot table 是否至少被 source/resource 覆盖。
+- 已通过 RCON 执行 `br verify loot`；当前 PASS：configured vs loaded definitions、loot table entries、loot source links、resource reward links、loot table coverage。
+- 已同步执行 `br verify runtime`、`br verify craftengine` 和 `br verify map`，三者仍全 PASS。
+- 下一步重点：继续把玩家进服才能确认的交互路径收敛掉，包括右键资源点 cooldown/掉落、打开容器 one-time 注入、杏仁水/理智 HUD、Base terminal claim 与 Faithful 方块模型/碰撞/灯光/storage 表现。

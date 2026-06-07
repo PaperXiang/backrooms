@@ -1,5 +1,58 @@
 # 开发记录
 
+## Step 040 - Loot/Resource 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify loot`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify loot`
+- loot verifier 检查：
+  - Configured vs loaded definitions：确认 `loot.yml` / `resources.yml` 中配置的 loot table、loot source、resource 定义数量均已进入运行时，避免配置被 loader 跳过但服务器仍启动成功。
+  - Loot table entries：检查 entry 数量、custom item / material entry 数量、roll/chance/amount 范围、Backrooms item 引用和 Bukkit item material。
+  - Loot source links：检查 source level、material、location、direct/container 类型和 loot table 引用。
+  - Resource reward links：检查 resource level、material、trigger、cooldown、loot table 引用、drop item/material 和产出范围。
+  - Loot table coverage：检查启用的 loot table 是否至少被 loot source 或 resource 引用。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- 现有 loader 会在启动/重载时跳过非法 loot/resource 条目并打印 warning，但管理员需要翻日志才能知道哪些定义没进入运行时。
+- `/br verify map` 已能检查世界中的占位坐标是否匹配，仍缺少对 loot table、loot source 和 resource drop 之间引用关系的汇总校验。
+- 把配置引用检查做成 RCON 可执行命令后，每次改 `loot.yml` / `resources.yml` 都可以先跑 `/br verify loot`，再进入玩家实机交互测试。
+
+### 下一步建议
+
+- 玩家进服后右键 Level 0 资源点，确认 resource loot table、内联 drops、cooldown 和掉落位置。
+- 玩家打开 Level 0/1 `BARREL`，确认 one-time loot source 注入和重复打开不会再次生成。
+- 玩家测试 `/br item give backrooms:almond_water` 后右键恢复理智，并观察 VectorDisplays HUD 数值变化。
+- 玩家右键 Level 1 base terminal 占位方块，确认 claim 与 `base-claims.yml` 持久化。
+- 继续验证 Faithful 方块模型、碰撞、灯光和 storage 表现。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify loot`，当前全 PASS：
+  - Configured vs loaded definitions：`lootTables=2, lootSources=4, resources=2`。
+  - Loot table entries：`entries=10, custom=8, material=2, disabledTables=0`。
+  - Loot source links：`sources=4, containers=2, direct=2, tableRefs=4`。
+  - Resource reward links：`resources=2, tableRefs=2, drops=4`。
+  - Loot table coverage：`referenced=2/2`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+- 已通过 RCON 执行 `br verify craftengine`，当前全 PASS。
+- 已通过 RCON 执行 `br verify map`，当前全 PASS。
+
 ## Step 039 - 地图锚点 verifier 与测试服占位锚点
 
 ### 本次完成
