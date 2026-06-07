@@ -469,6 +469,15 @@ public final class BrCommand implements TabExecutor {
                 return true;
             }
 
+            if (is(args[1], "test")) {
+                if (args.length < 7) {
+                    plugin.messages().send(sender, "transition-test-usage");
+                    return true;
+                }
+                testTransition(sender, args[2], args[3], args[4], args[5], args[6]);
+                return true;
+            }
+
             plugin.messages().send(sender, "unknown-command");
             return true;
         }
@@ -625,11 +634,27 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
                 options.add("guide");
             }
+            if (sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+                options.add("test");
+            }
             return filter(options, args[1]);
         }
 
         if (args.length == 3 && is(args[0], "transition") && canCompleteTransitionIds(sender, args[1])) {
             return filter(plugin.transitions().all().stream().map(TransitionDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "transition") && is(args[1], "test") && sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+            return filter(Bukkit.getWorlds().stream().map(World::getName).toList(), args[3]);
+        }
+
+        if (args.length >= 5 && args.length <= 7 && is(args[0], "transition") && is(args[1], "test") && sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+            List<String> suggestions = switch (args.length) {
+                case 5 -> List.of("24", "-42");
+                case 6 -> List.of("64");
+                default -> List.of("-18", "-24");
+            };
+            return filter(suggestions, args[args.length - 1]);
         }
 
         if (args.length == 4 && is(args[0], "transition") && is(args[1], "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)) {
@@ -3454,6 +3479,56 @@ public final class BrCommand implements TabExecutor {
         );
     }
 
+    private void testTransition(CommandSender sender, String id, String worldName, String xInput, String yInput, String zInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(TRANSITION_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int x;
+        int y;
+        int z;
+        try {
+            x = Integer.parseInt(xInput);
+            y = Integer.parseInt(yInput);
+            z = Integer.parseInt(zInput);
+        } catch (NumberFormatException exception) {
+            messages.send(sender, "transition-test-usage");
+            return;
+        }
+
+        plugin.transitions().get(id).ifPresentOrElse(transition -> {
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                messages.send(sender, "transition-world-not-loaded", messages.text("world", worldName));
+                return;
+            }
+            Location location = new Location(world, x, y, z);
+            boolean worldMatches = world.getName().equalsIgnoreCase(transition.triggerWorld());
+            boolean matches;
+            if (!worldMatches) {
+                matches = false;
+            } else if (transition.triggerType() == TransitionTriggerType.REGION && transition.region() != null) {
+                matches = transition.region().contains(location);
+            } else if (transition.triggerType() == TransitionTriggerType.RIGHT_CLICK_BLOCK) {
+                matches = transition.matchesBlock(world.getBlockAt(x, y, z));
+            } else {
+                matches = false;
+            }
+            messages.send(sender, "transition-test-result",
+                    messages.text("id", transition.id()),
+                    messages.text("world", world.getName()),
+                    messages.text("x", String.valueOf(x)),
+                    messages.text("y", String.valueOf(y)),
+                    messages.text("z", String.valueOf(z)),
+                    messages.text("trigger", transition.triggerDescription()),
+                    messages.bool("world_match", worldMatches),
+                    messages.bool("matches", matches)
+            );
+        }, () -> messages.send(sender, "transition-not-found", messages.text("id", id)));
+    }
+
     private void teleportToLevel(CommandSender sender, String id) {
         MessageService messages = plugin.messages();
         if (!sender.hasPermission(LEVEL_TP_PERMISSION)) {
@@ -3629,6 +3704,7 @@ public final class BrCommand implements TabExecutor {
 
     private boolean canCompleteTransitionIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(TRANSITION_INFO_PERMISSION))
+                || (is(subcommand, "test") && sender.hasPermission(TRANSITION_INFO_PERMISSION))
                 || (is(subcommand, "trigger") && sender.hasPermission(TRANSITION_TRIGGER_PERMISSION))
                 || (is(subcommand, "guide") && sender.hasPermission(TRANSITION_GUIDE_PERMISSION));
     }

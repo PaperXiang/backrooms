@@ -1,5 +1,51 @@
 # 开发记录
 
+## Step 052 - Transition 坐标命中测试命令
+
+### 本次完成
+
+- 新增 `/br transition test <id> <world> <x> <y> <z>`。
+- 复用权限：
+  - `backrooms.command.transition.info`
+- 新增 help、usage 与 tab completion。
+- 命令只读，不触发传送、不启动 cooldown。
+- 对 region transition 检查 `CuboidRegion#contains(...)`。
+- 对 right-click block transition 检查 `TransitionDefinition#matchesBlock(...)`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br verify transitions` 能检查配置完整性，但不能直接证明某个坐标是否会命中 region。
+- 玩家真实穿越仍需要在线玩家；坐标测试可先用 RCON 验证入口中心点、边界外点和真实地图替换后的坐标。
+- 命令不执行传送，适合作为改 `transitions.yml` 后的前置检查。
+
+### 下一步建议
+
+- 玩家进服后真实进入 Level 0 -> Level 1 region，确认 title/message/sound/cooldown/异步传送。
+- 玩家进服后真实进入 Level 1 -> lobby region，确认 world target 与 post-teleport immunity。
+- 真实地图坐标替换后，用 `/br transition test ...` 测中心点和边界外点，再跑 `/br verify transitions` 与 `/br verify map`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br transition test level0_to_level1_stairwell level_0 24 64 -18`：
+  - `worldMatch=true, matches=true`。
+- 已通过 RCON 执行 `br transition test level1_to_lobby_evacuation level_1 -42 64 -24`：
+  - `worldMatch=true, matches=true`。
+- 已通过 RCON 执行 `br transition test level0_to_level1_stairwell level_0 0 64 0`：
+  - `worldMatch=true, matches=false`。
+- 已通过 RCON 执行 `br verify transitions`，当前全 PASS。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 051 - Room 坐标生成命令
 
 ### 本次完成

@@ -903,3 +903,13 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br room generate-at level1_utility_room level_1 96 80 96`，成功改变 532 个方块。
 - 已再次执行 `br verify rooms` 与 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后观察生成结果、marker/光源位置和保护规则交互；后续用真实 schematic/marker 流程替换当前占位 Room 生成。
+
+### 12.48 Step 052 Transition 坐标命中测试命令状态
+
+- 已新增 `/br transition test <id> <world> <x> <y> <z>`，复用 `backrooms.command.transition.info` 权限。
+- 命令只读，不传送玩家；会检查 world 是否匹配 transition trigger world，并根据 trigger 类型测试 region contains 或 right-click block matcher。
+- 已通过 RCON 执行 `br transition test level0_to_level1_stairwell level_0 24 64 -18`，结果 `worldMatch=true, matches=true`。
+- 已通过 RCON 执行 `br transition test level1_to_lobby_evacuation level_1 -42 64 -24`，结果 `worldMatch=true, matches=true`。
+- 已通过 RCON 执行 `br transition test level0_to_level1_stairwell level_0 0 64 0`，结果 `worldMatch=true, matches=false`，确认外部坐标不会误命中。
+- 已再次执行 `br verify transitions` 与 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后真实穿越 region，确认 cooldown、title/message、异步传送和 post-teleport immunity。
