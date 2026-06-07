@@ -46,6 +46,9 @@ import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.BlockPosition;
 import org.monday.backrooms.transition.CuboidRegion;
 import org.monday.backrooms.transition.TransitionDefinition;
+import org.monday.backrooms.transition.TransitionSpawnMode;
+import org.monday.backrooms.transition.TransitionTargetType;
+import org.monday.backrooms.transition.TransitionTriggerType;
 import org.monday.backrooms.util.PaperTeleports;
 import org.monday.backrooms.worldgen.SchematicTemplateDefinition;
 import org.monday.backrooms.worldgen.WorldGenerationResult;
@@ -177,6 +180,10 @@ public final class BrCommand implements TabExecutor {
             }
             if (is(args[1], "bases")) {
                 sendBasesVerification(sender);
+                return true;
+            }
+            if (is(args[1], "transitions")) {
+                sendTransitionsVerification(sender);
                 return true;
             }
             plugin.messages().send(sender, "verify-usage");
@@ -612,7 +619,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases", "transitions"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1343,6 +1350,114 @@ public final class BrCommand implements TabExecutor {
         verifyBaseConfiguredCounts(sender);
         verifyBaseDefinitions(sender);
         verifyBaseClaimStorage(sender);
+    }
+
+    private void sendTransitionsVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-transitions-header");
+        verifyTransitionConfiguredCounts(sender);
+        verifyTransitionDefinitions(sender);
+    }
+
+    private void verifyTransitionConfiguredCounts(CommandSender sender) {
+        int configuredTransitions = configuredDefinitionCount(plugin.configFiles().transitions(), "transitions.definitions");
+        int loadedTransitions = plugin.transitions().definitionCount();
+        sendVerifyLine(sender, configuredTransitions == loadedTransitions ? "pass" : "fail", "Configured vs loaded transitions",
+                configuredTransitions == loadedTransitions
+                        ? "transitions=" + loadedTransitions
+                        : "configured=" + configuredTransitions + ", loaded=" + loadedTransitions);
+    }
+
+    private void verifyTransitionDefinitions(CommandSender sender) {
+        int transitions = 0;
+        int enabled = 0;
+        int regionTriggers = 0;
+        int blockTriggers = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (TransitionDefinition transition : plugin.transitions().all()) {
+            transitions++;
+            if (transition.enabled()) {
+                enabled++;
+            }
+            plugin.levels().get(transition.fromLevel()).ifPresentOrElse(level -> {
+                if (!level.world().equals(transition.triggerWorld())) {
+                    warnings.add(transition.id() + ":trigger world differs from source level " + level.world());
+                }
+            }, () -> issues.add(transition.id() + ":unknown source level " + transition.fromLevel()));
+
+            World triggerWorld = Bukkit.getWorld(transition.triggerWorld());
+            if (triggerWorld == null) {
+                issues.add(transition.id() + ":trigger world missing " + transition.triggerWorld());
+            }
+            if (transition.triggerType() == TransitionTriggerType.REGION) {
+                regionTriggers++;
+                if (transition.region() == null) {
+                    issues.add(transition.id() + ":missing region");
+                }
+            } else if (transition.triggerType() == TransitionTriggerType.RIGHT_CLICK_BLOCK) {
+                blockTriggers++;
+                if (transition.materials().isEmpty() && transition.blockPositions().isEmpty()) {
+                    issues.add(transition.id() + ":block trigger has no material or position");
+                }
+            }
+
+            verifyTransitionTarget(transition, issues, warnings);
+            if (transition.cooldownSeconds() < 0L) {
+                issues.add(transition.id() + ":negative cooldown");
+            }
+            if (!plugin.messages().has(transition.messageKey())) {
+                issues.add(transition.id() + ":missing message " + transition.messageKey());
+            }
+            if (transition.sound() == null) {
+                warnings.add(transition.id() + ":no sound");
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Transition definitions",
+                "transitions=" + transitions + ", enabled=" + enabled + ", regions=" + regionTriggers + ", blocks=" + blockTriggers
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyTransitionTarget(TransitionDefinition transition, List<String> issues, List<String> warnings) {
+        if (transition.target().type() == TransitionTargetType.LEVEL) {
+            plugin.levels().get(transition.target().level()).ifPresentOrElse(targetLevel -> {
+                if (!targetLevel.enabled()) {
+                    warnings.add(transition.id() + ":target level disabled " + targetLevel.id());
+                }
+                World world = Bukkit.getWorld(targetLevel.world());
+                if (world == null) {
+                    issues.add(transition.id() + ":target world missing " + targetLevel.world());
+                } else {
+                    verifyTransitionPointTarget(transition, world, issues);
+                }
+            }, () -> issues.add(transition.id() + ":unknown target level " + transition.target().level()));
+            return;
+        }
+
+        World world = Bukkit.getWorld(transition.target().world());
+        if (world == null) {
+            issues.add(transition.id() + ":target world missing " + transition.target().world());
+            return;
+        }
+        verifyTransitionPointTarget(transition, world, issues);
+    }
+
+    private void verifyTransitionPointTarget(TransitionDefinition transition, World world, List<String> issues) {
+        if (transition.target().spawnMode() != TransitionSpawnMode.POINT) {
+            return;
+        }
+        if (transition.target().y() < world.getMinHeight() || transition.target().y() > world.getMaxHeight()) {
+            issues.add(transition.id() + ":point target y outside world " + transition.target().y());
+        }
     }
 
     private void verifyBaseConfiguredCounts(CommandSender sender) {

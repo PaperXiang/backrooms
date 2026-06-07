@@ -1,5 +1,48 @@
 # 开发记录
 
+## Step 044 - Transition 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify transitions`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify transitions`
+- transition verifier 检查：
+  - Configured vs loaded transitions：确认 `transitions.yml` 中配置的 Transition 定义均已进入运行时。
+  - Transition definitions：检查 source Level、trigger world、region/block trigger 前置条件、target Level/world、message key、cooldown、sound 和 point spawn 高度。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br debug config` 已能粗略报告 Transition issues，`/br verify map` 也能检查 trigger world，但缺少专门面向切层链路的 verifier。
+- 玩家实测 region transition 前，先用 RCON 确认 source/target/world/message/cooldown 配置，可以减少传送时才发现目标不可达或消息缺失。
+- verifier 不触发传送，只做只读配置和世界加载检查。
+
+### 下一步建议
+
+- 玩家进服后从 Level 0 进入 Level 1 的 region，确认 title、message、sound、cooldown 和异步传送。
+- 玩家从 Level 1 进入 lobby 撤离 region，确认 world target 和 post-teleport immunity。
+- 真实地图制作后替换 `transitions.yml` 中的 region 坐标，再跑 `/br verify transitions` 与 `/br verify map`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify transitions`，当前全 PASS：
+  - Configured vs loaded transitions：`transitions=2`。
+  - Transition definitions：`transitions=2, enabled=2, regions=2, blocks=0`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 043 - Base claim 配置 verifier
 
 ### 本次完成

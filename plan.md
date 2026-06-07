@@ -833,3 +833,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify bases`；当前 PASS：configured vs loaded bases、base definitions、base claim storage。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后右键 Level 1 terminal 占位方块执行真实 claim，确认 `base-claims.yml` 写入、owner 区域内建造放行、非 owner 与区域外保护仍生效。
+
+### 12.40 Step 044 Transition 配置 verifier 状态
+
+- 已新增 `/br verify transitions`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`transitions.yml` 配置定义数量是否全部加载、source Level 引用、trigger world 加载、region/block trigger 前置条件、target Level/world 加载、target Level enabled 状态、message key、cooldown、sound 和 point spawn 高度。
+- 已通过 RCON 执行 `br verify transitions`；当前 PASS：configured vs loaded transitions、transition definitions。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后真实触发 Level 0 -> Level 1 和 Level 1 -> lobby 的 region transition，确认 cooldown、title/message、异步传送和 post-teleport immunity。
