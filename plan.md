@@ -451,6 +451,7 @@ plugins/BackroomsCore/
 - 已新增 `/br debug config` 运行时配置摘要命令，用于实机快速检查 Level 世界缺失、Transition/Room 引用问题和模块数量。
 - 已新增第一版 Loot Table MVP：`loot.yml` 配置 Bukkit Material 战利品表，`/br loot list/info/roll` 可用于测试，资源方块可通过 `loot-tables` 复用命名掉落池。
 - 已扩展第二批 CraftEngine Backrooms 测试资产，增加维护门、撤离口、基地终端、发电机核心、荧光灯等地图制作 marker / 设施方块，以及保险丝、布料、管道、手电框架、工具箱等材料物品。
+- 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
@@ -541,3 +542,10 @@ plugins/BackroomsCore/
 - 新增方块继续复用原版 model/texture 生成，不引入自定义美术资源，保持 MVP 阶段低成本可测试。
 - 项目内 `server-configs/CraftEngine/resources/backrooms/**` 已同步到测试服 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms/**`。
 - 下一步实机验证重点：执行 CraftEngine `/ce reload all`，再用 `/ce item get` 或 `/ce item give` 检查新增物品/方块是否能生成、摆放、掉落和被资源包正确显示。
+
+### 12.12 Step 015 README 测试入口状态
+
+- 已新增 `README.md`，把 `plan.md` 简化为项目定位、已完成 TODO、未完成 TODO 和实机测试入口。
+- README 覆盖构建部署、CraftEngine 资产测试、Loot/Resource 测试、Transition 测试、Room 占位生成测试、保护规则测试和常用排查命令。
+- README 明确当前地图生成仍是占位 Room/走廊生成器，不是最终自动迷宫系统；默认 `replace-air-only: true`，测试时应站在空旷区域。
+- 下一步继续按 README 的测试顺序重启测试服验证闭环，并把资源点与 Transition 坐标替换为真实地图坐标。

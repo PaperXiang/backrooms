@@ -453,6 +453,48 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 015 - README 测试入口与 TODO 整理
+
+### 本次完成
+
+- 新增 `README.md`，作为 `plan.md` 的简化执行入口。
+- README 中整理了：
+  - 当前项目定位。
+  - 已完成 TODO。
+  - 未完成 TODO。
+  - 构建与部署命令。
+  - CraftEngine 测试流程。
+  - Loot / Resource 测试流程。
+  - Transition 测试流程。
+  - Room / 地图占位生成测试流程。
+  - 保护规则测试清单。
+  - 常用排查命令。
+- README 明确当前地图生成仍是 `/br room generate` 的占位房间/走廊生成器，不是最终自动迷宫系统。
+- README 记录了默认 Transition region、默认 Resource 测试坐标和 `rooms.defaults.replace-air-only: true` 的测试注意事项。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+
+### 设计原因
+
+- `plan.md` 已经适合作为长期设计文档，但不适合每次实机测试时快速阅读。
+- README 作为仓库入口，需要直接告诉维护者当前完成了什么、还缺什么、如何构建、如何测试、如何生成测试地图。
+- 地图生成能力目前仍是安全的占位生成器，README 中明确边界，避免误以为已经有完整自动世界生成。
+
+### 下一步建议
+
+- 重启测试服后按 README 的顺序执行 `/ce reload all`、`/br reload`、`/br debug config`。
+- 在 `level_0` / `level_1` 分别测试 Room 生成、Transition guide、Resource locations 和保护规则。
+- 根据真实地图位置更新 `resources.yml` 与 `transitions.yml` 坐标。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- README 为文档入口，尚需由测试服实机流程验证其中命令是否符合当前部署状态。
+
 ## Step 014 - CraftEngine Backrooms 资产扩展
 
 ### 本次完成
