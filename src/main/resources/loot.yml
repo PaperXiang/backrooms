@@ -55,3 +55,38 @@ loot-tables:
           chance: 0.06
           min: 1
           max: 1
+loot-sources:
+  enabled: true
+  definitions:
+    level0_supply_container:
+      enabled: true
+      type: vanilla_container
+      levels:
+        - level_0
+      materials:
+        - CHEST
+        - BARREL
+      locations:
+        - x: 4
+          y: 64
+          z: 0
+      loot-tables:
+        - level0_basic_supplies
+      one-time: true
+      fill-empty-only: true
+    level1_scrap_container:
+      enabled: true
+      type: vanilla_container
+      levels:
+        - level_1
+      materials:
+        - CHEST
+        - BARREL
+      locations:
+        - x: 4
+          y: 64
+          z: 0
+      loot-tables:
+        - level1_scrap_cache
+      one-time: true
+      fill-empty-only: true

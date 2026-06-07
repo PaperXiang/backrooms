@@ -1,5 +1,64 @@
 # 开发记录
 
+## Step 028 - 原版容器 Loot Source MVP
+
+### 本次完成
+
+- 新增 Loot Source 运行时模块：
+  - `LootSourceService`
+  - `LootSourceListener`
+  - `LootSourceDefinition`
+  - `LootSourceType`
+  - `LootSourcePosition`
+- `loot.yml` 新增 `loot-sources.definitions`，当前支持 `type: vanilla_container`。
+- 原版 `CHEST` / `BARREL` 打开时会按配置匹配：
+  - 所在 Level。
+  - 容器材质。
+  - 可选精确坐标。
+  - 关联 Loot Table。
+- 匹配成功后，容器会注入对应 Loot Table 产物；容器放不下的剩余物品会掉落到容器上方。
+- `one-time: true` 会在 TileState PDC 写入生成标记，避免重复刷 loot；非 TileState 容器保留运行时 fallback 标记。
+- `/br reload` staged runtime 已接入 Loot Source。
+- `/br debug config` 已显示 Loot sources 数量。
+- README 已补充原版容器 Loot Source 测试入口和默认占位坐标。
+- 最新 jar 已部署到测试服 `D:\dev\backrooms\devserver\plugins\untitled-1.0-SNAPSHOT.jar`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceDefinition.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceListener.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourcePosition.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceService.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceType.java`
+- `src/main/resources/loot.yml`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- README 的后续 TODO 要求容器、尸体和事件奖励接入 Loot Table；原版容器不依赖 CraftEngine Java API，最适合作为下一步可运行 MVP。
+- 使用 `InventoryOpenEvent` 可以让管理员只需要在地图里放置空箱子/木桶，玩家第一次打开时自动生成 loot，适合 Level 0/1 探索节奏。
+- 默认配置使用精确占位坐标，避免把整个 Level 中所有 `CHEST` / `BARREL` 都变成 loot source。
+- one-time 标记写入 TileState PDC，可以跨重启保留容器已生成状态，避免重启后重复刷资源。
+
+### 下一步建议
+
+- 完整重启测试服加载新 jar。
+- 在 `level_0` 的 `x=4 y=64 z=0` 放置空 `CHEST` 或 `BARREL`，执行 `/br reload` 后打开，确认生成 `level0_basic_supplies`。
+- 在 `level_1` 的 `x=4 y=64 z=0` 放置空 `CHEST` 或 `BARREL`，执行 `/br reload` 后打开，确认生成 `level1_scrap_cache`。
+- 再次打开同一容器，确认 `one-time` 不会重复生成。
+- 后续继续实现 CE 容器、尸体方块和事件奖励 source，并把默认占位坐标替换为真实地图坐标。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServer`，部署通过。
+- 测试服最新 jar 时间为 `2026-06-08 00:12:56`，大小 `195367` bytes。
+
 ## Step 027 - staged reload 与异步传送收敛
 
 ### 本次完成

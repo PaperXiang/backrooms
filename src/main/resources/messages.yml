@@ -159,6 +159,7 @@ messages:
     - "<gray>缺失 Level 世界：</gray><white><missing_worlds></white>"
     - "<gray>Items：</gray><white><items></white>"
     - "<gray>Loot tables：</gray><white><loot_tables></white>"
+    - "<gray>Loot sources：</gray><white><loot_sources></white>"
     - "<gray>Resource blocks：</gray><white><resource_blocks></white>"
     - "<gray>Transitions：</gray><white><transitions></white> <dark_gray>(disabled:</dark_gray> <white><transitions_disabled></white><dark_gray>)</dark_gray>"
     - "<gray>Transition issues：</gray><white><transition_issues></white>"

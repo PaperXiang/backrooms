@@ -458,8 +458,9 @@ plugins/BackroomsCore/
 - 已确认测试服 `/ce reload all` 日志中 `backrooms` 包、items、categories、blocks、资源包生成和上传均成功；后续仍需玩家实机观察模型、碰撞、灯光、storage 和客户端资源包表现。
 - 已将 `/br level tp` 与 Transition 迁移到 Paper `teleportAsync`，当前代码中没有同步 `Player#teleport` 调用残留。
 - 已将 `/br reload` 改为 staged runtime reload：先用新配置临时加载 Level、Item、Sanity HUD、Sanity、Loot、Resource、Transition、Room、Worldgen，全部成功后统一提交；失败时 live runtime 保持不变。
+- 已新增 Loot Source MVP：原版 `CHEST` / `BARREL` 容器打开时可按配置从 Loot Table 注入物品，并用 TileState PDC 标记 one-time 生成状态。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
-- 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
+- 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -656,3 +657,14 @@ plugins/BackroomsCore/
 - `SanityService` 新增运行时状态复制，reload 替换新实例时保留玩家理智值、稳定时间和低理智提示冷却；旧 task 会在提交后停止，新 service 会启动自己的 tick task。
 - 已运行 `.\gradlew.bat build`，构建通过；已运行 `.\gradlew.bat deployDevServer`，最新 jar 已部署到测试服 `plugins` 目录。
 - 下一步重点：完整重启测试服加载新 jar，执行 `/br reload`、`/br debug config`、`/br level tp level_0`、`/br transition trigger level0_to_level1_stairwell <player>`，确认 staged reload 与异步传送在实机运行路径中正常。
+
+### 12.24 Step 028 原版容器 Loot Source MVP 状态
+
+- 已新增 `LootSourceService`、`LootSourceListener`、`LootSourceDefinition`、`LootSourceType` 和 `LootSourcePosition`。
+- `loot.yml` 新增 `loot-sources.definitions`，当前支持 `type: vanilla_container`，通过 Level、Material、可选坐标和 loot table 列表匹配容器。
+- 玩家打开匹配的原版 `CHEST` / `BARREL` 时，系统会向容器注入对应 Loot Table 产物；背包格不足时，多余物品掉落到容器上方。
+- `one-time: true` 会在 TileState PDC 中写入生成标记，避免容器重复刷 loot；非 TileState 容器有运行时 fallback 标记。
+- `/br reload` staged runtime 已接入 Loot Source，`/br debug config` 已显示 Loot sources 数量。
+- 默认配置提供两个占位容器源：`level0_supply_container` 与 `level1_scrap_container`，坐标均为 `x=4 y=64 z=0`，后续真实地图制作完成后需要替换。
+- 已运行 `.\gradlew.bat build`，构建通过；已运行 `.\gradlew.bat deployDevServer`，最新 jar 已部署到测试服 `plugins` 目录。
+- 下一步重点：完整重启测试服，在 `level_0` 和 `level_1` 的占位坐标放置空 `CHEST` 或 `BARREL`，执行 `/br reload` 后打开容器，确认首次生成与 one-time 防重复生效。
