@@ -85,6 +85,15 @@ public final class SanityService {
         lowWarningCooldowns.clear();
     }
 
+    public void copyRuntimeStateTo(SanityService target) {
+        target.sanity.clear();
+        target.sanity.putAll(sanity);
+        target.stabilizedUntil.clear();
+        target.stabilizedUntil.putAll(stabilizedUntil);
+        target.lowWarningCooldowns.clear();
+        target.lowWarningCooldowns.putAll(lowWarningCooldowns);
+    }
+
     public double current(Player player) {
         return sanity.computeIfAbsent(player.getUniqueId(), ignored -> defaultSanity);
     }

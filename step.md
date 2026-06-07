@@ -1,5 +1,50 @@
 # 开发记录
 
+## Step 027 - staged reload 与异步传送收敛
+
+### 本次完成
+
+- 确认当前代码里 `/br level tp` 与 Transition 已通过 `PaperTeleports.teleportAsync(...)` 走 Paper 异步传送 API，没有同步 `.teleport(...)` 调用残留。
+- 将 `Backrooms#reloadRuntimeConfig()` 从“边加载边替换 live 字段”改成 staged runtime reload：
+  - 先构建临时 `RuntimeSnapshot`。
+  - 用 staged config/message/level registry 加载 Item、Sanity HUD、Sanity、Loot、Resource、Transition、Room、Worldgen。
+  - 所有模块加载成功后再一次性提交 live runtime。
+  - 如果中途失败，丢弃 staged runtime，live runtime 保持不变。
+- `SanityService` 新增运行时状态复制，reload 替换新实例时保留玩家理智值、稳定时间和低理智提示冷却。
+- reload 提交新 `SanityService` 后会停止旧 tick task，并启动新 tick task，避免继续由旧实例驱动理智逻辑。
+- 根据测试服 `latest.log` 证据更新 README：CraftEngine `/ce reload all` 已加载 `backrooms` 包、items、categories、blocks，并完成资源包生成/上传；视觉、碰撞、灯光和 storage 仍需要玩家实机观察。
+- 已将最新 jar 部署到测试服 `D:\dev\backrooms\devserver\plugins\untitled-1.0-SNAPSHOT.jar`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/items/SanityService.java`
+
+### 设计原因
+
+- 原 reload 流程已经有失败恢复保护，但加载过程中仍会临时替换 live 字段；如果下游 service reload 失败，部分旧实例可能已经被新配置改写。
+- staged runtime 让 `/br reload` 更接近真正事务：加载期使用临时 runtime，成功后统一提交，失败时保留旧 runtime。
+- 理智服务不能简单新建后丢弃旧实例，否则会重置玩家理智状态；复制运行时状态后再替换，可以兼顾事务化和玩家体验。
+- 异步传送已经完成但文档仍保留 TODO，需要同步状态，避免后续重复处理已完成任务。
+
+### 下一步建议
+
+- 完整重启测试服，让新 jar 生效。
+- 执行 `/br reload`、`/br debug config`，确认 staged reload 正常，且 missing worlds、Transition issues、Room issues 为 `none`。
+- 执行 `/br level tp level_0`、`/br transition trigger level0_to_level1_stairwell <player>`、`/br transition guide level0_to_level1_stairwell`，确认异步传送和切层闭环正常。
+- 安装 VectorDisplays 与 packetevents 后，继续实机验证理智 HUD、杏仁水、loot/resource 自定义物品产出。
+- 继续观察 CraftEngine Faithful 模型、非完整装饰碰撞/遮挡、灯具亮度和 crate storage，再把资源点与 Transition 坐标替换为真实地图坐标。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServer`，部署通过。
+- 已运行静态搜索，源码中只剩 `teleportAsync` 调用；`Player#teleport` 仅出现在历史文档段落中。
+- 测试服最新 jar 时间为 `2026-06-08 00:08:31`，大小 `182618` bytes。
+
 ## Step 025 - CraftEngine Faithful 物品迁移与分类/i18n 修复
 
 ### 本次完成
@@ -1175,13 +1220,13 @@
 - 在 `level_0` / `level_1` 世界验证普通玩家无法通过放桶、点火、爆炸、实体方块变化、展示实体操作绕过保护。
 - 把 `resources.yml` 中示例 `locations` 改成真实地图资源点坐标，再验证右键/破坏触发资源掉落。
 - 在空旷区域测试 `/br room generate level0_basic_room level_0`，再在非空气区域测试无改动提示。
-- 后续集中处理更完整的 reload 事务化、异步传送 API 迁移和实机验证发现的问题。
+- reload 事务化与异步传送 API 迁移已在后续 Step 027 处理；实机验证发现的问题继续按最新 Step 推进。
 
 ### 测试与验证
 
 - 已运行 `./gradlew.bat build`，构建通过。
 - 已运行 `./gradlew.bat deployDevServer`，jar 已部署到本地测试服插件目录。
-- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+- 当时构建仍提示 `TransitionService` 中传送 API 过时；该问题已在后续 Step 027 通过 Paper `teleportAsync` 收敛。
 
 ## Step 010 - 运行时配置摘要调试命令
 

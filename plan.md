@@ -455,8 +455,11 @@ plugins/BackroomsCore/
 - 已补齐 Faithful item texture 迁移到 `resourcepack/assets/backrooms/textures/item/faithful/`，并确认 block/custom/item 模型不再引用 `faithfulbackrooms:` 或缺失资源。
 - 已按 CraftEngine 本地文档新增 `categories.yml`、`translations.yml` 和 `lang.yml`，给 Backrooms CE 物品/方块增加 tooltip 描述、`/ce menu` 分类，以及 server-side l10n / client-side lang 翻译。
 - 已调整半墙、踢脚线、管道、牌子、CCTV、插座、黑霉等非完整装饰为 `lower_tripwire` + non-occluding 设置；完整墙体、地毯、天花板、crate 保持 `note_block`，避免使用不适合透明/非完整模型的完整方块 fallback 状态。
+- 已确认测试服 `/ce reload all` 日志中 `backrooms` 包、items、categories、blocks、资源包生成和上传均成功；后续仍需玩家实机观察模型、碰撞、灯光、storage 和客户端资源包表现。
+- 已将 `/br level tp` 与 Transition 迁移到 Paper `teleportAsync`，当前代码中没有同步 `Player#teleport` 调用残留。
+- 已将 `/br reload` 改为 staged runtime reload：先用新配置临时加载 Level、Item、Sanity HUD、Sanity、Loot、Resource、Transition、Room、Worldgen，全部成功后统一提交；失败时 live runtime 保持不变。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
-- 下一阶段最高优先级：在测试服执行 `/ce clean-cache`、`/ce reload all` 和 `/ce menu`，实机验证 Backrooms 分类、tooltip/i18n、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；随后继续验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环。
+- 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -518,7 +521,7 @@ plugins/BackroomsCore/
 - Room 生成默认改为 `replace-air-only: true`，并增加世界高度边界校验、光源覆盖放置和无方块改变提示，降低管理员误生成覆盖地图或误判成功的风险。
 - `/br debug config` 已增加 Transition `feedback.message-key` 缺失检查。
 - `/br reload` 现在会根据实际重载结果反馈成功或失败，避免配置被拒绝时仍显示成功。
-- 当前仍保留同步 `Player#teleport`，Paper 1.21.4 可编译运行，但后续应集中迁移到现代异步传送 API。
+- 同步 `Player#teleport` 已迁移为 Paper `teleportAsync` 封装，`/br level tp` 和 Transition 回调都会在主线程完成后续运行时状态更新。
 - 下一步最高优先级仍是重启测试服实机验证 `/br reload`、`/br debug config`、资源点坐标、房间生成和 Transition 闭环。
 
 ### 12.9 Step 012 Loot Table MVP 状态
@@ -644,3 +647,12 @@ plugins/BackroomsCore/
 - 默认 HUD provider 为 `VECTOR_DISPLAYS`，使用 `SimpleTerminal`、`Label`、`Line`、`TerminalManager` 在玩家前方生成世界内悬浮终端面板和理智进度条。
 - `paper-plugin.yml` 已声明 VectorDisplays 软依赖，`build.gradle` 已添加 `top.mrxiaom.hologram:VectorDisplays-API:1.1.1:for-plugin` compileOnly 依赖。
 - 如果服务器没有安装 VectorDisplays 或前置 packetevents，HUD 会 Noop 降级并只输出一次警告；理智衰减、低理智提示和杏仁水物品逻辑仍可运行。
+
+### 12.23 Step 027 staged reload 与异步传送收敛状态
+
+- 已确认当前代码中 `/br level tp` 和 Transition 都通过 `PaperTeleports.teleportAsync(...)` 调用 Paper 异步传送 API，未发现同步 `.teleport(...)` 调用残留。
+- 已将 `Backrooms#reloadRuntimeConfig()` 改为 staged runtime reload：配置文件、消息、Level registry、Item、Sanity HUD、Sanity、Loot、Resource、Transition、Room、Worldgen 都先装入临时 runtime snapshot。
+- staged reload 成功后才统一提交到 live 字段；如果中途抛出异常或 Level 全部加载失败，会丢弃 staged runtime，并保留旧 live runtime。
+- `SanityService` 新增运行时状态复制，reload 替换新实例时保留玩家理智值、稳定时间和低理智提示冷却；旧 task 会在提交后停止，新 service 会启动自己的 tick task。
+- 已运行 `.\gradlew.bat build`，构建通过；已运行 `.\gradlew.bat deployDevServer`，最新 jar 已部署到测试服 `plugins` 目录。
+- 下一步重点：完整重启测试服加载新 jar，执行 `/br reload`、`/br debug config`、`/br level tp level_0`、`/br transition trigger level0_to_level1_stairwell <player>`，确认 staged reload 与异步传送在实机运行路径中正常。

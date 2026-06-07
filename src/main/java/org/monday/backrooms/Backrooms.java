@@ -45,6 +45,7 @@ public final class Backrooms extends JavaPlugin {
     private TransitionService transitionService;
     private RoomGenerationService roomGenerationService;
     private WorldGenerationService worldGenerationService;
+    private RuntimeSnapshot stagedRuntime;
 
     @Override
     public void onEnable() {
@@ -109,77 +110,91 @@ public final class Backrooms extends JavaPlugin {
         long startMillis = System.currentTimeMillis();
         getLogger().info("Reloading runtime config...");
 
-        ConfigFileService previousConfigFileService = configFileService;
-        MessageService previousMessageService = messageService;
-        LevelRegistry previousRegistry = levelRegistry;
-        LevelConfigLoader previousLevelConfigLoader = levelConfigLoader;
-        BackroomsItemService previousItemService = itemService;
-        SanityService previousSanityService = sanityService;
-        SanityHudService previousSanityHudService = sanityHudService;
-        LootTableService previousLootTableService = lootTableService;
-        ResourceBlockService previousResourceBlockService = resourceBlockService;
-        TransitionService previousTransitionService = transitionService;
-        RoomGenerationService previousRoomGenerationService = roomGenerationService;
-        WorldGenerationService previousWorldGenerationService = worldGenerationService;
+        RuntimeSnapshot previousRuntime = captureRuntime();
+        RuntimeSnapshot loadedRuntime;
         try {
             reloadConfig();
 
             ConfigFileService loadedConfigFileService = new ConfigFileService(this);
             loadedConfigFileService.ensureDefaultFiles();
             loadedConfigFileService.reload();
-            configFileService = loadedConfigFileService;
 
             MessageService loadedMessageService = new MessageService(this);
-            messageService = loadedMessageService;
+            stagedRuntime = previousRuntime.withConfigAndMessages(loadedConfigFileService, loadedMessageService);
 
             LevelRegistry loadedLevels = new LevelRegistry();
             LevelConfigLoader loadedLevelConfigLoader = new LevelConfigLoader(this);
             loadedLevelConfigLoader.loadInto(loadedLevels);
-            if (previousRegistry != null && previousRegistry.size() > 0 && loadedLevels.size() == 0) {
+            if (previousRuntime.levelRegistry() != null && previousRuntime.levelRegistry().size() > 0 && loadedLevels.size() == 0) {
                 getLogger().severe("Reload aborted because no levels were loaded; keeping previous level registry to avoid fail-open protection.");
-                restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
-                        previousItemService, previousSanityService, previousSanityHudService, previousLootTableService, previousResourceBlockService, previousTransitionService,
-                        previousRoomGenerationService, previousWorldGenerationService);
+                stagedRuntime = null;
                 return false;
             }
+            stagedRuntime = stagedRuntime.withLevels(loadedLevels, loadedLevelConfigLoader);
 
-            // Build fresh service instances first; a failed reload cannot clear or corrupt the live runtime maps.
-            levelRegistry = loadedLevels;
-            levelConfigLoader = loadedLevelConfigLoader;
-            itemService = new BackroomsItemService(this);
-            itemService.reload();
-            sanityHudService = createSanityHudService();
-            sanityHudService.reload();
-            if (sanityService == null) {
-                sanityService = new SanityService(this);
+            BackroomsItemService loadedItemService = new BackroomsItemService(this);
+            stagedRuntime = stagedRuntime.withItemService(loadedItemService);
+            loadedItemService.reload();
+
+            SanityHudService loadedSanityHudService = createSanityHudService();
+            stagedRuntime = stagedRuntime.withSanityHudService(loadedSanityHudService);
+            loadedSanityHudService.reload();
+
+            SanityService loadedSanityService = new SanityService(this);
+            if (previousRuntime.sanityService() != null) {
+                previousRuntime.sanityService().copyRuntimeStateTo(loadedSanityService);
             }
-            sanityService.reload();
-            lootTableService = new LootTableService(this);
-            lootTableService.reload();
-            resourceBlockService = new ResourceBlockService(this);
-            resourceBlockService.reload();
-            transitionService = new TransitionService(this);
-            transitionService.reload();
-            roomGenerationService = new RoomGenerationService(this);
-            roomGenerationService.reload();
-            worldGenerationService = new WorldGenerationService(this);
-            worldGenerationService.reload();
-            if (playerLevelTracker != null) {
-                playerLevelTracker.reconcileOnlinePlayers(false);
-            }
-            if (previousSanityHudService != null && previousSanityHudService != sanityHudService) {
-                previousSanityHudService.clear();
-            }
+            stagedRuntime = stagedRuntime.withSanityService(loadedSanityService);
+            loadedSanityService.reload();
+
+            LootTableService loadedLootTableService = new LootTableService(this);
+            stagedRuntime = stagedRuntime.withLootTableService(loadedLootTableService);
+            loadedLootTableService.reload();
+
+            ResourceBlockService loadedResourceBlockService = new ResourceBlockService(this);
+            stagedRuntime = stagedRuntime.withResourceBlockService(loadedResourceBlockService);
+            loadedResourceBlockService.reload();
+
+            TransitionService loadedTransitionService = new TransitionService(this);
+            stagedRuntime = stagedRuntime.withTransitionService(loadedTransitionService);
+            loadedTransitionService.reload();
+
+            RoomGenerationService loadedRoomGenerationService = new RoomGenerationService(this);
+            stagedRuntime = stagedRuntime.withRoomGenerationService(loadedRoomGenerationService);
+            loadedRoomGenerationService.reload();
+
+            WorldGenerationService loadedWorldGenerationService = new WorldGenerationService(this);
+            stagedRuntime = stagedRuntime.withWorldGenerationService(loadedWorldGenerationService);
+            loadedWorldGenerationService.reload();
+
+            loadedRuntime = stagedRuntime;
+            stagedRuntime = null;
         } catch (RuntimeException exception) {
-            if (sanityHudService != null && sanityHudService != previousSanityHudService) {
-                sanityHudService.clear();
+            RuntimeSnapshot failedRuntime = stagedRuntime;
+            stagedRuntime = null;
+            if (failedRuntime != null
+                    && failedRuntime.sanityHudService() != null
+                    && failedRuntime.sanityHudService() != previousRuntime.sanityHudService()) {
+                failedRuntime.sanityHudService().clear();
             }
-            restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
-                    previousItemService, previousSanityService, previousSanityHudService, previousLootTableService, previousResourceBlockService, previousTransitionService,
-                    previousRoomGenerationService, previousWorldGenerationService);
-            getLogger().severe("Runtime config reload failed; restored previous runtime snapshot. Cause: " + exception.getMessage());
+            getLogger().severe("Runtime config reload failed before staged runtime commit; live runtime was kept unchanged. Cause: " + exception.getMessage());
             exception.printStackTrace();
             return false;
+        }
+
+        commitRuntime(loadedRuntime);
+        if (previousRuntime.sanityService() != null && previousRuntime.sanityService() != sanityService) {
+            previousRuntime.sanityService().stop();
+            previousRuntime.sanityService().clear();
+        }
+        if (sanityService != null) {
+            sanityService.start();
+        }
+        if (playerLevelTracker != null) {
+            playerLevelTracker.reconcileOnlinePlayers(false);
+        }
+        if (previousRuntime.sanityHudService() != null && previousRuntime.sanityHudService() != sanityHudService) {
+            previousRuntime.sanityHudService().clear();
         }
 
         getLogger().info("Runtime config reloaded in " + (System.currentTimeMillis() - startMillis) + "ms: levels="
@@ -195,68 +210,16 @@ public final class Backrooms extends JavaPlugin {
         return true;
     }
 
-    private void restoreRuntimeConfig(
-            ConfigFileService previousConfigFileService,
-            MessageService previousMessageService,
-            LevelRegistry previousRegistry,
-            LevelConfigLoader previousLevelConfigLoader,
-            BackroomsItemService previousItemService,
-            SanityService previousSanityService,
-            SanityHudService previousSanityHudService,
-            LootTableService previousLootTableService,
-            ResourceBlockService previousResourceBlockService,
-            TransitionService previousTransitionService,
-            RoomGenerationService previousRoomGenerationService,
-            WorldGenerationService previousWorldGenerationService
-    ) {
-        if (previousConfigFileService != null) {
-            configFileService = previousConfigFileService;
-        }
-        if (previousMessageService != null) {
-            messageService = previousMessageService;
-        }
-        if (previousRegistry != null) {
-            levelRegistry = previousRegistry;
-        }
-        if (previousLevelConfigLoader != null) {
-            levelConfigLoader = previousLevelConfigLoader;
-        }
-        if (previousItemService != null) {
-            itemService = previousItemService;
-        }
-        if (previousSanityService != null) {
-            sanityService = previousSanityService;
-        }
-        if (previousSanityHudService != null) {
-            sanityHudService = previousSanityHudService;
-        }
-        if (previousLootTableService != null) {
-            lootTableService = previousLootTableService;
-        }
-        if (previousResourceBlockService != null) {
-            resourceBlockService = previousResourceBlockService;
-        }
-        if (previousTransitionService != null) {
-            transitionService = previousTransitionService;
-        }
-        if (previousRoomGenerationService != null) {
-            roomGenerationService = previousRoomGenerationService;
-        }
-        if (previousWorldGenerationService != null) {
-            worldGenerationService = previousWorldGenerationService;
-        }
-    }
-
     public ConfigFileService configFiles() {
-        return configFileService;
+        return stagedRuntime == null ? configFileService : stagedRuntime.configFileService();
     }
 
     public MessageService messages() {
-        return messageService;
+        return stagedRuntime == null ? messageService : stagedRuntime.messageService();
     }
 
     public LevelRegistry levels() {
-        return levelRegistry;
+        return stagedRuntime == null ? levelRegistry : stagedRuntime.levelRegistry();
     }
 
     public LevelTitleService levelTitles() {
@@ -268,15 +231,15 @@ public final class Backrooms extends JavaPlugin {
     }
 
     public BackroomsItemService items() {
-        return itemService;
+        return stagedRuntime == null ? itemService : stagedRuntime.itemService();
     }
 
     public SanityService sanity() {
-        return sanityService;
+        return stagedRuntime == null ? sanityService : stagedRuntime.sanityService();
     }
 
     public SanityHudService sanityHud() {
-        return sanityHudService;
+        return stagedRuntime == null ? sanityHudService : stagedRuntime.sanityHudService();
     }
 
     private SanityHudService createSanityHudService() {
@@ -292,23 +255,55 @@ public final class Backrooms extends JavaPlugin {
     }
 
     public LootTableService lootTables() {
-        return lootTableService;
+        return stagedRuntime == null ? lootTableService : stagedRuntime.lootTableService();
     }
 
     public ResourceBlockService resources() {
-        return resourceBlockService;
+        return stagedRuntime == null ? resourceBlockService : stagedRuntime.resourceBlockService();
     }
 
     public TransitionService transitions() {
-        return transitionService;
+        return stagedRuntime == null ? transitionService : stagedRuntime.transitionService();
     }
 
     public RoomGenerationService rooms() {
-        return roomGenerationService;
+        return stagedRuntime == null ? roomGenerationService : stagedRuntime.roomGenerationService();
     }
 
     public WorldGenerationService worldgen() {
-        return worldGenerationService;
+        return stagedRuntime == null ? worldGenerationService : stagedRuntime.worldGenerationService();
+    }
+
+    private RuntimeSnapshot captureRuntime() {
+        return new RuntimeSnapshot(
+                configFileService,
+                messageService,
+                levelRegistry,
+                levelConfigLoader,
+                itemService,
+                sanityService,
+                sanityHudService,
+                lootTableService,
+                resourceBlockService,
+                transitionService,
+                roomGenerationService,
+                worldGenerationService
+        );
+    }
+
+    private void commitRuntime(RuntimeSnapshot runtime) {
+        configFileService = runtime.configFileService();
+        messageService = runtime.messageService();
+        levelRegistry = runtime.levelRegistry();
+        levelConfigLoader = runtime.levelConfigLoader();
+        itemService = runtime.itemService();
+        sanityService = runtime.sanityService();
+        sanityHudService = runtime.sanityHudService();
+        lootTableService = runtime.lootTableService();
+        resourceBlockService = runtime.resourceBlockService();
+        transitionService = runtime.transitionService();
+        roomGenerationService = runtime.roomGenerationService();
+        worldGenerationService = runtime.worldGenerationService();
     }
 
     private void registerListeners() {
@@ -324,6 +319,82 @@ public final class Backrooms extends JavaPlugin {
         BrCommand brCommand = new BrCommand(this);
         registerCommand("br", "Backrooms main command", List.of("backrooms"), new PaperBrCommand(brCommand));
         getLogger().info("Registered Paper command handler: /br.");
+    }
+
+    private record RuntimeSnapshot(
+            ConfigFileService configFileService,
+            MessageService messageService,
+            LevelRegistry levelRegistry,
+            LevelConfigLoader levelConfigLoader,
+            BackroomsItemService itemService,
+            SanityService sanityService,
+            SanityHudService sanityHudService,
+            LootTableService lootTableService,
+            ResourceBlockService resourceBlockService,
+            TransitionService transitionService,
+            RoomGenerationService roomGenerationService,
+            WorldGenerationService worldGenerationService
+    ) {
+
+        private RuntimeSnapshot withConfigAndMessages(ConfigFileService configFileService, MessageService messageService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withLevels(LevelRegistry levelRegistry, LevelConfigLoader levelConfigLoader) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withItemService(BackroomsItemService itemService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withSanityService(SanityService sanityService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withSanityHudService(SanityHudService sanityHudService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withLootTableService(LootTableService lootTableService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withResourceBlockService(ResourceBlockService resourceBlockService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withTransitionService(TransitionService transitionService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withRoomGenerationService(RoomGenerationService roomGenerationService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withWorldGenerationService(WorldGenerationService worldGenerationService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
     }
 
     private static final class PaperBrCommand implements BasicCommand {
