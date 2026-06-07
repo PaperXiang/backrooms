@@ -1,0 +1,90 @@
+worldgen:
+  enabled: true
+  templates-folder: templates
+  generated-regions-file: generated-regions.yml
+
+  defaults:
+    cell-size: 16
+    cell-height: 6
+    paste-air: false
+    min-critical-path-cells: 18
+    max-critical-path-cells: 30
+    branch-rate: 0.32
+    loop-rate: 0.10
+
+  # MVP marker scan uses vanilla marker blocks first. Later this can be replaced
+  # with CraftEngine block ids after CE API behavior is verified on the test server.
+  markers:
+    resource: YELLOW_CARPET
+    light: SEA_LANTERN
+    loot: BARREL
+    transition: LODESTONE
+    maintenance-door: IRON_TRAPDOOR
+    stairwell: CHISELED_STONE_BRICKS
+
+  templates:
+    level0_basic_01:
+      enabled: true
+      display-name: "<yellow>Level 0 Basic 01</yellow>"
+      level: level_0
+      file: level_0/basic_01.schem
+      cell-size: 16
+      footprint:
+        x: 1
+        z: 1
+        y: 6
+      connectors: [north, east, south, west]
+      tags: [common, liminal]
+      weight: 30
+      rotations: [0, 90, 180, 270]
+      max-per-region: -1
+      paste-air: false
+
+    level0_straight_corridor_01:
+      enabled: true
+      display-name: "<yellow>Level 0 Straight Corridor 01</yellow>"
+      level: level_0
+      file: level_0/straight_corridor_01.schem
+      footprint:
+        x: 1
+        z: 1
+        y: 6
+      connectors: [north, south]
+      tags: [straight-corridor, common]
+      weight: 12
+      rotations: [0, 90]
+      max-per-region: -1
+      paste-air: false
+
+    level0_corner_corridor_01:
+      enabled: true
+      display-name: "<yellow>Level 0 Corner Corridor 01</yellow>"
+      level: level_0
+      file: level_0/corner_corridor_01.schem
+      footprint:
+        x: 1
+        z: 1
+        y: 6
+      connectors: [north, east]
+      tags: [corner-corridor]
+      weight: 8
+      rotations: [0, 90, 180, 270]
+      max-per-region: -1
+      paste-air: false
+
+    level0_stairwell_exit_01:
+      enabled: true
+      display-name: "<gold>Level 0 Stairwell Exit 01</gold>"
+      level: level_0
+      file: level_0/stairwell_exit_01.schem
+      footprint:
+        x: 1
+        z: 1
+        y: 6
+      connectors: [south]
+      tags: [exit, stairwell]
+      weight: 1
+      rotations: [0, 90, 180, 270]
+      unique: true
+      min-distance-from-spawn-cells: 18
+      paste-air: false

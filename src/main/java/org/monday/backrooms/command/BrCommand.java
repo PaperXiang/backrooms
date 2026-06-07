@@ -22,6 +22,8 @@ import org.monday.backrooms.resource.ResourceBlockDefinition;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.TransitionDefinition;
+import org.monday.backrooms.worldgen.SchematicTemplateDefinition;
+import org.monday.backrooms.worldgen.WorldGenerationResult;
 
 public final class BrCommand implements TabExecutor {
 
@@ -42,6 +44,8 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
     private static final String RESOURCE_LIST_PERMISSION = "backrooms.command.resource.list";
     private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
+    private static final String WORLDGEN_TEMPLATES_PERMISSION = "backrooms.command.worldgen.templates";
+    private static final String WORLDGEN_GENERATE_PERMISSION = "backrooms.command.worldgen.generate";
 
     private final Backrooms plugin;
 
@@ -82,6 +86,25 @@ public final class BrCommand implements TabExecutor {
 
         if (is(args[0], "resources")) {
             sendResources(sender);
+            return true;
+        }
+
+        if (is(args[0], "worldgen")) {
+            if (args.length < 2 || is(args[1], "templates")) {
+                sendSchematicTemplates(sender);
+                return true;
+            }
+
+            if (is(args[1], "generate")) {
+                if (args.length < 4) {
+                    plugin.messages().send(sender, "worldgen-generate-usage");
+                    return true;
+                }
+                generateWorldRegion(sender, args[2], args[3], args.length >= 5 ? args[4] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
             return true;
         }
 
@@ -307,6 +330,10 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
                 options.add("resource");
             }
+            if (sender.hasPermission(WORLDGEN_TEMPLATES_PERMISSION)
+                    || sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+                options.add("worldgen");
+            }
             if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
                     || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
                     || sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
@@ -394,6 +421,25 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 3 && is(args[0], "resource") && is(args[1], "info") && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
             return filter(plugin.resources().all().stream().map(ResourceBlockDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 2 && is(args[0], "worldgen")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(WORLDGEN_TEMPLATES_PERMISSION)) {
+                options.add("templates");
+            }
+            if (sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+                options.add("generate");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "worldgen") && is(args[1], "generate") && sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+            return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "worldgen") && is(args[1], "generate") && sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+            return filter(List.of("9", "11", "15", "21"), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "debug")) {
@@ -539,6 +585,73 @@ public final class BrCommand implements TabExecutor {
                         messages.text("replacement", resource.replacement().name()),
                         messages.text("cooldown", String.valueOf(resource.cooldownSeconds()))
                 ), () -> messages.send(sender, "resource-not-found", messages.text("id", id)));
+    }
+
+    private void sendSchematicTemplates(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(WORLDGEN_TEMPLATES_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.worldgen().allTemplates().isEmpty()) {
+            messages.send(sender, "worldgen-templates-empty");
+            return;
+        }
+
+        messages.send(sender, "worldgen-templates-header");
+        for (SchematicTemplateDefinition template : plugin.worldgen().allTemplates()) {
+            messages.send(sender, "worldgen-template-line",
+                    messages.text("id", template.id()),
+                    messages.mini("display", template.displayName()),
+                    messages.bool("enabled", template.enabled()),
+                    messages.text("level", template.level()),
+                    messages.text("file", template.file().getPath()),
+                    messages.text("footprint", template.footprintDescription()),
+                    messages.text("connectors", template.connectors().stream().map(connector -> connector.configName()).toList().toString()),
+                    messages.text("tags", template.tags().isEmpty() ? "none" : String.join(",", template.tags())),
+                    messages.text("weight", String.valueOf(template.weight()))
+            );
+        }
+    }
+
+    private void generateWorldRegion(CommandSender sender, String levelId, String sizeInput, String seed) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int size;
+        try {
+            size = Integer.parseInt(sizeInput);
+        } catch (NumberFormatException exception) {
+            messages.send(sender, "worldgen-generate-usage");
+            return;
+        }
+
+        plugin.levels().get(levelId).ifPresentOrElse(level -> {
+            if (!level.enabled()) {
+                messages.send(sender, "level-disabled", messages.text("id", level.id()));
+                return;
+            }
+            WorldGenerationResult result = plugin.worldgen().generate(level, size, seed);
+            sendWorldGenerationResult(sender, result);
+        }, () -> messages.send(sender, "level-not-found", messages.text("id", levelId)));
+    }
+
+    private void sendWorldGenerationResult(CommandSender sender, WorldGenerationResult result) {
+        MessageService messages = plugin.messages();
+        messages.send(sender, result.messageKey(),
+                messages.text("level", result.levelId()),
+                messages.text("world", result.world()),
+                messages.text("region", result.regionId()),
+                messages.text("cells", String.valueOf(result.cells())),
+                messages.text("templates", String.valueOf(result.templates())),
+                messages.text("blocks", String.valueOf(result.blocksChanged())),
+                messages.text("markers", result.markers()),
+                messages.text("reason", result.reason())
+        );
     }
 
     private void sendLootTables(CommandSender sender) {
@@ -948,7 +1061,8 @@ public final class BrCommand implements TabExecutor {
                 messages.text("transition_issues", describeList(transitionIssues)),
                 messages.text("rooms", String.valueOf(plugin.rooms().definitionCount())),
                 messages.text("rooms_disabled", String.valueOf(disabledRooms)),
-                messages.text("room_issues", describeList(roomIssues))
+                messages.text("room_issues", describeList(roomIssues)),
+                messages.text("schematic_templates", String.valueOf(plugin.worldgen().templateCount()))
         );
     }
 

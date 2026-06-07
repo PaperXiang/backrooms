@@ -58,6 +58,12 @@ permissions:
   backrooms.command.resource.info:
     description: Allows viewing Backrooms resource block details
     default: op
+  backrooms.command.worldgen.templates:
+    description: Allows listing configured Backrooms schematic templates
+    default: op
+  backrooms.command.worldgen.generate:
+    description: Allows generating finite Backrooms schematic grid regions
+    default: op
   backrooms.transition.use:
     description: Allows using configured Backrooms transitions
     default: true
@@ -88,6 +94,8 @@ permissions:
       backrooms.command.loot.roll: true
       backrooms.command.resource.list: true
       backrooms.command.resource.info: true
+      backrooms.command.worldgen.templates: true
+      backrooms.command.worldgen.generate: true
       backrooms.transition.use: true
       backrooms.transition.bypass.cooldown: true
       backrooms.bypass.build: true

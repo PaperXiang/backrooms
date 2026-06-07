@@ -570,3 +570,14 @@ plugins/BackroomsCore/
 - 已移除 Transition/Room 运行路径中的 enum switch 表达式，避免生成 `TransitionDefinition$1`、`TransitionService$1`、`RoomGenerationService$1` 这类 synthetic helper class。
 - 已通过 `clean build` 验证新 jar 中不再包含这些 `$1.class` 文件。
 - 下一步实机验证重点：部署新 jar 并完整重启后，测试 `/br transition info level0_to_level1_stairwell`、`/br transition guide level0_to_level1_stairwell` 和 `/br room generate ...`。
+
+### 12.16 Step 019 FAWE schematic 有限区域 worldgen 状态
+
+- 已新增 `worldgen.yml`，用于配置 Level 0 schematic 模板元数据、`16x16x6` cell 默认尺寸、主路径长度、分支率、loop 参数、vanilla marker 材质和 generated-regions 持久化文件。
+- 已新增 `WorldGenerationService` 与 schematic 模板模型，支持读取模板 connectors、tags、weight、rotations、footprint、unique、min-distance-from-spawn-cells 与 paste-air 配置。
+- 已新增有限区域生成命令 `/br worldgen generate <level> <size> [seed]`，先生成有限 N x N cell 图，再按连接口和权重选择模板，最后通过 WorldEdit/FAWE API 粘贴 schematic。
+- 已新增 `/br worldgen templates` 调试命令，用于查看当前加载的模板文件、连接口、footprint、tags 与权重。
+- 已新增 marker 扫描 MVP：粘贴后扫描配置的 vanilla marker block 数量，并把 region 元数据写入 `generated-regions.yml`，避免同一区域重复生成。
+- 已新增 `backrooms.command.worldgen.templates`、`backrooms.command.worldgen.generate` 权限，并接入 `/br help`、tab completion、`/br debug config`、README 和插件启动/重载日志。
+- WorldEdit 依赖使用 `compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.10")`，这是为 Paper 1.21.4 / Java 21 选择的可编译版本；运行时仍需要测试服安装 WorldEdit 或 FAWE。
+- 下一步重点：制作真实 `plugins/BackroomsCore/templates/level_0/*.schem`，实机测试 `/br worldgen templates` 与 `/br worldgen generate level_0 9 seed123`，再继续做房间编辑框和 schematic 保存流程。

@@ -17,6 +17,7 @@ public final class ConfigFileService {
     private FileConfiguration resources;
     private FileConfiguration transitions;
     private FileConfiguration rooms;
+    private FileConfiguration worldgen;
     private final Map<File, FileConfiguration> levelFiles = new LinkedHashMap<>();
 
     public ConfigFileService(Backrooms plugin) {
@@ -29,6 +30,7 @@ public final class ConfigFileService {
         saveDefault("resources.yml");
         saveDefault("transitions.yml");
         saveDefault("rooms.yml");
+        saveDefault("worldgen.yml");
         saveDefault("settings/config.yml");
         saveDefault("levels/level_0.yml");
         saveDefault("levels/level_1.yml");
@@ -41,6 +43,7 @@ public final class ConfigFileService {
         this.resources = loadFile("resources.yml");
         this.transitions = loadFile("transitions.yml");
         this.rooms = loadFile("rooms.yml");
+        this.worldgen = loadFile("worldgen.yml");
         reloadLevelFiles();
 
         warnIgnoredLegacySection("messages", "messages.yml");
@@ -49,6 +52,7 @@ public final class ConfigFileService {
         warnIgnoredLegacySection("resource-blocks", "resources.yml");
         warnIgnoredLegacySection("transitions", "transitions.yml");
         warnIgnoredLegacySection("rooms", "rooms.yml");
+        warnIgnoredLegacySection("worldgen", "worldgen.yml");
         warnIgnoredLegacySection("levels", "levels/*.yml");
     }
 
@@ -74,6 +78,10 @@ public final class ConfigFileService {
 
     public FileConfiguration rooms() {
         return rooms;
+    }
+
+    public FileConfiguration worldgen() {
+        return worldgen;
     }
 
     public Map<File, FileConfiguration> levelFiles() {

@@ -104,6 +104,75 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 019 - FAWE schematic 有限区域 worldgen MVP
+
+### 本次完成
+
+- 新增 WorldEdit/FAWE compileOnly 依赖与 EngineHub Maven 仓库，使用 Java 21 可编译的 `worldedit-bukkit:7.3.10`。
+- 新增 `worldgen.yml`，用于配置：
+  - `16x16x6` cell 默认参数。
+  - Level 0 schematic 模板文件路径。
+  - footprint、connectors、tags、weight、rotations、unique、min-distance-from-spawn-cells、paste-air。
+  - vanilla marker 材质与 `generated-regions.yml` 持久化文件。
+- 新增 `org.monday.backrooms.worldgen` 模块：
+  - `TemplateConnector`
+  - `TemplateMarkerType`
+  - `SchematicTemplateDefinition`
+  - `WorldGenerationResult`
+  - `WorldGenerationService`
+  - `WorldEditSchematicPaster`
+- 新增有限区域生成服务：先生成有限 N x N cell 图，再按连接口、权重、tag 与旋转选择 schematic 模板，最后通过 WorldEdit/FAWE API 粘贴到目标 Level world。
+- 新增 marker 扫描 MVP：生成后扫描配置的 vanilla marker block 数量，并将 region 元数据写入 `generated-regions.yml`，避免同一 region/seed 重复生成。
+- 新增管理/调试命令：
+  - `/br worldgen templates`
+  - `/br worldgen generate <level> <size> [seed]`
+- 新增权限：
+  - `backrooms.command.worldgen.templates`
+  - `backrooms.command.worldgen.generate`
+- 将 worldgen 模块接入 `/br reload`、启动/重载日志、`/br debug config`、help、tab completion、`messages.yml`、`paper-plugin.yml` 和 README。
+
+### 修改文件
+
+- `README.md`
+- `build.gradle`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/worldgen/TemplateConnector.java`
+- `src/main/java/org/monday/backrooms/worldgen/TemplateMarkerType.java`
+- `src/main/java/org/monday/backrooms/worldgen/SchematicTemplateDefinition.java`
+- `src/main/java/org/monday/backrooms/worldgen/WorldGenerationResult.java`
+- `src/main/java/org/monday/backrooms/worldgen/WorldGenerationService.java`
+- `src/main/java/org/monday/backrooms/worldgen/WorldEditSchematicPaster.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/worldgen.yml`
+
+### 设计原因
+
+- Level 0 先采用“有限区域生成”，避免在 `PlayerMoveEvent` 或 chunk generator 中做重型粘贴，降低测试服卡顿和排错风险。
+- `worldgen.yml` 只记录模板元数据，真实房间仍由建图/WorldEdit schematic 提供，这样可以让房间美术与生成逻辑分离。
+- MVP 先扫描 vanilla marker block，而不是直接依赖 CraftEngine Java API；如果 CE 方块无法稳定进入 schematic，后续可通过 marker 替换方案接入 CE block id。
+- 生成记录写入 `generated-regions.yml`，优先防止管理员重复执行命令覆盖同一区域。
+
+### 下一步建议
+
+- 安装/启用 WorldEdit 或 FastAsyncWorldEdit。
+- 用 WorldEdit/FAWE 制作并保存第一批模板：
+  - `plugins/BackroomsCore/templates/level_0/basic_01.schem`
+  - `plugins/BackroomsCore/templates/level_0/straight_corridor_01.schem`
+  - `plugins/BackroomsCore/templates/level_0/corner_corridor_01.schem`
+  - `plugins/BackroomsCore/templates/level_0/stairwell_exit_01.schem`
+- 重启测试服后执行 `/br reload`、`/br worldgen templates`、`/br worldgen generate level_0 9 seed123`。
+- 继续实现 `/br room edit start/save`、粒子边框、schematic 保存和自动 connector/marker 扫描写配置。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 001 - 初始化计划与仓库准备
 
 ### 本次完成
