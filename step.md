@@ -1,5 +1,66 @@
 # 开发记录
 
+## Step 037 - VectorDisplays 与 PacketEvents 实机依赖安装
+
+### 本次完成
+
+- 下载并安装测试服 PacketEvents：
+  - `packetevents-spigot-2.12.2.jar`
+- 从官方 GitHub tag `v1.1.1` 本地构建 VectorDisplays plugin：
+  - 构建目录：`D:\dev\backrooms\third-party-build\VectorDisplays`
+  - 输出：`VectorDisplays-plugin-1.1.1.jar`
+- VectorDisplays 默认会构建 26.x NMS 模块并要求 Java 25；测试服是 Paper 1.21.4，因此本地构建副本只启用：
+  - `v1_21_R3`
+- 将 VectorDisplays plugin jar 放入测试服 `plugins`。
+- 用 Java 21 重启测试服。
+- 通过 `/br verify runtime` 确认 Sanity HUD provider 依赖链已加载。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+
+### 非仓库运行时文件
+
+- `D:\dev\backrooms\devserver\plugins\packetevents-spigot-2.12.2.jar`
+- `D:\dev\backrooms\devserver\plugins\VectorDisplays-plugin-1.1.1.jar`
+- `D:\dev\backrooms\third-party-build\VectorDisplays`
+
+这些第三方 jar 和本地构建副本不提交进项目仓库。
+
+### 设计原因
+
+- BackroomsCore 的理智 HUD provider 已实现为 VectorDisplays，但在缺少 VectorDisplays/PacketEvents 时会 Noop 降级；补齐依赖后才能进入真实 HUD 观察阶段。
+- VectorDisplays 官方 release 没有 jar asset，且项目 README 对 plugin 模块构建产物有分发限制；因此只在本地测试服构建和部署，不版本化第三方产物。
+- 只构建 `v1_21_R3` 是为了匹配当前 Paper 1.21.4 测试服，同时避开 26.x NMS 对 Java 25 toolchain 的要求。
+
+### 下一步建议
+
+- 玩家进服后实机观察 VectorDisplays 理智 HUD 面板位置、刷新、清理和不会遮挡视野。
+- 验证 `/br item give backrooms:almond_water <player>` 后右键恢复理智，并观察 HUD 数值变化。
+- 继续验证 loot/resource 自定义物品产出和 Faithful 方块模型、碰撞、灯光、storage 表现。
+
+### 测试与验证
+
+- 已用 GitHub API 确认 VectorDisplays latest release：
+  - `v1.1.1`
+- 已用 GitHub/Modrinth API 确认 PacketEvents latest release：
+  - `2.12.2`
+- 已运行 VectorDisplays `.\gradlew.bat :plugin:build --no-daemon`，构建通过。
+- 已用 Java 21 重启测试服。
+- 启动日志确认：
+  - `packetevents v2.12.2` 已加载并启用。
+  - `VectorDisplays v1.1.1` 已加载并启用。
+  - VectorDisplays 已加载服务端版本支持 `v1_21_R3 (1.21.4)`。
+  - BackroomsCore 已加载 `VectorDisplays sanity HUD: renderMode=VIEWER_LIST`。
+- 已通过 RCON 执行 `br verify runtime`：
+  - PASS：VectorDisplays 1.1.1。
+  - PASS：PacketEvents 2.12.2。
+  - PASS：Sanity HUD provider = `VectorDisplays dependency chain is loaded`。
+  - 所有 runtime verifier 核心项均为 PASS。
+- 已通过 RCON 执行 `br reload` 后再次执行 `br verify runtime`，结果仍全 PASS。
+
 ## Step 036 - worldgen schematic scaffold 与 FAWE 粘贴验证
 
 ### 本次完成

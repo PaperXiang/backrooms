@@ -467,8 +467,9 @@ plugins/BackroomsCore/
 - 已新增基地 claim MVP：`bases.yml` 配置 Level 1 固定可 claim 区域，`/br base claim <id>` 持久化占领；Level 规则保护会对 owner 在已 claim 区域内放行破坏/放置。
 - 已新增 `/br verify runtime` 实机验证摘要命令，用于统一检查测试服插件依赖、CraftEngine Backrooms 资源目录、资源包模型/贴图数量、schematic 模板缺失、VectorDisplays/PacketEvents 状态和 Backrooms runtime 模块数量。
 - 已新增 `/br worldgen scaffold [missing|all]`，可在测试服生成最小 vanilla schematic placeholder，并已通过 RCON 验证 FAWE 粘贴与 marker 扫描链路。
+- 测试服已安装 PacketEvents 2.12.2 与 VectorDisplays 1.1.1；`/br verify runtime` 当前核心项全 PASS，Sanity HUD provider 已加载 VectorDisplays dependency chain。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
-- 下一阶段最高优先级：安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；同时继续把资源点、Transition 和 Base terminal 从占位坐标替换为真实地图坐标。
+- 下一阶段最高优先级：玩家进服实机观察 VectorDisplays 理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；同时继续把资源点、Transition 和 Base terminal 从占位坐标替换为真实地图坐标。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -756,3 +757,18 @@ plugins/BackroomsCore/
 - 已执行 `br worldgen generate level_0 3 step036`，FAWE 成功粘贴 9 个模板，marker 扫描结果为 `resource=7,light=5,loot=7`。
 - 当前剩余 WARN：VectorDisplays missing、PacketEvents missing、Sanity HUD provider 依赖链未完整加载。
 - 下一步重点：安装 VectorDisplays/PacketEvents 或补齐对应插件文件后重新验证 HUD provider；真实建图阶段再用美术 schematic 覆盖当前 placeholder。
+
+### 12.33 Step 037 VectorDisplays 与 PacketEvents 实机依赖状态
+
+- 已通过官方来源确认当前版本：VectorDisplays GitHub release `v1.1.1`，PacketEvents GitHub/Modrinth release `2.12.2`。
+- 已下载 `packetevents-spigot-2.12.2.jar` 到测试服 `plugins`。
+- VectorDisplays release 没有 jar asset；已在本地 `D:\dev\backrooms\third-party-build\VectorDisplays` 从 tag `v1.1.1` 构建 plugin jar。
+- VectorDisplays 默认构建会包含 26.x NMS 并要求 Java 25；测试服是 Paper 1.21.4，因此本地构建副本只启用 `v1_21_R3` NMS 模块。
+- 已将 `VectorDisplays-plugin-1.1.1.jar` 放入测试服 `plugins`；第三方 jar 和构建副本不提交进项目仓库。
+- 已用 Java 21 重启测试服；启动日志确认：
+  - `packetevents v2.12.2` 已加载并启用。
+  - `VectorDisplays v1.1.1` 已加载并启用。
+  - VectorDisplays 加载服务端版本支持 `v1_21_R3 (1.21.4)`。
+  - BackroomsCore 加载 `VectorDisplays sanity HUD`，不再 Noop 降级。
+- 已通过 RCON 执行 `br verify runtime`、`br reload`、再次 `br verify runtime`；当前 Level worlds、CraftEngine、FAWE、Multiverse-Core、PlaceholderAPI、VectorDisplays、PacketEvents、CraftEngine assets、schematic templates、Sanity HUD provider 和 runtime modules 均为 PASS。
+- 下一步重点：需要真实玩家连接后观察世界内理智 HUD 面板位置、刷新、清理和不会遮挡视野；同时验证杏仁水右键恢复、loot/resource 自定义物品产出和 Faithful 方块表现。
