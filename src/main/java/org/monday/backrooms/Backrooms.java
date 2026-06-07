@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.monday.backrooms.base.BaseListener;
 import org.monday.backrooms.base.BaseService;
 import org.monday.backrooms.command.BrCommand;
 import org.monday.backrooms.config.ConfigFileService;
@@ -366,7 +367,8 @@ public final class Backrooms extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SanityHudListener(this), this);
         getServer().getPluginManager().registerEvents(new LootSourceListener(this), this);
         getServer().getPluginManager().registerEvents(new CorpseListener(this), this);
-        getLogger().info("Registered listeners: PlayerLevelListener, TransitionListener, LevelRuleListener, BackroomsItemListener, SanityHudListener, LootSourceListener, CorpseListener.");
+        getServer().getPluginManager().registerEvents(new BaseListener(this), this);
+        getLogger().info("Registered listeners: PlayerLevelListener, TransitionListener, LevelRuleListener, BackroomsItemListener, SanityHudListener, LootSourceListener, CorpseListener, BaseListener.");
     }
 
     private void registerCommands() {

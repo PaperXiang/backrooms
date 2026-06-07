@@ -1,5 +1,50 @@
 # 开发记录
 
+## Step 034 - 基地终端右键 claim
+
+### 本次完成
+
+- 新增 `BaseService#getByTerminal(Block)`，按 world 与 terminal 坐标查找 Base。
+- 新增 `BaseListener`：
+  - 监听玩家右键方块。
+  - 如果右键方块位于 `bases.yml` 配置的 terminal 坐标，则尝试 claim 对应 Base。
+  - 复用 `backrooms.command.base.claim` 权限。
+  - 复用 base claim 的成功/失败消息。
+- `Backrooms#registerListeners()` 已注册 `BaseListener`。
+- README 已补充 terminal 坐标右键 claim 测试说明。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/base/BaseListener.java`
+- `src/main/java/org/monday/backrooms/base/BaseService.java`
+
+### 设计原因
+
+- 基地 claim 不应长期只依赖命令；地图中应有 `base_claim_terminal` 作为可见交互点。
+- 当前不硬依赖 CraftEngine API，只用配置坐标识别终端方块；地图制作时可以先放 CE terminal，也可以临时放原版方块调试。
+- 右键路径复用 `BaseService#claim(...)`，避免命令 claim 和终端 claim 出现两套规则。
+
+### 下一步建议
+
+- 在 `level1_utility_room_a` 的 terminal 坐标放置 `backrooms:base_claim_terminal`。
+- 玩家右键终端，确认可创建 `base-claims.yml` 并持久化。
+- 后续接入 Survivor Cell 成员、基地升级和终端 UI。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat compileJava`，编译通过。
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Loaded bases: enabled=true, definitions=2, claims=0, skipped=0`
+  - `Registered listeners: ... BaseListener`
+  - `BackroomsCore enabled successfully ... bases=2, baseClaims=0`
+
 ## Step 033 - 基地 claim MVP
 
 ### 本次完成

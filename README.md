@@ -284,6 +284,8 @@ level1_storage_room_a: x=52..67 y=63..70 z=32..47
 
 claim 成功后，owner 可在该区域内破坏/放置方块；区域外仍受 Level 规则保护。claim 数据写入测试服 `plugins/backrooms/base-claims.yml`，后续 `/br reload` 和重启会保留。
 
+`bases.yml` 中的 `terminal` 坐标也已接入右键交互；在终端坐标放置 `backrooms:base_claim_terminal` 或临时原版方块后，玩家右键该方块会尝试 claim 对应 Base。
+
 ## Transition 测试
 
 默认配置：

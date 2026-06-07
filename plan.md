@@ -719,7 +719,17 @@ plugins/BackroomsCore/
 - 默认提供两个 Level 1 占位区域：`level1_utility_room_a` 与 `level1_storage_room_a`，后续真实地图制作后替换为实际房间坐标。
 - 已新增 `BaseService`，加载 base definitions，读写 `base-claims.yml`，并提供 owner build 判定。
 - 已新增 `/br bases`、`/br base info <id>`、`/br base claim <id>`，并加入 help、tab completion、messages 和权限。
+- 已接入 base terminal 右键 claim：`bases.yml` 中 `terminal` 坐标对应的方块被玩家右键时，会尝试 claim 对应 base。
 - `LevelRuleListener` 已接入 `plugin.bases().canBuild(...)`：Level 禁止普通建造时，已 claim 区域内 owner 可以破坏/放置，区域外继续拦截。
 - `/br debug config` 已显示 base definitions 与 claims 数量。
 - 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；BackroomsCore 启动日志显示 `bases=2`、`baseClaims=0`。
 - 下一步重点：实机在 Level 1 占位区域执行 claim，确认 `base-claims.yml` 持久化、owner 区域内可建造、非 owner 和区域外仍被保护。
+
+### 12.30 Step 034 基地终端右键 claim 状态
+
+- 已新增 `BaseService#getByTerminal(Block)`，按 world 和 `bases.yml` 的 terminal 坐标查找对应 base。
+- 已新增 `BaseListener`，玩家右键 terminal 坐标的方块时，复用 `BaseService#claim(...)` 执行 claim。
+- 右键 claim 复用 `/br base claim` 的权限与消息：未授权、已被占领、位置错误、claim 上限、保存失败和成功反馈保持一致。
+- 已注册 `BaseListener`，启动日志会显示 `BaseListener` 已加入监听器列表。
+- 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；启动日志确认 `BaseListener` 注册成功。
+- 下一步重点：实机在 terminal 坐标放置 `backrooms:base_claim_terminal`，右键确认可 claim；后续再把终端 UI、升级和 Survivor Cell 成员权限接上。

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -88,6 +89,18 @@ public final class BaseService {
 
     public Optional<BaseClaim> claim(String id) {
         return Optional.ofNullable(claims.get(normalize(id)));
+    }
+
+    public Optional<BaseDefinition> getByTerminal(Block block) {
+        if (block == null) {
+            return Optional.empty();
+        }
+        return definitions.values().stream()
+                .filter(BaseDefinition::enabled)
+                .filter(definition -> definition.terminal() != null)
+                .filter(definition -> definition.world().equals(block.getWorld().getName()))
+                .filter(definition -> definition.terminal().matches(block))
+                .findFirst();
     }
 
     public boolean canBuild(Player player, Location location) {
