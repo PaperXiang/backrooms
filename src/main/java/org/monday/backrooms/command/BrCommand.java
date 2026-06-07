@@ -34,6 +34,7 @@ import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootEntry;
 import org.monday.backrooms.loot.LootSourceDefinition;
+import org.monday.backrooms.loot.LootSourceService.LootSourceContainerFillResult;
 import org.monday.backrooms.loot.LootSourceRewardResult;
 import org.monday.backrooms.loot.LootSourceRewardStatus;
 import org.monday.backrooms.loot.LootTableDefinition;
@@ -75,6 +76,7 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_SOURCE_LIST_PERMISSION = "backrooms.command.loot.source.list";
     private static final String LOOT_SOURCE_INFO_PERMISSION = "backrooms.command.loot.source.info";
     private static final String LOOT_SOURCE_TRIGGER_PERMISSION = "backrooms.command.loot.source.trigger";
+    private static final String LOOT_SOURCE_FILL_PERMISSION = "backrooms.command.loot.source.fill";
     private static final String ITEM_LIST_PERMISSION = "backrooms.command.item.list";
     private static final String ITEM_INFO_PERMISSION = "backrooms.command.item.info";
     private static final String ITEM_GIVE_PERMISSION = "backrooms.command.item.give";
@@ -253,8 +255,16 @@ public final class BrCommand implements TabExecutor {
                     triggerLootSource(sender, args[3], args.length >= 5 ? args[4] : null);
                     return true;
                 }
+                if (args.length >= 4 && is(args[2], "fill")) {
+                    fillLootSource(sender, args[3]);
+                    return true;
+                }
                 if (args.length >= 3 && is(args[2], "trigger")) {
                     plugin.messages().send(sender, "loot-source-trigger-usage");
+                    return true;
+                }
+                if (args.length >= 3 && is(args[2], "fill")) {
+                    plugin.messages().send(sender, "loot-source-fill-usage");
                     return true;
                 }
                 if (args.length >= 3 && is(args[2], "info")) {
@@ -668,6 +678,9 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
                 options.add("trigger");
             }
+            if (sender.hasPermission(LOOT_SOURCE_FILL_PERMISSION)) {
+                options.add("fill");
+            }
             return filter(options, args[2]);
         }
 
@@ -678,6 +691,13 @@ public final class BrCommand implements TabExecutor {
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "trigger") && sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
             return filter(plugin.lootSources().all().stream()
                     .filter(source -> source.type().supportsDirectReward())
+                    .map(LootSourceDefinition::id)
+                    .toList(), args[3]);
+        }
+
+        if (args.length == 4 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "fill") && sender.hasPermission(LOOT_SOURCE_FILL_PERMISSION)) {
+            return filter(plugin.lootSources().all().stream()
+                    .filter(source -> source.type().name().equals("VANILLA_CONTAINER"))
                     .map(LootSourceDefinition::id)
                     .toList(), args[3]);
         }
@@ -2748,6 +2768,49 @@ public final class BrCommand implements TabExecutor {
             );
             case EMPTY -> messages.send(sender, "loot-source-trigger-empty", messages.text("id", result.source().id()));
             default -> messages.send(sender, "unknown-command");
+        }
+    }
+
+    private void fillLootSource(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_SOURCE_FILL_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        LootSourceContainerFillResult result = plugin.lootSources().fillVanillaContainerSource(id);
+        switch (result.status()) {
+            case SUCCESS, PARTIAL -> messages.send(sender, "loot-source-fill-success",
+                    messages.text("id", result.source().id()),
+                    messages.text("checked", String.valueOf(result.checked())),
+                    messages.text("filled", String.valueOf(result.filled())),
+                    messages.text("items", String.valueOf(result.generatedStacks())),
+                    messages.text("already", String.valueOf(result.alreadyGenerated())),
+                    messages.text("non_empty", String.valueOf(result.skippedNonEmpty())),
+                    messages.text("issues", describeList(result.issues()))
+            );
+            case FAILED -> messages.send(sender, "loot-source-fill-failed",
+                    messages.text("id", result.source().id()),
+                    messages.text("checked", String.valueOf(result.checked())),
+                    messages.text("issues", describeList(result.issues()))
+            );
+            case NOT_FOUND -> messages.send(sender, "loot-source-not-found", messages.text("id", id));
+            case DISABLED -> messages.send(sender, "loot-source-disabled", messages.text("id", result.source().id()));
+            case UNSUPPORTED_TYPE -> messages.send(sender, "loot-source-fill-unsupported",
+                    messages.text("id", result.source().id()),
+                    messages.text("type", result.source().type().name().toLowerCase(Locale.ROOT))
+            );
+            case NO_LOCATIONS -> messages.send(sender, "loot-source-fill-no-locations", messages.text("id", result.source().id()));
+            case NO_WORLDS -> messages.send(sender, "loot-source-fill-failed",
+                    messages.text("id", result.source().id()),
+                    messages.text("checked", "0"),
+                    messages.text("issues", describeList(result.issues()))
+            );
+        }
+        if (result.droppedLeftovers() > 0) {
+            messages.send(sender, "loot-source-fill-leftovers",
+                    messages.text("items", String.valueOf(result.droppedLeftovers()))
+            );
         }
     }
 

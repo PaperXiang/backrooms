@@ -18,6 +18,7 @@ import org.bukkit.block.TileState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.monday.backrooms.Backrooms;
@@ -130,6 +131,96 @@ public final class LootSourceService {
         plugin.getLogger().info("Triggered loot source '" + definition.id() + "' for " + player.getName()
                 + " items=" + generated.size() + ".");
         return LootSourceRewardResult.success(definition, generated.size(), !leftovers.isEmpty());
+    }
+
+    public LootSourceContainerFillResult fillVanillaContainerSource(String id) {
+        LootSourceDefinition definition = definitions.get(normalize(id));
+        if (definition == null) {
+            return LootSourceContainerFillResult.failed(LootSourceContainerFillStatus.NOT_FOUND, null);
+        }
+        if (!enabled || !definition.enabled()) {
+            return LootSourceContainerFillResult.failed(LootSourceContainerFillStatus.DISABLED, definition);
+        }
+        if (definition.type() != LootSourceType.VANILLA_CONTAINER) {
+            return LootSourceContainerFillResult.failed(LootSourceContainerFillStatus.UNSUPPORTED_TYPE, definition);
+        }
+        if (definition.locations().isEmpty()) {
+            return LootSourceContainerFillResult.failed(LootSourceContainerFillStatus.NO_LOCATIONS, definition);
+        }
+
+        int checked = 0;
+        int filled = 0;
+        int generatedStacks = 0;
+        int droppedLeftovers = 0;
+        int alreadyGenerated = 0;
+        int skippedNonEmpty = 0;
+        List<String> issues = new ArrayList<>();
+        List<BackroomsLevel> levels = plugin.levels().all().stream()
+                .filter(BackroomsLevel::enabled)
+                .filter(level -> definition.appliesToLevel(level.id()))
+                .toList();
+        if (levels.isEmpty()) {
+            return new LootSourceContainerFillResult(LootSourceContainerFillStatus.NO_WORLDS, definition,
+                    0, 0, 0, 0, 0, 0, List.of("no matching enabled levels"));
+        }
+
+        for (BackroomsLevel level : levels) {
+            org.bukkit.World world = org.bukkit.Bukkit.getWorld(level.world());
+            if (world == null) {
+                issues.add(level.id() + ":world missing " + level.world());
+                continue;
+            }
+            for (LootSourcePosition position : definition.locations()) {
+                checked++;
+                Block block = world.getBlockAt(position.x(), position.y(), position.z());
+                if (!definition.matches(block)) {
+                    issues.add(level.id() + "@" + position.x() + "," + position.y() + "," + position.z()
+                            + ":material=" + block.getType().name());
+                    continue;
+                }
+                if (!(block.getState() instanceof InventoryHolder holder)) {
+                    issues.add(level.id() + "@" + position.x() + "," + position.y() + "," + position.z() + ":not inventory holder");
+                    continue;
+                }
+                if (definition.oneTime() && isGenerated(block, definition)) {
+                    alreadyGenerated++;
+                    continue;
+                }
+                Inventory inventory = holder.getInventory();
+                if (definition.fillEmptyOnly() && !isEmpty(inventory)) {
+                    skippedNonEmpty++;
+                    continue;
+                }
+
+                List<ItemStack> generated = roll(definition);
+                if (generated.isEmpty()) {
+                    if (definition.oneTime()) {
+                        markGenerated(block, definition);
+                    }
+                    continue;
+                }
+
+                Map<Integer, ItemStack> leftovers = inventory.addItem(generated.toArray(ItemStack[]::new));
+                Location dropLocation = block.getLocation().add(0.5D, 1.0D, 0.5D);
+                for (ItemStack item : leftovers.values()) {
+                    block.getWorld().dropItemNaturally(dropLocation, item);
+                    droppedLeftovers++;
+                }
+                if (definition.oneTime()) {
+                    markGenerated(block, definition);
+                }
+                filled++;
+                generatedStacks += generated.size();
+            }
+        }
+
+        LootSourceContainerFillStatus status = issues.isEmpty() ? LootSourceContainerFillStatus.SUCCESS
+                : (filled > 0 || alreadyGenerated > 0 || skippedNonEmpty > 0 ? LootSourceContainerFillStatus.PARTIAL : LootSourceContainerFillStatus.FAILED);
+        plugin.getLogger().info("Filled loot source '" + definition.id() + "' via command: checked=" + checked
+                + ", filled=" + filled + ", generatedStacks=" + generatedStacks + ", alreadyGenerated=" + alreadyGenerated
+                + ", skippedNonEmpty=" + skippedNonEmpty + ", issues=" + issues.size() + ".");
+        return new LootSourceContainerFillResult(status, definition, checked, filled, generatedStacks,
+                droppedLeftovers, alreadyGenerated, skippedNonEmpty, List.copyOf(issues));
     }
 
     public boolean handleVanillaContainerOpen(Player player, Block block, Inventory inventory) {
@@ -318,5 +409,33 @@ public final class LootSourceService {
 
     private String normalize(String id) {
         return id.toLowerCase(Locale.ROOT);
+    }
+
+    public enum LootSourceContainerFillStatus {
+        SUCCESS,
+        PARTIAL,
+        FAILED,
+        NOT_FOUND,
+        DISABLED,
+        UNSUPPORTED_TYPE,
+        NO_LOCATIONS,
+        NO_WORLDS
+    }
+
+    public record LootSourceContainerFillResult(
+            LootSourceContainerFillStatus status,
+            LootSourceDefinition source,
+            int checked,
+            int filled,
+            int generatedStacks,
+            int droppedLeftovers,
+            int alreadyGenerated,
+            int skippedNonEmpty,
+            List<String> issues
+    ) {
+
+        public static LootSourceContainerFillResult failed(LootSourceContainerFillStatus status, LootSourceDefinition source) {
+            return new LootSourceContainerFillResult(status, source, 0, 0, 0, 0, 0, 0, List.of());
+        }
     }
 }

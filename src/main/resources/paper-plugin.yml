@@ -75,6 +75,9 @@ permissions:
   backrooms.command.loot.source.trigger:
     description: Allows triggering direct Backrooms loot sources
     default: op
+  backrooms.command.loot.source.fill:
+    description: Allows filling configured vanilla container loot sources
+    default: op
   backrooms.command.item.list:
     description: Allows listing configured Backrooms items
     default: op
@@ -145,6 +148,7 @@ permissions:
       backrooms.command.loot.source.list: true
       backrooms.command.loot.source.info: true
       backrooms.command.loot.source.trigger: true
+      backrooms.command.loot.source.fill: true
       backrooms.command.item.list: true
       backrooms.command.item.info: true
       backrooms.command.item.give: true

@@ -857,3 +857,12 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify worldgen`；当前 PASS：configured vs loaded templates、worldgen defaults、worldgen markers、worldgen templates、worldgen level coverage。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后用真实 Level 0 schematic 覆盖当前 placeholder，再执行 `/br worldgen generate level_0 9 <seed>`，观察旋转、开口、marker 扫描和生成区域记录。
+
+### 12.43 Step 047 vanilla 容器 Loot Source 填充命令状态
+
+- 已新增 `/br loot source fill <id>`，权限为 `backrooms.command.loot.source.fill`，并加入 `backrooms.admin`。
+- 命令只支持 `vanilla_container` source，要求配置固定 `locations`，会读取真实容器方块、调用实际 Loot Table roll、遵守 `fill-empty-only`，并在 `one-time: true` 时写入 TileState PDC。
+- 已通过 RCON 执行 `br loot source fill level0_supply_container`：首次 `checked=1, filled=1, items=1`，第二次 `already=1`，确认防重复。
+- 已通过 RCON 执行 `br loot source fill level1_scrap_container`：首次 roll 为空但仍写入 one-time 标记，第二次 `already=1`，确认空产物也不会重复刷。
+- 已再次执行 `br verify loot` 与 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后打开这两个容器，确认客户端看到的物品、打开体验和 PDC 防重复与命令路径一致；真实地图制作后替换容器坐标。

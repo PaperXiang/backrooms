@@ -1,5 +1,58 @@
 # 开发记录
 
+## Step 047 - vanilla 容器 Loot Source 填充命令
+
+### 本次完成
+
+- 新增 `/br loot source fill <id>`。
+- 新增权限：
+  - `backrooms.command.loot.source.fill`
+- 新增 help、usage 与 tab completion：
+  - `/br loot source fill <id>`
+- 新增 `LootSourceService#fillVanillaContainerSource(...)`：
+  - 只支持 `vanilla_container`。
+  - 要求 source 配置固定 `locations`，避免无坐标时误扫世界。
+  - 按 source 允许 Level 找到真实 world/block/container。
+  - 复用实际 Loot Table roll。
+  - 遵守 `fill-empty-only`。
+  - `one-time: true` 时写入 TileState PDC；roll 为空也会标记，避免反复刷。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceService.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 玩家打开容器前，RCON 只能验证配置引用和抽样产物，不能验证真实容器写入、`fill-empty-only` 和 TileState PDC one-time 标记。
+- 新命令会修改测试服容器，因此单独放在 `loot source fill`，不伪装成 dry-run。
+- 命令复用服务层逻辑，避免玩家打开容器和管理员填充命令出现两套产物规则。
+
+### 下一步建议
+
+- 玩家进服后打开 Level 0/1 容器，确认客户端实际可见物品和二次打开不重复生成。
+- 真实地图制作后替换 `loot.yml` 中容器 source 坐标，再执行 `/br verify map` 与 `/br loot source fill <id>`。
+- 后续继续收敛资源点右键 cooldown、杏仁水/HUD、Base terminal claim 和 Faithful 方块视觉/碰撞/storage。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br loot source fill level0_supply_container`：
+  - 首次：`checked=1, filled=1, items=1, already=0, nonEmpty=0`。
+  - 第二次：`checked=1, filled=0, items=0, already=1, nonEmpty=0`。
+- 已通过 RCON 执行 `br loot source fill level1_scrap_container`：
+  - 首次：`checked=1, filled=0, items=0, already=0, nonEmpty=0`，本次 roll 为空但已写入 one-time 标记。
+  - 第二次：`checked=1, filled=0, items=0, already=1, nonEmpty=0`。
+- 已通过 RCON 执行 `br verify loot`，当前全 PASS。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 046 - Worldgen 配置 verifier
 
 ### 本次完成
