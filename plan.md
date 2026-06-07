@@ -469,6 +469,7 @@ plugins/BackroomsCore/
 - 已新增 `/br worldgen scaffold [missing|all]`，可在测试服生成最小 vanilla schematic placeholder，并已通过 RCON 验证 FAWE 粘贴与 marker 扫描链路。
 - 测试服已安装 PacketEvents 2.12.2 与 VectorDisplays 1.1.1；`/br verify runtime` 当前核心项全 PASS，Sanity HUD provider 已加载 VectorDisplays dependency chain。
 - 已新增 `/br verify craftengine`，并补齐 `royal_almond_water` 与 `memory_salt` 的 CraftEngine item、分类、server l10n 和 client lang；当前 CraftEngine verifier 全 PASS。
+- 已新增 `/br verify map`，用于检查资源点、loot source、transition 和 base terminal 坐标；当前测试服占位锚点已放置并全 PASS。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：玩家进服实机观察 VectorDisplays 理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；同时继续把资源点、Transition 和 Base terminal 从占位坐标替换为真实地图坐标。
 
@@ -784,3 +785,18 @@ plugins/BackroomsCore/
 - 已同步到测试服 CraftEngine 目录并执行 `ce reload all`；日志显示 translations/lang/items 数量增加，资源包重新生成、验证、压缩并上传成功。
 - 已通过 RCON 执行 `br verify craftengine`；当前 PASS：73 个 item definitions、57 个 block definitions、10 个 BackroomsCore items mirrored、category coverage、server l10n、client lang、static model refs、legacy namespace refs=0。
 - 下一步重点：玩家进服后用 `/ce item get` 与 `/br item give` 对比杏仁水、皇家杏仁水、记忆盐和 Faithful 方块的模型、tooltip、语言显示与交互表现。
+
+### 12.35 Step 039 地图锚点 verifier 与测试服占位锚点状态
+
+- 已新增 `/br verify map`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：Resource anchors 的实际方块材质、vanilla loot source anchors 的实际容器材质、Transition trigger world 加载和 region 中心方块、Base terminal 坐标是否为空气。
+- 首次运行发现测试服占位坐标均为空气：Level 0/1 资源点、Level 0/1 loot source 容器、Level 1 两个 base terminal。
+- 已在测试服通过 RCON 放置原版占位锚点：
+  - `level_0 0 64 0`：`yellow_carpet`，下方 `0 63 0` 为 `smooth_sandstone`。
+  - `level_1 0 64 0`：`iron_ore`。
+  - `level_0 4 64 0`：`barrel`。
+  - `level_1 4 64 0`：`barrel`。
+  - `level_1 32 64 32`：`observer`，用于 base terminal 占位。
+  - `level_1 52 64 32`：`observer`，用于 base terminal 占位。
+- 已通过 RCON 执行 `br verify map`；当前 Resource anchors、Loot source anchors、Transition anchors、Base terminals 均为 PASS。
+- 下一步重点：玩家进服实测右键 Level 0 资源点、打开 Level 0/1 容器、右键 base terminal claim；真实地图制作后再用正式坐标替换这些占位点。

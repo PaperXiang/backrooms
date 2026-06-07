@@ -155,6 +155,10 @@ public final class BrCommand implements TabExecutor {
                 sendCraftEngineVerification(sender);
                 return true;
             }
+            if (is(args[1], "map")) {
+                sendMapVerification(sender);
+                return true;
+            }
             plugin.messages().send(sender, "verify-usage");
             return true;
         }
@@ -569,7 +573,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1235,6 +1239,131 @@ public final class BrCommand implements TabExecutor {
         long staleNamespaceRefs = countFilesContaining(new File(resourcepackAssets, "models"), "faithfulbackrooms:");
         sendVerifyLine(sender, staleNamespaceRefs == 0 ? "pass" : "warn", "Legacy faithful namespace refs",
                 String.valueOf(staleNamespaceRefs));
+    }
+
+    private void sendMapVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-map-header");
+        verifyResourceAnchors(sender);
+        verifyLootSourceAnchors(sender);
+        verifyTransitionAnchors(sender);
+        verifyBaseTerminals(sender);
+    }
+
+    private void verifyResourceAnchors(CommandSender sender) {
+        int checked = 0;
+        List<String> mismatches = new ArrayList<>();
+        for (ResourceBlockDefinition definition : plugin.resources().all()) {
+            if (definition.positions().isEmpty()) {
+                continue;
+            }
+            for (String levelId : definition.levels()) {
+                World world = worldForLevel(levelId);
+                if (world == null) {
+                    mismatches.add(definition.id() + "@" + levelId + " world missing");
+                    continue;
+                }
+                for (var position : definition.positions()) {
+                    checked++;
+                    var block = world.getBlockAt(position.x(), position.y(), position.z());
+                    if (!definition.materials().contains(block.getType())) {
+                        mismatches.add(definition.id() + "@" + levelId + ":" + position.x() + "," + position.y() + "," + position.z()
+                                + "=" + block.getType());
+                    }
+                }
+            }
+        }
+        sendVerifyLine(sender, mismatches.isEmpty() ? "pass" : "warn", "Resource anchors",
+                mismatches.isEmpty() ? checked + " checked" : checked + " checked; mismatches=" + describeList(mismatches));
+    }
+
+    private void verifyLootSourceAnchors(CommandSender sender) {
+        int checked = 0;
+        List<String> mismatches = new ArrayList<>();
+        for (LootSourceDefinition definition : plugin.lootSources().all()) {
+            if (definition.locations().isEmpty() || !definition.type().requiresBlockMaterial()) {
+                continue;
+            }
+            for (String levelId : definition.levels()) {
+                World world = worldForLevel(levelId);
+                if (world == null) {
+                    mismatches.add(definition.id() + "@" + levelId + " world missing");
+                    continue;
+                }
+                for (var position : definition.locations()) {
+                    checked++;
+                    var block = world.getBlockAt(position.x(), position.y(), position.z());
+                    if (!definition.materials().contains(block.getType())) {
+                        mismatches.add(definition.id() + "@" + levelId + ":" + position.x() + "," + position.y() + "," + position.z()
+                                + "=" + block.getType());
+                    }
+                }
+            }
+        }
+        sendVerifyLine(sender, mismatches.isEmpty() ? "pass" : "warn", "Loot source anchors",
+                mismatches.isEmpty() ? checked + " checked" : checked + " checked; mismatches=" + describeList(mismatches));
+    }
+
+    private void verifyTransitionAnchors(CommandSender sender) {
+        int checked = 0;
+        List<String> details = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
+        for (TransitionDefinition definition : plugin.transitions().all()) {
+            World world = Bukkit.getWorld(definition.triggerWorld());
+            if (world == null) {
+                missing.add(definition.id() + "@" + definition.triggerWorld());
+                continue;
+            }
+            checked++;
+            if (definition.region() != null) {
+                int x = (int) Math.floor((definition.region().minX() + definition.region().maxX()) / 2.0D);
+                int y = (int) Math.floor((definition.region().minY() + definition.region().maxY()) / 2.0D);
+                int z = (int) Math.floor((definition.region().minZ() + definition.region().maxZ()) / 2.0D);
+                details.add(definition.id() + " center=" + world.getBlockAt(x, y, z).getType());
+            } else {
+                details.add(definition.id() + " trigger=" + definition.triggerType().name().toLowerCase(Locale.ROOT));
+            }
+        }
+        sendVerifyLine(sender, missing.isEmpty() ? "pass" : "fail", "Transition anchors",
+                missing.isEmpty() ? checked + " worlds loaded; " + describeList(details) : "missing worlds=" + describeList(missing));
+    }
+
+    private void verifyBaseTerminals(CommandSender sender) {
+        int checked = 0;
+        List<String> missing = new ArrayList<>();
+        List<String> empty = new ArrayList<>();
+        for (BaseDefinition definition : plugin.bases().all()) {
+            World world = Bukkit.getWorld(definition.world());
+            if (world == null) {
+                missing.add(definition.id() + "@" + definition.world());
+                continue;
+            }
+            if (definition.terminal() == null) {
+                continue;
+            }
+            checked++;
+            var terminal = definition.terminal();
+            var block = world.getBlockAt(terminal.x(), terminal.y(), terminal.z());
+            if (block.getType().isAir()) {
+                empty.add(definition.id() + "@" + terminal.describe() + "=AIR");
+            }
+        }
+        sendVerifyLine(sender, missing.isEmpty() && empty.isEmpty() ? "pass" : "warn", "Base terminals",
+                missing.isEmpty() && empty.isEmpty()
+                        ? checked + " checked"
+                        : "checked=" + checked + detailList(" missingWorlds=", new LinkedHashSet<>(missing)) + detailList(" empty=", new LinkedHashSet<>(empty)));
+    }
+
+    private World worldForLevel(String levelId) {
+        return plugin.levels().get(levelId)
+                .map(BackroomsLevel::world)
+                .map(Bukkit::getWorld)
+                .orElse(null);
     }
 
     private void sendPluginCheck(CommandSender sender, String label, String pluginName, boolean required) {

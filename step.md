@@ -1,5 +1,66 @@
 # 开发记录
 
+## Step 039 - 地图锚点 verifier 与测试服占位锚点
+
+### 本次完成
+
+- 新增 `/br verify map`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify map`
+- map verifier 检查：
+  - Resource anchors：配置坐标处的实际方块是否匹配 `resources.yml` 的 material。
+  - Loot source anchors：配置坐标处的实际方块是否匹配 `loot.yml` 的 vanilla container material。
+  - Transition anchors：trigger world 是否加载，并报告 region 中心方块。
+  - Base terminals：terminal 坐标是否存在非空气方块。
+- 已在测试服放置当前配置坐标的原版占位锚点。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `resources.yml`、`loot.yml`、`transitions.yml` 和 `bases.yml` 目前仍有大量占位坐标；仅检查配置语法不足以确认实机地图是否可测。
+- 先把坐标可用性做成服务器命令，可以在真实地图制作时反复运行，快速发现“配置指向空气”或“材质不匹配”的问题。
+- Base terminal 当前逻辑按坐标识别，不硬依赖 CE block；因此 verifier 先确认非空气，后续玩家实机再替换为 `backrooms:base_claim_terminal`。
+
+### 下一步建议
+
+- 玩家进服后右键 Level 0 资源点，确认 resource loot table 与 cooldown。
+- 玩家打开 Level 0/1 `BARREL`，确认 one-time loot source 注入。
+- 玩家右键 Level 1 base terminal 占位方块，确认 claim 与 `base-claims.yml` 持久化。
+- 真实地图完成后把这些坐标替换为正式位置，再跑 `/br verify map`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 首次通过 RCON 执行 `br verify map`，确认 WARN：
+  - Resource anchors：`level0_loose_carpet@level_0:0,64,0=AIR`、`level1_scrap_ore@level_1:0,64,0=AIR`。
+  - Loot source anchors：`level0_supply_container@level_0:4,64,0=AIR`、`level1_scrap_container@level_1:4,64,0=AIR`。
+  - Base terminals：两个 terminal 坐标均为空气。
+- 已通过 RCON 放置测试锚点：
+  - `execute in minecraft:level_0 run setblock 0 63 0 smooth_sandstone`
+  - `execute in minecraft:level_0 run setblock 0 64 0 yellow_carpet`
+  - `execute in minecraft:level_1 run setblock 0 64 0 iron_ore`
+  - `execute in minecraft:level_0 run setblock 4 64 0 barrel`
+  - `execute in minecraft:level_1 run setblock 4 64 0 barrel`
+  - `execute in minecraft:level_1 run setblock 32 64 32 observer`
+  - `execute in minecraft:level_1 run setblock 52 64 32 observer`
+- 再次通过 RCON 执行 `br verify map`，当前全 PASS：
+  - Resource anchors：2 checked。
+  - Loot source anchors：2 checked。
+  - Transition anchors：2 worlds loaded。
+  - Base terminals：2 checked。
+- 已通过 RCON 执行 `br verify craftengine` 和 `br verify runtime`，两者仍全 PASS。
+
 ## Step 038 - CraftEngine 具体资产 verifier 与缺失 item 镜像补齐
 
 ### 本次完成
