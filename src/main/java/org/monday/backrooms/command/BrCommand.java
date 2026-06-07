@@ -14,6 +14,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.monday.backrooms.Backrooms;
+import org.monday.backrooms.base.BaseClaimResult;
+import org.monday.backrooms.base.BaseClaimStatus;
+import org.monday.backrooms.base.BaseDefinition;
 import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootSourceDefinition;
@@ -57,6 +60,9 @@ public final class BrCommand implements TabExecutor {
     private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
     private static final String WORLDGEN_TEMPLATES_PERMISSION = "backrooms.command.worldgen.templates";
     private static final String WORLDGEN_GENERATE_PERMISSION = "backrooms.command.worldgen.generate";
+    private static final String BASE_LIST_PERMISSION = "backrooms.command.base.list";
+    private static final String BASE_INFO_PERMISSION = "backrooms.command.base.info";
+    private static final String BASE_CLAIM_PERMISSION = "backrooms.command.base.claim";
 
     private final Backrooms plugin;
 
@@ -117,6 +123,39 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 generateWorldRegion(sender, args[2], args[3], args.length >= 5 ? args[4] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
+            return true;
+        }
+
+        if (is(args[0], "bases")) {
+            sendBases(sender);
+            return true;
+        }
+
+        if (is(args[0], "base")) {
+            if (args.length < 2 || is(args[1], "list")) {
+                sendBases(sender);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "base-info-usage");
+                    return true;
+                }
+                sendBaseInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "claim")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "base-claim-usage");
+                    return true;
+                }
+                claimBase(sender, args[2]);
                 return true;
             }
 
@@ -416,6 +455,14 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
                 options.add("worldgen");
             }
+            if (sender.hasPermission(BASE_LIST_PERMISSION)) {
+                options.add("bases");
+            }
+            if (sender.hasPermission(BASE_LIST_PERMISSION)
+                    || sender.hasPermission(BASE_INFO_PERMISSION)
+                    || sender.hasPermission(BASE_CLAIM_PERMISSION)) {
+                options.add("base");
+            }
             if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
                     || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
                     || sender.hasPermission(TRANSITION_GUIDE_PERMISSION)) {
@@ -486,6 +533,26 @@ public final class BrCommand implements TabExecutor {
                 options.add("source");
             }
             return filter(options, args[1]);
+        }
+
+        if (args.length == 2 && is(args[0], "base")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(BASE_LIST_PERMISSION)) {
+                options.add("list");
+            }
+            if (sender.hasPermission(BASE_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(BASE_CLAIM_PERMISSION)) {
+                options.add("claim");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "base")
+                && ((is(args[1], "info") && sender.hasPermission(BASE_INFO_PERMISSION))
+                || (is(args[1], "claim") && sender.hasPermission(BASE_CLAIM_PERMISSION)))) {
+            return filter(plugin.bases().all().stream().map(BaseDefinition::id).toList(), args[2]);
         }
 
         if (args.length == 3 && is(args[0], "loot") && canCompleteLootIds(sender, args[1])) {
@@ -700,6 +767,88 @@ public final class BrCommand implements TabExecutor {
                     messages.text("drops", String.valueOf(resource.drops().size())),
                     messages.text("locations", String.valueOf(resource.positions().size()))
             );
+        }
+    }
+
+    private void sendBases(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(BASE_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.bases().all().isEmpty()) {
+            messages.send(sender, "bases-empty");
+            return;
+        }
+
+        messages.send(sender, "bases-header");
+        for (BaseDefinition base : plugin.bases().all()) {
+            messages.send(sender, "base-line",
+                    messages.text("id", base.id()),
+                    messages.mini("display", base.displayName()),
+                    messages.text("level", base.level()),
+                    messages.text("world", base.world()),
+                    messages.bool("enabled", base.enabled()),
+                    messages.text("claimed", plugin.bases().claim(base.id()).map(claim -> claim.ownerName()).orElse("none"))
+            );
+        }
+    }
+
+    private void sendBaseInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(BASE_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.bases().get(id).ifPresentOrElse(base -> messages.send(sender, "base-info",
+                messages.text("id", base.id()),
+                messages.mini("display", base.displayName()),
+                messages.bool("enabled", base.enabled()),
+                messages.text("level", base.level()),
+                messages.text("world", base.world()),
+                messages.text("region", base.regionDescription()),
+                messages.text("terminal", base.terminalDescription()),
+                messages.text("claimed", plugin.bases().claim(base.id()).map(claim -> claim.ownerName()).orElse("none"))
+        ), () -> messages.send(sender, "base-not-found", messages.text("id", id)));
+    }
+
+    private void claimBase(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(BASE_CLAIM_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            messages.send(sender, "player-only");
+            return;
+        }
+
+        BaseClaimResult result = plugin.bases().claim(player, id);
+        if (result.status() == BaseClaimStatus.SUCCESS) {
+            messages.send(sender, "base-claim-success",
+                    messages.text("id", result.definition().id()),
+                    messages.mini("display", result.definition().displayName())
+            );
+            return;
+        }
+
+        switch (result.status()) {
+            case NOT_FOUND -> messages.send(sender, "base-not-found", messages.text("id", id));
+            case DISABLED -> messages.send(sender, "base-disabled", messages.text("id", result.definition().id()));
+            case WRONG_LEVEL -> messages.send(sender, "base-claim-wrong-location",
+                    messages.text("id", result.definition().id()),
+                    messages.text("world", result.definition().world()),
+                    messages.text("region", result.definition().regionDescription())
+            );
+            case ALREADY_CLAIMED -> messages.send(sender, "base-already-claimed",
+                    messages.text("id", result.definition().id()),
+                    messages.text("owner", result.claim().ownerName())
+            );
+            case CLAIM_LIMIT_REACHED -> messages.send(sender, "base-claim-limit");
+            case SAVE_FAILED -> messages.send(sender, "base-claim-save-failed", messages.text("id", result.definition().id()));
+            default -> messages.send(sender, "unknown-command");
         }
     }
 
@@ -1406,6 +1555,8 @@ public final class BrCommand implements TabExecutor {
                 messages.text("loot_tables", String.valueOf(plugin.lootTables().definitionCount())),
                 messages.text("loot_sources", String.valueOf(plugin.lootSources().definitionCount())),
                 messages.text("pending_insurance", String.valueOf(plugin.corpses().pendingInsuranceCount())),
+                messages.text("bases", String.valueOf(plugin.bases().definitionCount())),
+                messages.text("base_claims", String.valueOf(plugin.bases().claimCount())),
                 messages.text("resource_blocks", String.valueOf(plugin.resources().definitionCount())),
                 messages.text("transitions", String.valueOf(plugin.transitions().definitionCount())),
                 messages.text("transitions_disabled", String.valueOf(disabledTransitions)),

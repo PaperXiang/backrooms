@@ -464,6 +464,7 @@ plugins/BackroomsCore/
 - 已新增 Loot Source 调试命令：`/br loot sources` 和 `/br loot source info <id>`，用于实机查看容器源的 Level、材质、坐标、loot table、one-time 和 fill-empty-only。
 - 已新增 Loot Source direct reward：`event_reward` 与 `command_reward` 类型可通过 `LootSourceService#triggerReward(...)` 对玩家发放 Loot Table 产物，`/br loot source trigger <id> [player]` 可用于管理员测试和脚本触发。
 - 已新增尸体缓存 MVP：`corpses.yml` 配置启用 Level、原版容器材料、保险物品堆数量和死亡点附近搜索半径；玩家在 Backrooms Level 死亡时，普通掉落进入尸体容器，保险物品在重生后返还。
+- 已新增基地 claim MVP：`bases.yml` 配置 Level 1 固定可 claim 区域，`/br base claim <id>` 持久化占领；Level 规则保护会对 owner 在已 claim 区域内放行破坏/放置。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
 
@@ -711,3 +712,14 @@ plugins/BackroomsCore/
 - `/br debug config` 已显示 `Pending insurance`，用于检查等待返还保险物品的玩家数量。
 - 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；BackroomsCore 启动日志显示 corpse config 加载成功、`pendingInsurance=0`、`CorpseListener` 注册成功。
 - 下一步重点：实机让玩家在 `level_0` / `level_1` 死亡，确认尸体 `CHEST` 生成、掉落物转移、保险物品重生返还和容器无空间时的 fallback。
+
+### 12.29 Step 033 基地 claim MVP 状态
+
+- 已新增 `bases.yml`，配置 base 系统启用状态、claim 数据文件、玩家 claim 上限和固定可 claim 区域。
+- 默认提供两个 Level 1 占位区域：`level1_utility_room_a` 与 `level1_storage_room_a`，后续真实地图制作后替换为实际房间坐标。
+- 已新增 `BaseService`，加载 base definitions，读写 `base-claims.yml`，并提供 owner build 判定。
+- 已新增 `/br bases`、`/br base info <id>`、`/br base claim <id>`，并加入 help、tab completion、messages 和权限。
+- `LevelRuleListener` 已接入 `plugin.bases().canBuild(...)`：Level 禁止普通建造时，已 claim 区域内 owner 可以破坏/放置，区域外继续拦截。
+- `/br debug config` 已显示 base definitions 与 claims 数量。
+- 已运行 `.\gradlew.bat deployDevServerAll build` 并用 Java 21 重启测试服；BackroomsCore 启动日志显示 `bases=2`、`baseClaims=0`。
+- 下一步重点：实机在 Level 1 占位区域执行 claim，确认 `base-claims.yml` 持久化、owner 区域内可建造、非 owner 和区域外仍被保护。

@@ -1,5 +1,86 @@
 # 开发记录
 
+## Step 033 - 基地 claim MVP
+
+### 本次完成
+
+- 新增 `bases.yml`：
+  - `enabled`
+  - `data-file`
+  - `max-claims-per-player`
+  - `definitions`
+- 默认新增两个 Level 1 占位可 claim 区域：
+  - `level1_utility_room_a`
+  - `level1_storage_room_a`
+- 新增 base 模块：
+  - `BaseDefinition`
+  - `BaseClaim`
+  - `BaseClaimStatus`
+  - `BaseClaimResult`
+  - `BaseService`
+- `BaseService` 支持：
+  - 加载固定可 claim 区域。
+  - 读取/保存 `base-claims.yml`。
+  - 限制每个玩家 claim 数量。
+  - 判断 owner 是否能在 claim 区域内建造/破坏。
+- 新增命令：
+  - `/br bases`
+  - `/br base info <id>`
+  - `/br base claim <id>`
+- 新增权限：
+  - `backrooms.command.base.list`
+  - `backrooms.command.base.info`
+  - `backrooms.command.base.claim`
+  - `backrooms.base.bypass`
+- `LevelRuleListener` 已在普通建造/破坏保护中接入 base owner 放行。
+- `/br debug config` 新增 Bases / claims 数量。
+- `syncDevServerConfig` 已纳入 `bases.yml`。
+- README 已新增 Base Claim 测试流程。
+
+### 修改文件
+
+- `README.md`
+- `build.gradle`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/base/BaseClaim.java`
+- `src/main/java/org/monday/backrooms/base/BaseClaimResult.java`
+- `src/main/java/org/monday/backrooms/base/BaseClaimStatus.java`
+- `src/main/java/org/monday/backrooms/base/BaseDefinition.java`
+- `src/main/java/org/monday/backrooms/base/BaseService.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/rule/LevelRuleListener.java`
+- `src/main/resources/bases.yml`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- MVP 先使用固定区域 claim，避免自由圈地与 WorldGuard/多边形区域过早复杂化。
+- claim 数据独立写入 `base-claims.yml`，不污染默认配置；仓库只保存可 claim 区域模板。
+- Level 1 仍默认禁止普通建造，但 owner 在已 claim 区域内可以建造/破坏，符合“Level 1 找到可改造房间后 claim”的目标。
+- Survivor Cell、成员权限、升级成本和基地设施留到后续 stage，在 owner claim 稳定后继续叠加。
+
+### 下一步建议
+
+- 玩家站到 `level1_utility_room_a` 区域内执行 `/br base claim level1_utility_room_a`。
+- claim 后确认 `plugins/backrooms/base-claims.yml` 生成并持久化。
+- owner 在区域内放置/破坏应成功；区域外或非 owner 应继续被 Level 规则拦截。
+- 后续接入 Survivor Cell 成员列表、基地升级材料和 CE `base_claim_terminal` 右键 claim。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat compileJava`，编译通过。
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Loaded bases: enabled=true, definitions=2, claims=0, skipped=0`
+  - `Runtime config reloaded ... bases=2, baseClaims=0`
+  - `BackroomsCore enabled successfully ... bases=2, baseClaims=0`
+
 ## Step 032 - 尸体缓存 MVP
 
 ### 本次完成

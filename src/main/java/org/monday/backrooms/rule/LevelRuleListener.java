@@ -48,7 +48,9 @@ public final class LevelRuleListener implements Listener {
             return;
         }
 
-        if (!level.get().rules().allowBlockBreak() && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)) {
+        if (!level.get().rules().allowBlockBreak()
+                && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)
+                && !plugin.bases().canBuild(event.getPlayer(), event.getBlock().getLocation())) {
             event.setCancelled(true);
             plugin.messages().send(event.getPlayer(), "build-break-denied");
         }
@@ -61,7 +63,9 @@ public final class LevelRuleListener implements Listener {
             return;
         }
 
-        if (!level.get().rules().allowBlockPlace() && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)) {
+        if (!level.get().rules().allowBlockPlace()
+                && !event.getPlayer().hasPermission(BUILD_BYPASS_PERMISSION)
+                && !plugin.bases().canBuild(event.getPlayer(), event.getBlock().getLocation())) {
             event.setCancelled(true);
             plugin.messages().send(event.getPlayer(), "build-place-denied");
         }

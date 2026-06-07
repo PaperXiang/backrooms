@@ -1,0 +1,41 @@
+bases:
+  enabled: true
+  data-file: base-claims.yml
+  max-claims-per-player: 1
+  definitions:
+    level1_utility_room_a:
+      enabled: true
+      display-name: "<yellow>Level 1 Utility Room A</yellow>"
+      level: level_1
+      world: level_1
+      region:
+        min:
+          x: 32
+          y: 63
+          z: 32
+        max:
+          x: 47
+          y: 70
+          z: 47
+      terminal:
+        x: 32
+        y: 64
+        z: 32
+    level1_storage_room_a:
+      enabled: true
+      display-name: "<gold>Level 1 Storage Room A</gold>"
+      level: level_1
+      world: level_1
+      region:
+        min:
+          x: 52
+          y: 63
+          z: 32
+        max:
+          x: 67
+          y: 70
+          z: 47
+      terminal:
+        x: 52
+        y: 64
+        z: 32

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.monday.backrooms.base.BaseService;
 import org.monday.backrooms.command.BrCommand;
 import org.monday.backrooms.config.ConfigFileService;
 import org.monday.backrooms.corpse.CorpseListener;
@@ -47,6 +48,7 @@ public final class Backrooms extends JavaPlugin {
     private LootTableService lootTableService;
     private LootSourceService lootSourceService;
     private CorpseService corpseService;
+    private BaseService baseService;
     private ResourceBlockService resourceBlockService;
     private TransitionService transitionService;
     private RoomGenerationService roomGenerationService;
@@ -72,6 +74,7 @@ public final class Backrooms extends JavaPlugin {
         this.lootTableService = new LootTableService(this);
         this.lootSourceService = new LootSourceService(this);
         this.corpseService = new CorpseService(this);
+        this.baseService = new BaseService(this);
         this.resourceBlockService = new ResourceBlockService(this);
         this.transitionService = new TransitionService(this);
         this.roomGenerationService = new RoomGenerationService(this);
@@ -90,6 +93,8 @@ public final class Backrooms extends JavaPlugin {
                 + ", lootTables=" + lootTableService.definitionCount()
                 + ", lootSources=" + lootSourceService.definitionCount()
                 + ", pendingInsurance=" + corpseService.pendingInsuranceCount()
+                + ", bases=" + baseService.definitionCount()
+                + ", baseClaims=" + baseService.claimCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
                 + ", rooms=" + roomGenerationService.definitionCount()
@@ -172,6 +177,10 @@ public final class Backrooms extends JavaPlugin {
             stagedRuntime = stagedRuntime.withCorpseService(loadedCorpseService);
             loadedCorpseService.reload();
 
+            BaseService loadedBaseService = new BaseService(this);
+            stagedRuntime = stagedRuntime.withBaseService(loadedBaseService);
+            loadedBaseService.reload();
+
             ResourceBlockService loadedResourceBlockService = new ResourceBlockService(this);
             stagedRuntime = stagedRuntime.withResourceBlockService(loadedResourceBlockService);
             loadedResourceBlockService.reload();
@@ -225,6 +234,8 @@ public final class Backrooms extends JavaPlugin {
                 + ", lootTables=" + lootTableService.definitionCount()
                 + ", lootSources=" + lootSourceService.definitionCount()
                 + ", pendingInsurance=" + corpseService.pendingInsuranceCount()
+                + ", bases=" + baseService.definitionCount()
+                + ", baseClaims=" + baseService.claimCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
                 + ", rooms=" + roomGenerationService.definitionCount()
@@ -289,6 +300,10 @@ public final class Backrooms extends JavaPlugin {
         return stagedRuntime == null ? corpseService : stagedRuntime.corpseService();
     }
 
+    public BaseService bases() {
+        return stagedRuntime == null ? baseService : stagedRuntime.baseService();
+    }
+
     public ResourceBlockService resources() {
         return stagedRuntime == null ? resourceBlockService : stagedRuntime.resourceBlockService();
     }
@@ -317,6 +332,7 @@ public final class Backrooms extends JavaPlugin {
                 lootTableService,
                 lootSourceService,
                 corpseService,
+                baseService,
                 resourceBlockService,
                 transitionService,
                 roomGenerationService,
@@ -335,6 +351,7 @@ public final class Backrooms extends JavaPlugin {
         lootTableService = runtime.lootTableService();
         lootSourceService = runtime.lootSourceService();
         corpseService = runtime.corpseService();
+        baseService = runtime.baseService();
         resourceBlockService = runtime.resourceBlockService();
         transitionService = runtime.transitionService();
         roomGenerationService = runtime.roomGenerationService();
@@ -369,6 +386,7 @@ public final class Backrooms extends JavaPlugin {
             LootTableService lootTableService,
             LootSourceService lootSourceService,
             CorpseService corpseService,
+            BaseService baseService,
             ResourceBlockService resourceBlockService,
             TransitionService transitionService,
             RoomGenerationService roomGenerationService,
@@ -377,73 +395,79 @@ public final class Backrooms extends JavaPlugin {
 
         private RuntimeSnapshot withConfigAndMessages(ConfigFileService configFileService, MessageService messageService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withLevels(LevelRegistry levelRegistry, LevelConfigLoader levelConfigLoader) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withItemService(BackroomsItemService itemService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withSanityService(SanityService sanityService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withSanityHudService(SanityHudService sanityHudService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withLootTableService(LootTableService lootTableService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withLootSourceService(LootSourceService lootSourceService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withCorpseService(CorpseService corpseService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
+                    transitionService, roomGenerationService, worldGenerationService);
+        }
+
+        private RuntimeSnapshot withBaseService(BaseService baseService) {
+            return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withResourceBlockService(ResourceBlockService resourceBlockService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withTransitionService(TransitionService transitionService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withRoomGenerationService(RoomGenerationService roomGenerationService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
 
         private RuntimeSnapshot withWorldGenerationService(WorldGenerationService worldGenerationService) {
             return new RuntimeSnapshot(configFileService, messageService, levelRegistry, levelConfigLoader,
-                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, resourceBlockService,
+                    itemService, sanityService, sanityHudService, lootTableService, lootSourceService, corpseService, baseService, resourceBlockService,
                     transitionService, roomGenerationService, worldGenerationService);
         }
     }

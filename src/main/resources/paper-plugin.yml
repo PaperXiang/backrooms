@@ -96,6 +96,18 @@ permissions:
   backrooms.command.worldgen.generate:
     description: Allows generating finite Backrooms schematic grid regions
     default: op
+  backrooms.command.base.list:
+    description: Allows listing Backrooms base claim regions
+    default: op
+  backrooms.command.base.info:
+    description: Allows viewing Backrooms base claim region details
+    default: op
+  backrooms.command.base.claim:
+    description: Allows claiming Backrooms base regions
+    default: true
+  backrooms.base.bypass:
+    description: Allows bypassing Backrooms base ownership checks
+    default: op
   backrooms.transition.use:
     description: Allows using configured Backrooms transitions
     default: true
@@ -134,6 +146,10 @@ permissions:
       backrooms.command.resource.info: true
       backrooms.command.worldgen.templates: true
       backrooms.command.worldgen.generate: true
+      backrooms.command.base.list: true
+      backrooms.command.base.info: true
+      backrooms.command.base.claim: true
+      backrooms.base.bypass: true
       backrooms.transition.use: true
       backrooms.transition.bypass.cooldown: true
       backrooms.bypass.build: true
