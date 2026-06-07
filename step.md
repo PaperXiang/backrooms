@@ -1,5 +1,67 @@
 # 开发记录
 
+## Step 031 - Loot Source direct reward
+
+### 本次完成
+
+- 新增 Loot Source 类型：
+  - `event_reward`
+  - `command_reward`
+- 新增 `LootSourceService#triggerReward(String id, Player player)`，可由事件系统、任务脚本或命令直接触发 Loot Source。
+- 新增结构化触发结果：
+  - `LootSourceRewardResult`
+  - `LootSourceRewardStatus`
+- direct reward source 支持按玩家当前 Level 过滤。
+- direct reward source 支持 `one-time: true`，并将领取状态写入玩家 PDC，跨重启保留。
+- 新增 `/br loot source trigger <id> [player]`。
+- 新增 tab completion：
+  - `/br loot source trigger <id>`
+  - `/br loot source trigger <id> <player>`
+- 新增权限 `backrooms.command.loot.source.trigger`，并加入 `backrooms.admin`。
+- 默认 `loot.yml` 新增：
+  - `level0_event_supply_reward`
+  - `admin_scrap_reward`
+- README 的 Loot / Resource 测试流程已补充 direct reward source 命令。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceRewardResult.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceRewardStatus.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceService.java`
+- `src/main/java/org/monday/backrooms/loot/LootSourceType.java`
+- `src/main/resources/loot.yml`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- 事件奖励不应该重复实现掉落池；它应复用现有 Loot Table 与 Loot Source 配置。
+- `event_reward` 给后续黑停电事件、任务、探索触发点预留统一入口。
+- `command_reward` 给管理员和脚本提供可重复触发入口，便于无玩家在线以外的代码路径先完成编译与部署验证。
+- one-time 写玩家 PDC，而不是只放内存，避免重启后一次性事件奖励被重复领取。
+
+### 下一步建议
+
+- 玩家进服后执行 `/br loot source trigger admin_scrap_reward <player>`，确认可重复发放 Level 1 scrap cache。
+- 玩家位于 `level_0` 时执行 `/br loot source trigger level0_event_supply_reward <player>`，确认第一次发放成功、第二次提示已领取。
+- 后续将 CE 尸体/容器交互或事件系统接入 `LootSourceService#triggerReward(...)`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat compileJava`，编译通过。
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 测试服日志显示：
+  - `Running Java 21`
+  - `Loaded loot sources: enabled=true, definitions=4, skipped=0`
+  - `Runtime config reloaded ... lootSources=4`
+  - `BackroomsCore enabled successfully ... lootSources=4`
+
 ## Step 030 - Loot Source 调试命令
 
 ### 本次完成

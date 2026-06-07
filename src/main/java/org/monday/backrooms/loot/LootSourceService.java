@@ -90,6 +90,48 @@ public final class LootSourceService {
         return Optional.ofNullable(definitions.get(normalize(id)));
     }
 
+    public LootSourceRewardResult triggerReward(String id, Player player) {
+        LootSourceDefinition definition = definitions.get(normalize(id));
+        if (definition == null) {
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.NOT_FOUND, null);
+        }
+        if (!enabled || !definition.enabled()) {
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.DISABLED, definition);
+        }
+        if (!definition.type().supportsDirectReward()) {
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.UNSUPPORTED_TYPE, definition);
+        }
+
+        Optional<BackroomsLevel> level = plugin.levels().getByWorld(player.getWorld().getName());
+        if (!definition.levels().isEmpty()
+                && (level.isEmpty() || !level.get().enabled() || !definition.appliesToLevel(level.get().id()))) {
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.LEVEL_MISMATCH, definition);
+        }
+
+        if (definition.oneTime() && isGenerated(player, definition)) {
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.ALREADY_GENERATED, definition);
+        }
+
+        List<ItemStack> generated = roll(definition);
+        if (generated.isEmpty()) {
+            if (definition.oneTime()) {
+                markGenerated(player, definition);
+            }
+            return LootSourceRewardResult.failed(LootSourceRewardStatus.EMPTY, definition);
+        }
+
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(generated.toArray(ItemStack[]::new));
+        for (ItemStack item : leftovers.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), item);
+        }
+        if (definition.oneTime()) {
+            markGenerated(player, definition);
+        }
+        plugin.getLogger().info("Triggered loot source '" + definition.id() + "' for " + player.getName()
+                + " items=" + generated.size() + ".");
+        return LootSourceRewardResult.success(definition, generated.size(), !leftovers.isEmpty());
+    }
+
     public boolean handleVanillaContainerOpen(Player player, Block block, Inventory inventory) {
         if (!enabled || block == null || inventory == null) {
             return false;
@@ -166,6 +208,11 @@ public final class LootSourceService {
         return generatedRuntimeFallbacks.contains(runtimeKey(block, definition));
     }
 
+    private boolean isGenerated(Player player, LootSourceDefinition definition) {
+        Byte value = player.getPersistentDataContainer().get(generatedKey(definition), PersistentDataType.BYTE);
+        return value != null && value == (byte) 1;
+    }
+
     private void markGenerated(Block block, LootSourceDefinition definition) {
         if (block.getState() instanceof TileState tileState) {
             tileState.getPersistentDataContainer().set(generatedKey(definition), PersistentDataType.BYTE, (byte) 1);
@@ -173,6 +220,10 @@ public final class LootSourceService {
             return;
         }
         generatedRuntimeFallbacks.add(runtimeKey(block, definition));
+    }
+
+    private void markGenerated(Player player, LootSourceDefinition definition) {
+        player.getPersistentDataContainer().set(generatedKey(definition), PersistentDataType.BYTE, (byte) 1);
     }
 
     private NamespacedKey generatedKey(LootSourceDefinition definition) {
@@ -200,7 +251,7 @@ public final class LootSourceService {
         }
 
         Set<Material> materials = loadMaterials(section.getStringList("materials"), "loot source " + id);
-        if (materials.isEmpty()) {
+        if (type.get().requiresBlockMaterial() && materials.isEmpty()) {
             plugin.getLogger().warning("Skipping loot source '" + id + "' because it has no valid materials.");
             return Optional.empty();
         }

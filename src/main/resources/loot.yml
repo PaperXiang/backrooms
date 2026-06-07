@@ -90,3 +90,20 @@ loot-sources:
         - level1_scrap_cache
       one-time: true
       fill-empty-only: true
+    level0_event_supply_reward:
+      enabled: true
+      type: event_reward
+      levels:
+        - level_0
+      loot-tables:
+        - level0_basic_supplies
+      one-time: true
+      fill-empty-only: false
+    admin_scrap_reward:
+      enabled: true
+      type: command_reward
+      levels: []
+      loot-tables:
+        - level1_scrap_cache
+      one-time: false
+      fill-empty-only: false

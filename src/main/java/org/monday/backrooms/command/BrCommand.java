@@ -17,6 +17,8 @@ import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.items.BackroomsItemDefinition;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.loot.LootSourceDefinition;
+import org.monday.backrooms.loot.LootSourceRewardResult;
+import org.monday.backrooms.loot.LootSourceRewardStatus;
 import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
@@ -47,6 +49,7 @@ public final class BrCommand implements TabExecutor {
     private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
     private static final String LOOT_SOURCE_LIST_PERMISSION = "backrooms.command.loot.source.list";
     private static final String LOOT_SOURCE_INFO_PERMISSION = "backrooms.command.loot.source.info";
+    private static final String LOOT_SOURCE_TRIGGER_PERMISSION = "backrooms.command.loot.source.trigger";
     private static final String ITEM_LIST_PERMISSION = "backrooms.command.item.list";
     private static final String ITEM_INFO_PERMISSION = "backrooms.command.item.info";
     private static final String ITEM_GIVE_PERMISSION = "backrooms.command.item.give";
@@ -133,11 +136,23 @@ public final class BrCommand implements TabExecutor {
             }
 
             if (is(args[1], "source")) {
-                if (args.length < 4 || !is(args[2], "info")) {
+                if (args.length >= 4 && is(args[2], "info")) {
+                    sendLootSourceInfo(sender, args[3]);
+                    return true;
+                }
+                if (args.length >= 4 && is(args[2], "trigger")) {
+                    triggerLootSource(sender, args[3], args.length >= 5 ? args[4] : null);
+                    return true;
+                }
+                if (args.length >= 3 && is(args[2], "trigger")) {
+                    plugin.messages().send(sender, "loot-source-trigger-usage");
+                    return true;
+                }
+                if (args.length >= 3 && is(args[2], "info")) {
                     plugin.messages().send(sender, "loot-source-info-usage");
                     return true;
                 }
-                sendLootSourceInfo(sender, args[3]);
+                plugin.messages().send(sender, "loot-source-info-usage");
                 return true;
             }
 
@@ -378,7 +393,8 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(LOOT_INFO_PERMISSION)
                     || sender.hasPermission(LOOT_ROLL_PERMISSION)
                     || sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)
-                    || sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+                    || sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)
+                    || sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
                 options.add("loot");
             }
             if (sender.hasPermission(ITEM_LIST_PERMISSION)) {
@@ -466,7 +482,7 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)) {
                 options.add("sources");
             }
-            if (sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+            if (sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION) || sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
                 options.add("source");
             }
             return filter(options, args[1]);
@@ -476,12 +492,30 @@ public final class BrCommand implements TabExecutor {
             return filter(plugin.lootTables().all().stream().map(LootTableDefinition::id).toList(), args[2]);
         }
 
-        if (args.length == 3 && is(args[0], "loot") && is(args[1], "source") && sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
-            return filter(List.of("info"), args[2]);
+        if (args.length == 3 && is(args[0], "loot") && is(args[1], "source")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
+                options.add("trigger");
+            }
+            return filter(options, args[2]);
         }
 
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "info") && sender.hasPermission(LOOT_SOURCE_INFO_PERMISSION)) {
             return filter(plugin.lootSources().all().stream().map(LootSourceDefinition::id).toList(), args[3]);
+        }
+
+        if (args.length == 4 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "trigger") && sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
+            return filter(plugin.lootSources().all().stream()
+                    .filter(source -> source.type().supportsDirectReward())
+                    .map(LootSourceDefinition::id)
+                    .toList(), args[3]);
+        }
+
+        if (args.length == 5 && is(args[0], "loot") && is(args[1], "source") && is(args[2], "trigger") && sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[4]);
         }
 
         if (args.length == 4 && is(args[0], "loot") && is(args[1], "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
@@ -915,7 +949,7 @@ public final class BrCommand implements TabExecutor {
                     messages.bool("enabled", source.enabled()),
                     messages.text("type", source.type().name().toLowerCase(Locale.ROOT)),
                     messages.text("levels", source.levels().isEmpty() ? "any" : String.join(",", source.levels())),
-                    messages.text("materials", source.materials().stream().map(Enum::name).sorted().toList().toString()),
+                    messages.text("materials", source.materials().isEmpty() ? "none" : source.materials().stream().map(Enum::name).sorted().toList().toString()),
                     messages.text("tables", String.join(",", source.lootTables()))
             );
         }
@@ -933,7 +967,7 @@ public final class BrCommand implements TabExecutor {
                 messages.bool("enabled", source.enabled()),
                 messages.text("type", source.type().name().toLowerCase(Locale.ROOT)),
                 messages.text("levels", source.levels().isEmpty() ? "any" : String.join(",", source.levels())),
-                messages.text("materials", source.materials().stream().map(Enum::name).sorted().toList().toString()),
+                messages.text("materials", source.materials().isEmpty() ? "none" : source.materials().stream().map(Enum::name).sorted().toList().toString()),
                 messages.text("locations", source.locations().isEmpty() ? "any" : source.locations().stream()
                         .map(position -> position.x() + "," + position.y() + "," + position.z())
                         .sorted()
@@ -943,6 +977,61 @@ public final class BrCommand implements TabExecutor {
                 messages.bool("one_time", source.oneTime()),
                 messages.bool("fill_empty_only", source.fillEmptyOnly())
         ), () -> messages.send(sender, "loot-source-not-found", messages.text("id", id)));
+    }
+
+    private void triggerLootSource(CommandSender sender, String id, String targetName) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_SOURCE_TRIGGER_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        Player target;
+        if (targetName == null || targetName.isBlank()) {
+            if (!(sender instanceof Player player)) {
+                messages.send(sender, "loot-source-trigger-usage");
+                return;
+            }
+            target = player;
+        } else {
+            target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                messages.send(sender, "player-not-found", messages.text("player", targetName));
+                return;
+            }
+        }
+
+        LootSourceRewardResult result = plugin.lootSources().triggerReward(id, target);
+        if (result.status() == LootSourceRewardStatus.SUCCESS) {
+            messages.send(sender, "loot-source-trigger-success",
+                    messages.text("id", result.source().id()),
+                    messages.text("player", target.getName()),
+                    messages.text("items", String.valueOf(result.items()))
+            );
+            if (result.droppedLeftovers()) {
+                messages.send(sender, "loot-roll-leftovers-dropped");
+            }
+            return;
+        }
+
+        switch (result.status()) {
+            case NOT_FOUND -> messages.send(sender, "loot-source-not-found", messages.text("id", id));
+            case DISABLED -> messages.send(sender, "loot-source-disabled", messages.text("id", result.source().id()));
+            case UNSUPPORTED_TYPE -> messages.send(sender, "loot-source-trigger-unsupported",
+                    messages.text("id", result.source().id()),
+                    messages.text("type", result.source().type().name().toLowerCase(Locale.ROOT))
+            );
+            case LEVEL_MISMATCH -> messages.send(sender, "loot-source-trigger-level-mismatch",
+                    messages.text("id", result.source().id()),
+                    messages.text("player", target.getName())
+            );
+            case ALREADY_GENERATED -> messages.send(sender, "loot-source-trigger-already-generated",
+                    messages.text("id", result.source().id()),
+                    messages.text("player", target.getName())
+            );
+            case EMPTY -> messages.send(sender, "loot-source-trigger-empty", messages.text("id", result.source().id()));
+            default -> messages.send(sender, "unknown-command");
+        }
     }
 
     private void rollLootTable(CommandSender sender, String id, String targetName) {
