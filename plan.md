@@ -825,3 +825,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify items`；当前 PASS：configured vs loaded items、Backrooms item stacks、consumable sanity items、sanity config。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后实测杏仁水/皇家杏仁水/记忆盐右键消耗、冷却、replacement、理智恢复/稳定时间与 VectorDisplays HUD 显示变化。
+
+### 12.39 Step 043 Base claim 配置 verifier 状态
+
+- 已新增 `/br verify bases`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`bases.yml` 配置定义数量是否全部加载、Base Level/world 引用、terminal 是否位于 region 内、terminal block 是否为空、同世界 region overlap、`max-claims-per-player` 配置、claim 数据目录可写性，以及 `base-claims.yml` 中 stored claim 的 Base id 和 owner UUID。
+- 已通过 RCON 执行 `br verify bases`；当前 PASS：configured vs loaded bases、base definitions、base claim storage。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后右键 Level 1 terminal 占位方块执行真实 claim，确认 `base-claims.yml` 写入、owner 区域内建造放行、非 owner 与区域外保护仍生效。

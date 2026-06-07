@@ -1,5 +1,50 @@
 # 开发记录
 
+## Step 043 - Base claim 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify bases`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify bases`
+- base verifier 检查：
+  - Configured vs loaded bases：确认 `bases.yml` 中配置的 Base 定义均已进入运行时。
+  - Base definitions：检查 Level 引用、world 加载、terminal 是否位于 region 内、terminal block 是否为空、同世界 region 是否重叠。
+  - Base claim storage：检查 `bases.data-file` 对应 claim 文件路径、父目录可写性、stored claim 的 Base id、owner UUID 和 claimed-at。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br verify map` 只能确认 base terminal 坐标不是空气；它不能发现 terminal 在 region 外、base region 重叠、claim 文件引用未知 Base 等配置问题。
+- 玩家实测 claim 前，先通过 RCON 验证 Base 定义和 claim 存储路径，可以减少玩家进入后才发现不能保存或权限区域错误的风险。
+- verifier 只读解析 claim 文件，不写入、不清空现有 claim。
+
+### 下一步建议
+
+- 玩家进服后右键 Level 1 terminal 占位方块，确认 claim 成功并写入 `base-claims.yml`。
+- claim 后测试 owner 在区域内可建造/破坏，非 owner 与区域外仍被 Level 保护拦截。
+- 后续把 terminal 占位 `OBSERVER` 替换为 `backrooms:base_claim_terminal`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify bases`，当前全 PASS：
+  - Configured vs loaded bases：`bases=2, claims=0`。
+  - Base definitions：`bases=2, enabled=2, terminals=2`。
+  - Base claim storage：`file=plugins\backrooms\base-claims.yml, runtimeClaims=0, storedClaims=0`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 042 - Item/Sanity 配置 verifier
 
 ### 本次完成

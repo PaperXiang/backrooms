@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -42,6 +43,8 @@ import org.monday.backrooms.resource.ResourceBlockDefinition;
 import org.monday.backrooms.resource.ResourceDrop;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
+import org.monday.backrooms.transition.BlockPosition;
+import org.monday.backrooms.transition.CuboidRegion;
 import org.monday.backrooms.transition.TransitionDefinition;
 import org.monday.backrooms.util.PaperTeleports;
 import org.monday.backrooms.worldgen.SchematicTemplateDefinition;
@@ -170,6 +173,10 @@ public final class BrCommand implements TabExecutor {
             }
             if (is(args[1], "items")) {
                 sendItemsVerification(sender);
+                return true;
+            }
+            if (is(args[1], "bases")) {
+                sendBasesVerification(sender);
                 return true;
             }
             plugin.messages().send(sender, "verify-usage");
@@ -605,7 +612,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map", "loot", "items"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1325,6 +1332,130 @@ public final class BrCommand implements TabExecutor {
         verifySanityConfig(sender);
     }
 
+    private void sendBasesVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-bases-header");
+        verifyBaseConfiguredCounts(sender);
+        verifyBaseDefinitions(sender);
+        verifyBaseClaimStorage(sender);
+    }
+
+    private void verifyBaseConfiguredCounts(CommandSender sender) {
+        int configuredBases = configuredDefinitionCount(plugin.configFiles().bases(), "bases.definitions");
+        int loadedBases = plugin.bases().definitionCount();
+        sendVerifyLine(sender, configuredBases == loadedBases ? "pass" : "fail", "Configured vs loaded bases",
+                configuredBases == loadedBases
+                        ? "bases=" + loadedBases + ", claims=" + plugin.bases().claimCount()
+                        : "configured=" + configuredBases + ", loaded=" + loadedBases + ", claims=" + plugin.bases().claimCount());
+    }
+
+    private void verifyBaseDefinitions(CommandSender sender) {
+        int bases = 0;
+        int enabled = 0;
+        int terminals = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        List<BaseDefinition> definitions = new ArrayList<>(plugin.bases().all());
+
+        for (BaseDefinition base : definitions) {
+            bases++;
+            if (base.enabled()) {
+                enabled++;
+            }
+            plugin.levels().get(base.level()).ifPresentOrElse(level -> {
+                if (!level.world().equals(base.world())) {
+                    warnings.add(base.id() + ":world differs from level " + level.world());
+                }
+            }, () -> issues.add(base.id() + ":unknown level " + base.level()));
+
+            World world = Bukkit.getWorld(base.world());
+            if (world == null) {
+                issues.add(base.id() + ":world missing " + base.world());
+            }
+
+            if (base.terminal() == null) {
+                warnings.add(base.id() + ":no terminal");
+            } else {
+                terminals++;
+                if (!containsPosition(base.region(), base.terminal())) {
+                    issues.add(base.id() + ":terminal outside region " + base.terminal().describe());
+                }
+                if (world != null && world.getBlockAt(base.terminal().x(), base.terminal().y(), base.terminal().z()).getType().isAir()) {
+                    warnings.add(base.id() + ":terminal block is AIR");
+                }
+            }
+        }
+
+        for (int i = 0; i < definitions.size(); i++) {
+            for (int j = i + 1; j < definitions.size(); j++) {
+                BaseDefinition first = definitions.get(i);
+                BaseDefinition second = definitions.get(j);
+                if (first.world().equals(second.world()) && regionsIntersect(first.region(), second.region())) {
+                    warnings.add(first.id() + "<->" + second.id() + ":overlap");
+                }
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Base definitions",
+                "bases=" + bases + ", enabled=" + enabled + ", terminals=" + terminals
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyBaseClaimStorage(CommandSender sender) {
+        String fileName = plugin.configFiles().bases().getString("bases.data-file", "base-claims.yml");
+        File dataFile = new File(plugin.getDataFolder(), fileName);
+        File parent = dataFile.getParentFile();
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        if (plugin.configFiles().bases().getInt("bases.max-claims-per-player", 1) < 1) {
+            warnings.add("max-claims-per-player below 1; runtime clamps to 1");
+        }
+        if (parent == null) {
+            issues.add("claim data parent missing");
+        } else if (parent.exists() && !parent.canWrite()) {
+            issues.add("claim data parent not writable " + parent.getPath());
+        } else if (!parent.exists()) {
+            warnings.add("claim data parent will be created " + parent.getPath());
+        }
+
+        int storedClaims = 0;
+        if (dataFile.exists()) {
+            YamlConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
+            ConfigurationSection claims = data.getConfigurationSection("claims");
+            if (claims != null) {
+                for (String id : claims.getKeys(false)) {
+                    storedClaims++;
+                    if (plugin.bases().get(id).isEmpty()) {
+                        issues.add("unknown claim base " + id);
+                    }
+                    String owner = claims.getString(id + ".owner", "");
+                    try {
+                        UUID.fromString(owner);
+                    } catch (IllegalArgumentException exception) {
+                        issues.add(id + ":invalid owner UUID");
+                    }
+                    if (claims.getLong(id + ".claimed-at", 0L) <= 0L) {
+                        warnings.add(id + ":missing claimed-at");
+                    }
+                }
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Base claim storage",
+                "file=" + dataFile.getPath() + ", runtimeClaims=" + plugin.bases().claimCount() + ", storedClaims=" + storedClaims
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
     private void verifyItemConfiguredCounts(CommandSender sender) {
         int configuredItems = configuredDefinitionCount(plugin.configFiles().items(), "items.definitions");
         int loadedItems = plugin.items().definitionCount();
@@ -1752,6 +1883,18 @@ public final class BrCommand implements TabExecutor {
     private int configuredDefinitionCount(ConfigurationSection configuration, String path) {
         ConfigurationSection section = configuration.getConfigurationSection(path);
         return section == null ? 0 : section.getKeys(false).size();
+    }
+
+    private boolean containsPosition(CuboidRegion region, BlockPosition position) {
+        return position.x() >= region.minX() && position.x() <= region.maxX()
+                && position.y() >= region.minY() && position.y() <= region.maxY()
+                && position.z() >= region.minZ() && position.z() <= region.maxZ();
+    }
+
+    private boolean regionsIntersect(CuboidRegion first, CuboidRegion second) {
+        return first.minX() <= second.maxX() && first.maxX() >= second.minX()
+                && first.minY() <= second.maxY() && first.maxY() >= second.minY()
+                && first.minZ() <= second.maxZ() && first.maxZ() >= second.minZ();
     }
 
     private void verifyLevelRefs(String context, Set<String> levels, List<String> issues) {
