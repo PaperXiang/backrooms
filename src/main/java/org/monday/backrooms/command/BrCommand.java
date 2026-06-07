@@ -22,6 +22,7 @@ import org.monday.backrooms.resource.ResourceBlockDefinition;
 import org.monday.backrooms.room.RoomDefinition;
 import org.monday.backrooms.room.RoomGenerationResult;
 import org.monday.backrooms.transition.TransitionDefinition;
+import org.monday.backrooms.util.PaperTeleports;
 import org.monday.backrooms.worldgen.SchematicTemplateDefinition;
 import org.monday.backrooms.worldgen.WorldGenerationResult;
 
@@ -940,17 +941,25 @@ public final class BrCommand implements TabExecutor {
             Location location = level.spawn() == null ? world.getSpawnLocation() : level.spawn().toLocation(world);
             plugin.getLogger().info("Teleporting " + player.getName() + " to level '" + level.id() + "' at "
                     + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ() + ".");
-            boolean teleported = player.teleport(location, PlayerTeleportEvent.TeleportCause.COMMAND);
-            if (!teleported) {
-                messages.send(sender, "level-teleport-failed", messages.text("id", level.id()));
-                return;
-            }
+            PaperTeleports.teleportAsync(plugin, player, location, PlayerTeleportEvent.TeleportCause.COMMAND, (teleported, throwable) -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                if (throwable != null) {
+                    plugin.getLogger().severe("Level teleport to '" + level.id() + "' failed for " + player.getName() + ": " + throwable.getMessage());
+                    throwable.printStackTrace();
+                }
+                if (!teleported || throwable != null) {
+                    messages.send(sender, "level-teleport-failed", messages.text("id", level.id()));
+                    return;
+                }
 
-            plugin.playerLevels().enter(player, level, true, true);
-            messages.send(sender, "level-teleport-success",
-                    messages.text("id", level.id()),
-                    messages.mini("display", level.displayName())
-            );
+                plugin.playerLevels().enter(player, level, true, true);
+                messages.send(sender, "level-teleport-success",
+                        messages.text("id", level.id()),
+                        messages.mini("display", level.displayName())
+                );
+            });
         }, () -> messages.send(sender, "level-not-found", messages.text("id", id)));
     }
 

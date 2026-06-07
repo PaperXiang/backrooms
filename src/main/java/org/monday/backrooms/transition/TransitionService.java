@@ -15,7 +15,9 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -25,6 +27,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
 import org.monday.backrooms.player.PlayerLevelState;
+import org.monday.backrooms.util.PaperTeleports;
 
 public final class TransitionService {
 
@@ -36,6 +39,7 @@ public final class TransitionService {
     private final Map<String, List<TransitionDefinition>> bySourceLevel = new HashMap<>();
     private final Map<String, Long> cooldowns = new HashMap<>();
     private final Map<UUID, Long> postTeleportImmunity = new HashMap<>();
+    private final Set<UUID> pendingTeleports = new HashSet<>();
     private boolean enabled;
     private long postTeleportImmunityTicks;
 
@@ -48,6 +52,7 @@ public final class TransitionService {
         bySourceLevel.clear();
         cooldowns.clear();
         postTeleportImmunity.clear();
+        pendingTeleports.clear();
 
         this.enabled = plugin.configFiles().transitions().getBoolean("transitions.enabled", true);
         this.postTeleportImmunityTicks = plugin.configFiles().transitions().getLong("transitions.defaults.post-teleport-immunity-ticks", 40L);
@@ -209,15 +214,36 @@ public final class TransitionService {
         }
 
         ResolvedTarget target = resolvedTarget.get();
-        plugin.getLogger().info("Transition '" + definition.id() + "' moving " + player.getName()
-                + " to " + target.location().getWorld().getName() + " "
-                + target.location().getBlockX() + "," + target.location().getBlockY() + "," + target.location().getBlockZ() + ".");
-        boolean teleported = player.teleport(target.location(), PlayerTeleportEvent.TeleportCause.PLUGIN);
-        if (!teleported) {
-            plugin.messages().send(player, "transition-failed", plugin.messages().text("id", definition.id()));
+        UUID playerId = player.getUniqueId();
+        if (!pendingTeleports.add(playerId)) {
+            plugin.messages().send(player, "transition-busy");
             return false;
         }
 
+        plugin.getLogger().info("Transition '" + definition.id() + "' moving " + player.getName()
+                + " to " + target.location().getWorld().getName() + " "
+                + target.location().getBlockX() + "," + target.location().getBlockY() + "," + target.location().getBlockZ() + ".");
+
+        PaperTeleports.teleportAsync(plugin, player, target.location(), PlayerTeleportEvent.TeleportCause.PLUGIN, (teleported, throwable) -> {
+            pendingTeleports.remove(playerId);
+            if (!player.isOnline()) {
+                return;
+            }
+            if (throwable != null) {
+                plugin.getLogger().severe("Transition '" + definition.id() + "' failed for " + player.getName() + ": " + throwable.getMessage());
+                throwable.printStackTrace();
+            }
+            if (!teleported || throwable != null) {
+                plugin.messages().send(player, "transition-failed", plugin.messages().text("id", definition.id()));
+                return;
+            }
+
+            finishTransition(player, definition, target);
+        });
+        return true;
+    }
+
+    private void finishTransition(Player player, TransitionDefinition definition, ResolvedTarget target) {
         startCooldown(player, definition);
         startImmunity(player);
         target.level().ifPresentOrElse(
@@ -237,7 +263,6 @@ public final class TransitionService {
                 plugin.messages().mini("target_display", target.targetDisplay()),
                 plugin.messages().text("world", target.location().getWorld().getName())
         );
-        return true;
     }
 
     private Optional<ResolvedTarget> resolveTarget(Player player, TransitionDefinition definition) {
@@ -444,12 +469,23 @@ public final class TransitionService {
         if (soundName == null || soundName.isBlank()) {
             return Optional.empty();
         }
-        try {
-            return Optional.of(Sound.valueOf(soundName.toUpperCase(Locale.ROOT)));
-        } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Unknown sound '" + soundName + "' in transition '" + id + "'.");
-            return Optional.empty();
+        NamespacedKey key = soundKey(soundName);
+        if (key != null) {
+            Sound sound = Registry.SOUNDS.get(key);
+            if (sound != null) {
+                return Optional.of(sound);
+            }
         }
+
+        plugin.getLogger().warning("Unknown sound '" + soundName + "' in transition '" + id
+                + "'. Use a registry key such as minecraft:entity.enderman.teleport.");
+        return Optional.empty();
+    }
+
+    private NamespacedKey soundKey(String soundName) {
+        String normalized = soundName.trim().toLowerCase(Locale.ROOT);
+        String key = normalized.contains(":") ? normalized : "minecraft:" + normalized.replace('_', '.');
+        return NamespacedKey.fromString(key);
     }
 
     private boolean sourceMatches(Player player, TransitionDefinition definition) {

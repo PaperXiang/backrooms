@@ -30,7 +30,7 @@ transitions:
       feedback:
         message-key: transition-success-level
         title: true
-        sound: ENTITY_ENDERMAN_TELEPORT
+        sound: minecraft:entity.enderman.teleport
       cooldown-seconds: 10
 
     level1_to_lobby_evacuation:
@@ -58,5 +58,5 @@ transitions:
       feedback:
         message-key: transition-success-world
         title: false
-        sound: ENTITY_ENDERMAN_TELEPORT
+        sound: minecraft:entity.enderman.teleport
       cooldown-seconds: 5

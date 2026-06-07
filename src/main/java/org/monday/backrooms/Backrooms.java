@@ -84,33 +84,58 @@ public final class Backrooms extends JavaPlugin {
         long startMillis = System.currentTimeMillis();
         getLogger().info("Reloading runtime config...");
 
+        ConfigFileService previousConfigFileService = configFileService;
+        MessageService previousMessageService = messageService;
         LevelRegistry previousRegistry = levelRegistry;
+        LevelConfigLoader previousLevelConfigLoader = levelConfigLoader;
+        LootTableService previousLootTableService = lootTableService;
+        ResourceBlockService previousResourceBlockService = resourceBlockService;
+        TransitionService previousTransitionService = transitionService;
+        RoomGenerationService previousRoomGenerationService = roomGenerationService;
+        WorldGenerationService previousWorldGenerationService = worldGenerationService;
         try {
             reloadConfig();
-            configFileService.reload();
-            messageService.reload();
+
+            ConfigFileService loadedConfigFileService = new ConfigFileService(this);
+            loadedConfigFileService.ensureDefaultFiles();
+            loadedConfigFileService.reload();
+            configFileService = loadedConfigFileService;
+
+            MessageService loadedMessageService = new MessageService(this);
+            messageService = loadedMessageService;
 
             LevelRegistry loadedLevels = new LevelRegistry();
-            levelConfigLoader.loadInto(loadedLevels);
+            LevelConfigLoader loadedLevelConfigLoader = new LevelConfigLoader(this);
+            loadedLevelConfigLoader.loadInto(loadedLevels);
             if (previousRegistry != null && previousRegistry.size() > 0 && loadedLevels.size() == 0) {
                 getLogger().severe("Reload aborted because no levels were loaded; keeping previous level registry to avoid fail-open protection.");
+                restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
+                        previousLootTableService, previousResourceBlockService, previousTransitionService,
+                        previousRoomGenerationService, previousWorldGenerationService);
                 return false;
             }
 
+            // Build fresh service instances first; a failed reload cannot clear or corrupt the live runtime maps.
             levelRegistry = loadedLevels;
+            levelConfigLoader = loadedLevelConfigLoader;
+            lootTableService = new LootTableService(this);
             lootTableService.reload();
+            resourceBlockService = new ResourceBlockService(this);
             resourceBlockService.reload();
+            transitionService = new TransitionService(this);
             transitionService.reload();
+            roomGenerationService = new RoomGenerationService(this);
             roomGenerationService.reload();
+            worldGenerationService = new WorldGenerationService(this);
             worldGenerationService.reload();
             if (playerLevelTracker != null) {
                 playerLevelTracker.reconcileOnlinePlayers(false);
             }
         } catch (RuntimeException exception) {
-            if (previousRegistry != null) {
-                levelRegistry = previousRegistry;
-            }
-            getLogger().severe("Runtime config reload failed; kept previous level registry. Cause: " + exception.getMessage());
+            restoreRuntimeConfig(previousConfigFileService, previousMessageService, previousRegistry, previousLevelConfigLoader,
+                    previousLootTableService, previousResourceBlockService, previousTransitionService,
+                    previousRoomGenerationService, previousWorldGenerationService);
+            getLogger().severe("Runtime config reload failed; restored previous runtime snapshot. Cause: " + exception.getMessage());
             exception.printStackTrace();
             return false;
         }
@@ -125,6 +150,46 @@ public final class Backrooms extends JavaPlugin {
                 + ", schematicTemplates=" + worldGenerationService.templateCount()
                 + ", onlinePlayers=" + getServer().getOnlinePlayers().size() + ".");
         return true;
+    }
+
+    private void restoreRuntimeConfig(
+            ConfigFileService previousConfigFileService,
+            MessageService previousMessageService,
+            LevelRegistry previousRegistry,
+            LevelConfigLoader previousLevelConfigLoader,
+            LootTableService previousLootTableService,
+            ResourceBlockService previousResourceBlockService,
+            TransitionService previousTransitionService,
+            RoomGenerationService previousRoomGenerationService,
+            WorldGenerationService previousWorldGenerationService
+    ) {
+        if (previousConfigFileService != null) {
+            configFileService = previousConfigFileService;
+        }
+        if (previousMessageService != null) {
+            messageService = previousMessageService;
+        }
+        if (previousRegistry != null) {
+            levelRegistry = previousRegistry;
+        }
+        if (previousLevelConfigLoader != null) {
+            levelConfigLoader = previousLevelConfigLoader;
+        }
+        if (previousLootTableService != null) {
+            lootTableService = previousLootTableService;
+        }
+        if (previousResourceBlockService != null) {
+            resourceBlockService = previousResourceBlockService;
+        }
+        if (previousTransitionService != null) {
+            transitionService = previousTransitionService;
+        }
+        if (previousRoomGenerationService != null) {
+            roomGenerationService = previousRoomGenerationService;
+        }
+        if (previousWorldGenerationService != null) {
+            worldGenerationService = previousWorldGenerationService;
+        }
     }
 
     public ConfigFileService configFiles() {

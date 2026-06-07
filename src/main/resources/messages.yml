@@ -50,6 +50,7 @@ messages:
   transition-disabled: "<red>Transition <yellow><id></yellow> 当前未启用。"
   transition-source-invalid: "<red>你当前不在该通道的来源 Level。"
   transition-no-permission: "<red>你不能使用这个通道。"
+  transition-busy: "<yellow>你已经在穿越通道中，请等待本次传送完成。"
   transition-cooldown: "<yellow>通道正在稳定，请等待 <seconds> 秒。"
   transition-target-level-not-found: "<red>Transition <yellow><id></yellow> 指向的 Level <yellow><target></yellow> 不存在。"
   transition-target-level-disabled: "<red>目标 Level <yellow><target></yellow> 当前未启用。"
