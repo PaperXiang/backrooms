@@ -96,6 +96,9 @@ permissions:
   backrooms.command.worldgen.generate:
     description: Allows generating finite Backrooms schematic grid regions
     default: op
+  backrooms.command.worldgen.scaffold:
+    description: Allows writing development schematic placeholder files
+    default: op
   backrooms.command.verify.runtime:
     description: Allows running Backrooms runtime verification checks
     default: op
@@ -149,6 +152,7 @@ permissions:
       backrooms.command.resource.info: true
       backrooms.command.worldgen.templates: true
       backrooms.command.worldgen.generate: true
+      backrooms.command.worldgen.scaffold: true
       backrooms.command.verify.runtime: true
       backrooms.command.base.list: true
       backrooms.command.base.info: true

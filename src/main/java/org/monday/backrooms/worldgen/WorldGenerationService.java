@@ -86,6 +86,34 @@ public final class WorldGenerationService {
         return Bukkit.getPluginManager().isPluginEnabled("WorldEdit") || Bukkit.getPluginManager().isPluginEnabled("FastAsyncWorldEdit");
     }
 
+    public SchematicScaffoldResult scaffoldTemplates(boolean overwrite) {
+        if (!worldEditAvailable()) {
+            return new SchematicScaffoldResult(false, 0, 0, templates.size(), "WorldEdit or FastAsyncWorldEdit is not enabled.");
+        }
+
+        int written = 0;
+        int skipped = 0;
+        List<String> failures = new ArrayList<>();
+        for (SchematicTemplateDefinition template : templates.values()) {
+            if (template.file().isFile() && !overwrite) {
+                skipped++;
+                continue;
+            }
+
+            try {
+                WorldEditSchematicScaffolder.write(template);
+                written++;
+            } catch (IOException | RuntimeException exception) {
+                failures.add(template.id() + ": " + exception.getMessage());
+            }
+        }
+
+        String detail = failures.isEmpty()
+                ? "written=" + written + ", skipped=" + skipped
+                : "written=" + written + ", skipped=" + skipped + ", failures=" + String.join("; ", failures);
+        return new SchematicScaffoldResult(failures.isEmpty(), written, skipped, failures.size(), detail);
+    }
+
     public WorldGenerationResult generate(BackroomsLevel level, int requestedSize, String seedInput) {
         if (!enabled) {
             return failure("worldgen-disabled", level, "none", "Worldgen disabled by config.");
@@ -469,5 +497,8 @@ public final class WorldGenerationService {
     }
 
     private record PlannedCell(int x, int z, SchematicTemplateDefinition template, int rotation) {
+    }
+
+    public record SchematicScaffoldResult(boolean success, int written, int skipped, int failed, String detail) {
     }
 }

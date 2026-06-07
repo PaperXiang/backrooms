@@ -466,8 +466,9 @@ plugins/BackroomsCore/
 - 已新增尸体缓存 MVP：`corpses.yml` 配置启用 Level、原版容器材料、保险物品堆数量和死亡点附近搜索半径；玩家在 Backrooms Level 死亡时，普通掉落进入尸体容器，保险物品在重生后返还。
 - 已新增基地 claim MVP：`bases.yml` 配置 Level 1 固定可 claim 区域，`/br base claim <id>` 持久化占领；Level 规则保护会对 owner 在已 claim 区域内放行破坏/放置。
 - 已新增 `/br verify runtime` 实机验证摘要命令，用于统一检查测试服插件依赖、CraftEngine Backrooms 资源目录、资源包模型/贴图数量、schematic 模板缺失、VectorDisplays/PacketEvents 状态和 Backrooms runtime 模块数量。
+- 已新增 `/br worldgen scaffold [missing|all]`，可在测试服生成最小 vanilla schematic placeholder，并已通过 RCON 验证 FAWE 粘贴与 marker 扫描链路。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
-- 下一阶段最高优先级：重启测试服加载最新 jar，验证 staged `/br reload`、`/br debug config`、`/br level tp`、Transition guide/trigger、`/br loot roll`、资源点 loot table、原版容器 loot source、Room 原型；同时安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage。
+- 下一阶段最高优先级：安装 VectorDisplays 与 packetevents，继续实机观察理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；同时继续把资源点、Transition 和 Base terminal 从占位坐标替换为真实地图坐标。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -744,3 +745,14 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify runtime`；当前 PASS：Level worlds、CraftEngine 26.6、FAWE 2.15.2、Multiverse-Core、PlaceholderAPI、CraftEngine pack/config/resourcepack、categories/translations/lang、122 个 model、60 个 texture、runtime modules。
 - 当前 WARN：VectorDisplays missing、PacketEvents missing、4/4 schematic 模板文件缺失、Sanity HUD provider 依赖链未完整加载。
 - 下一步重点：安装或接入 VectorDisplays/PacketEvents，制作/同步 `plugins/backrooms/templates/level_0/*.schem`，再运行 `/br verify runtime` 直到核心验证项从 WARN 收敛为 PASS。
+
+### 12.32 Step 036 worldgen schematic scaffold 状态
+
+- 已新增 `/br worldgen scaffold [missing|all]`，默认 `missing` 只生成缺失 schematic，`all` 才覆盖现有测试模板。
+- 已新增 `WorldEditSchematicScaffolder`，使用 WorldEdit clipboard writer 生成 Sponge schematic placeholder；模板包含 16x6x16 Level 0 shell、connector 开口、vanilla marker block、loot barrel、light marker 和 exit/stairwell marker。
+- 已新增权限 `backrooms.command.worldgen.scaffold`，并加入 `backrooms.admin`。
+- 已通过 RCON 执行 `br worldgen scaffold missing`：written=4、skipped=0、failed=0。
+- 已再次执行 `br verify runtime`：Worldgen schematic templates 从 WARN 变为 PASS，结果为 `4 configured, all files present`。
+- 已执行 `br worldgen generate level_0 3 step036`，FAWE 成功粘贴 9 个模板，marker 扫描结果为 `resource=7,light=5,loot=7`。
+- 当前剩余 WARN：VectorDisplays missing、PacketEvents missing、Sanity HUD provider 依赖链未完整加载。
+- 下一步重点：安装 VectorDisplays/PacketEvents 或补齐对应插件文件后重新验证 HUD provider；真实建图阶段再用美术 schematic 覆盖当前 placeholder。

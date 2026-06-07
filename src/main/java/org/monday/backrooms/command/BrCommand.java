@@ -62,6 +62,7 @@ public final class BrCommand implements TabExecutor {
     private static final String RESOURCE_INFO_PERMISSION = "backrooms.command.resource.info";
     private static final String WORLDGEN_TEMPLATES_PERMISSION = "backrooms.command.worldgen.templates";
     private static final String WORLDGEN_GENERATE_PERMISSION = "backrooms.command.worldgen.generate";
+    private static final String WORLDGEN_SCAFFOLD_PERMISSION = "backrooms.command.worldgen.scaffold";
     private static final String BASE_LIST_PERMISSION = "backrooms.command.base.list";
     private static final String BASE_INFO_PERMISSION = "backrooms.command.base.info";
     private static final String BASE_CLAIM_PERMISSION = "backrooms.command.base.claim";
@@ -126,6 +127,11 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 generateWorldRegion(sender, args[2], args[3], args.length >= 5 ? args[4] : null);
+                return true;
+            }
+
+            if (is(args[1], "scaffold")) {
+                scaffoldWorldgenTemplates(sender, args.length >= 3 ? args[2] : "missing");
                 return true;
             }
 
@@ -464,7 +470,8 @@ public final class BrCommand implements TabExecutor {
                 options.add("resource");
             }
             if (sender.hasPermission(WORLDGEN_TEMPLATES_PERMISSION)
-                    || sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
+                    || sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)
+                    || sender.hasPermission(WORLDGEN_SCAFFOLD_PERMISSION)) {
                 options.add("worldgen");
             }
             if (sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
@@ -657,6 +664,9 @@ public final class BrCommand implements TabExecutor {
             if (sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
                 options.add("generate");
             }
+            if (sender.hasPermission(WORLDGEN_SCAFFOLD_PERMISSION)) {
+                options.add("scaffold");
+            }
             return filter(options, args[1]);
         }
 
@@ -666,6 +676,10 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "worldgen") && is(args[1], "generate") && sender.hasPermission(WORLDGEN_GENERATE_PERMISSION)) {
             return filter(List.of("9", "11", "15", "21"), args[3]);
+        }
+
+        if (args.length == 3 && is(args[0], "worldgen") && is(args[1], "scaffold") && sender.hasPermission(WORLDGEN_SCAFFOLD_PERMISSION)) {
+            return filter(List.of("missing", "all"), args[2]);
         }
 
         if (args.length == 2 && is(args[0], "debug")) {
@@ -1055,6 +1069,32 @@ public final class BrCommand implements TabExecutor {
                 messages.text("blocks", String.valueOf(result.blocksChanged())),
                 messages.text("markers", result.markers()),
                 messages.text("reason", result.reason())
+        );
+    }
+
+    private void scaffoldWorldgenTemplates(CommandSender sender, String mode) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(WORLDGEN_SCAFFOLD_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        boolean overwrite;
+        if (is(mode, "missing")) {
+            overwrite = false;
+        } else if (is(mode, "all")) {
+            overwrite = true;
+        } else {
+            messages.send(sender, "worldgen-scaffold-usage");
+            return;
+        }
+
+        var result = plugin.worldgen().scaffoldTemplates(overwrite);
+        messages.send(sender, result.success() ? "worldgen-scaffold-success" : "worldgen-scaffold-failed",
+                messages.text("written", String.valueOf(result.written())),
+                messages.text("skipped", String.valueOf(result.skipped())),
+                messages.text("failed", String.valueOf(result.failed())),
+                messages.text("detail", result.detail())
         );
     }
 

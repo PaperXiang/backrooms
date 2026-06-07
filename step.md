@@ -1,5 +1,70 @@
 # 开发记录
 
+## Step 036 - worldgen schematic scaffold 与 FAWE 粘贴验证
+
+### 本次完成
+
+- 新增 `/br worldgen scaffold [missing|all]`。
+- 默认 `missing` 只生成缺失的测试 schematic；显式 `all` 才覆盖已有测试模板。
+- 新增 tab completion：
+  - `/br worldgen scaffold missing`
+  - `/br worldgen scaffold all`
+- 新增权限：
+  - `backrooms.command.worldgen.scaffold`
+- 将新权限加入 `backrooms.admin`。
+- 新增 `WorldEditSchematicScaffolder`：
+  - 使用 WorldEdit `BlockArrayClipboard` 与 Sponge schematic writer 写出 `.schem`。
+  - 生成 16x6x16 Level 0 placeholder cell。
+  - 按模板 connector 配置保留 north/east/south/west 开口。
+  - 写入 vanilla marker：`YELLOW_CARPET`、`SEA_LANTERN`、`BARREL`、`LODESTONE`、`CHISELED_STONE_BRICKS`。
+- README 已补充 scaffold 命令和当前实际数据目录 `plugins/backrooms/templates`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/worldgen/WorldGenerationService.java`
+- `src/main/java/org/monday/backrooms/worldgen/WorldEditSchematicScaffolder.java`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- Step 035 的 `/br verify runtime` 已把 schematic 模板缺失暴露为 WARN；先提供服务器内 scaffold 命令，可以让测试服不依赖外部 WorldEdit 手工选区就跑通 FAWE 读取、粘贴和 marker 扫描链路。
+- scaffold 产物是明确的 placeholder，不替代真实美术模板；后续建图完成后可以直接覆盖 `plugins/backrooms/templates/level_0/*.schem`。
+- 命令默认不覆盖已有文件，避免误伤真实模板。
+
+### 下一步建议
+
+- 安装 VectorDisplays 与 PacketEvents 后重新执行 `/br verify runtime`，确认 Sanity HUD provider 依赖链通过。
+- 用真实 Level 0 美术模板覆盖当前 placeholder schematic，并再次执行 `/br worldgen generate level_0 9 <seed>` 观察旋转、开口和 marker 分布。
+- 后续实现 schematic 保存/编辑框命令时，可复用当前路径和 verifier。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br worldgen scaffold missing`：
+  - written=4
+  - skipped=0
+  - failed=0
+- 已通过 RCON 执行 `br verify runtime`：
+  - PASS：Worldgen schematic templates = `4 configured, all files present`。
+  - 当前剩余 WARN：VectorDisplays missing、PacketEvents missing、Sanity HUD provider 依赖链未完整加载。
+- 已通过 RCON 执行 `br worldgen generate level_0 3 step036`：
+  - 生成区域：`level_0_0_64_-48_3_18446744071815934023`
+  - cells=9
+  - templates=9
+  - blocks≈13824
+  - markers=`resource=7,light=5,loot=7`
+- 已再次执行 `br worldgen scaffold missing`，确认已有模板不会被默认覆盖：
+  - written=0
+  - skipped=4
+  - failed=0
+
 ## Step 035 - runtime 实机验证命令
 
 ### 本次完成
