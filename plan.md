@@ -556,3 +556,10 @@ plugins/BackroomsCore/
 - `/br` 现在通过 Paper `JavaPlugin#registerCommand` 注册 `BasicCommand`，内部复用原有 `BrCommand` 的执行和补全逻辑。
 - `paper-plugin.yml` 已移除 `commands:` 块，只保留权限声明；`/br` 和 `backrooms` 别名由 Paper command API 注册。
 - 下一步实机验证重点：部署新 jar 后完整重启测试服，确认启动阶段不再出现 `Paper plugins do not support YAML-based command declarations`，再测试 `/br`、`/br help`、tab completion 和 `/br debug config`。
+
+### 12.14 Step 017 世界创建文档补充状态
+
+- README 已补充 Multiverse-Core 世界创建/导入命令，明确当前必须存在 `lobby`、`level_0`、`level_1` 三个 world。
+- 当前 BackroomsCore 不提供自定义 world generator，也不会自动创建世界；MVP 测试建议用 Multiverse `-t FLAT` 创建平地世界，不需要指定 `-g`。
+- README 已说明已有世界文件夹时使用 `/mv import`，创建或导入后执行 `/br reload` 和 `/br debug config` 检查 missing worlds。
+- 下一步仍是实机重启验证 `/br` 启动修复，然后按 README 创建世界、检查配置、测试 Transition/Room/Resource 闭环。

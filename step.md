@@ -1,5 +1,38 @@
 # 开发记录
 
+## Step 017 - README 世界创建说明补充
+
+### 本次完成
+
+- 补充 README 的世界创建章节，明确当前插件不会自动创建世界。
+- 写明 BackroomsCore 配置依赖的 world 名称：`lobby`、`level_0`、`level_1`。
+- 补充 Multiverse-Core 首次创建命令：`/mv create <world> NORMAL -t FLAT`。
+- 补充已有世界文件夹的导入命令：`/mv import <world> NORMAL`。
+- 说明当前不需要指定自定义 `-g` generator；只有安装 VoidGen 等外部生成器并主动想用空世界时才需要指定。
+- 补充创建后运行 `/br reload`、`/br debug config` 检查 missing worlds 的流程。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+
+### 设计原因
+
+- 当前配置已经引用 `lobby`、`level_0`、`level_1`，但 README 没有告诉测试服如何创建这些世界，实机测试会卡在 missing world。
+- MVP 阶段还没有自动迷宫 world generator，直接让 Multiverse 创建平地世界最稳定，方便先验证命令、切层、资源点和 Room 占位生成。
+- 明确不需要 `-g` 可以避免管理员误填不存在的 generator 导致 Multiverse 创建失败。
+
+### 下一步建议
+
+- 测试服完整重启后，先确认 `/br` 启动报错已消失。
+- 用 README 的 Multiverse 命令创建或导入 `lobby`、`level_0`、`level_1`。
+- 执行 `/br reload` 和 `/br debug config`，确认 missing worlds 为 `none`。
+
+### 测试与验证
+
+- 本步是文档补充；仍会运行 `./gradlew.bat build` 验证项目状态。
+
 ## Step 016 - Paper 命令注册修复
 
 ### 本次完成
