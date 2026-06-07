@@ -468,6 +468,7 @@ plugins/BackroomsCore/
 - 已新增 `/br verify runtime` 实机验证摘要命令，用于统一检查测试服插件依赖、CraftEngine Backrooms 资源目录、资源包模型/贴图数量、schematic 模板缺失、VectorDisplays/PacketEvents 状态和 Backrooms runtime 模块数量。
 - 已新增 `/br worldgen scaffold [missing|all]`，可在测试服生成最小 vanilla schematic placeholder，并已通过 RCON 验证 FAWE 粘贴与 marker 扫描链路。
 - 测试服已安装 PacketEvents 2.12.2 与 VectorDisplays 1.1.1；`/br verify runtime` 当前核心项全 PASS，Sanity HUD provider 已加载 VectorDisplays dependency chain。
+- 已新增 `/br verify craftengine`，并补齐 `royal_almond_water` 与 `memory_salt` 的 CraftEngine item、分类、server l10n 和 client lang；当前 CraftEngine verifier 全 PASS。
 - 已新增 `README.md`，作为 `plan.md` 的简化执行入口，记录已完成/未完成 TODO、测试流程和地图生成说明。
 - 下一阶段最高优先级：玩家进服实机观察 VectorDisplays 理智 HUD、Faithful item/block 模型、非完整装饰遮挡/碰撞、灯具亮度和 crate storage；同时继续把资源点、Transition 和 Base terminal 从占位坐标替换为真实地图坐标。
 
@@ -772,3 +773,14 @@ plugins/BackroomsCore/
   - BackroomsCore 加载 `VectorDisplays sanity HUD`，不再 Noop 降级。
 - 已通过 RCON 执行 `br verify runtime`、`br reload`、再次 `br verify runtime`；当前 Level worlds、CraftEngine、FAWE、Multiverse-Core、PlaceholderAPI、VectorDisplays、PacketEvents、CraftEngine assets、schematic templates、Sanity HUD provider 和 runtime modules 均为 PASS。
 - 下一步重点：需要真实玩家连接后观察世界内理智 HUD 面板位置、刷新、清理和不会遮挡视野；同时验证杏仁水右键恢复、loot/resource 自定义物品产出和 Faithful 方块表现。
+
+### 12.34 Step 038 CraftEngine 具体资产验证状态
+
+- 已新增 `/br verify craftengine`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：CraftEngine item/block 定义数量、BackroomsCore item 是否都有 CE 镜像、category list 是否引用有效 item、server-side `translations.yml` 覆盖、client-side `lang.yml` 覆盖、预制模型文件存在性、旧 `faithfulbackrooms:` 命名空间残留。
+- 首次运行发现 WARN：BackroomsCore 的 `backrooms:royal_almond_water` 与 `backrooms:memory_salt` 没有 CE item 镜像。
+- 已在 `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml` 补齐两者。
+- 已在 `categories.yml`、`translations.yml`、`lang.yml` 补齐分类和中英文 key。
+- 已同步到测试服 CraftEngine 目录并执行 `ce reload all`；日志显示 translations/lang/items 数量增加，资源包重新生成、验证、压缩并上传成功。
+- 已通过 RCON 执行 `br verify craftengine`；当前 PASS：73 个 item definitions、57 个 block definitions、10 个 BackroomsCore items mirrored、category coverage、server l10n、client lang、static model refs、legacy namespace refs=0。
+- 下一步重点：玩家进服后用 `/ce item get` 与 `/br item give` 对比杏仁水、皇家杏仁水、记忆盐和 Faithful 方块的模型、tooltip、语言显示与交互表现。

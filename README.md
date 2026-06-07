@@ -141,6 +141,7 @@ level_1
 /br reload
 /br debug config
 /br verify runtime
+/br verify craftengine
 /br levels
 /br level tp level_0
 /br debug current
@@ -166,6 +167,8 @@ rcon.password=backrooms-dev
 ```
 
 当前测试服 runtime verifier 已全 PASS：CraftEngine 26.6、FAWE 2.15.2、Multiverse-Core 5.6.2、PlaceholderAPI 2.12.2、PacketEvents 2.12.2、VectorDisplays 1.1.1、CraftEngine 资源目录、Worldgen schematic 模板和 Sanity HUD provider 依赖链均已通过。
+
+`/br verify craftengine` 会检查 CraftEngine `backrooms` 配置里的 item/block 定义、BackroomsCore item 是否都有 CE 镜像、`/ce menu` 分类引用、server-side l10n、client-side lang、预制模型引用和旧 `faithfulbackrooms:` 命名空间残留。当前测试服该命令已全 PASS。
 
 ## CraftEngine 测试
 

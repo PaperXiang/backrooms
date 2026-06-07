@@ -9,6 +9,22 @@ items:
         - "<!i><gray><l10n:lore.backrooms.material.consumable>"
         - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
     texture: minecraft:item/honey_bottle
+  backrooms:royal_almond_water:
+    material: honey_bottle
+    data:
+      item_name: "<!i><gold><l10n:item.backrooms.royal_almond_water>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material.consumable>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
+    texture: minecraft:item/honey_bottle
+  backrooms:memory_salt:
+    material: sugar
+    data:
+      item_name: "<!i><aqua><l10n:item.backrooms.memory_salt>"
+      lore:
+        - "<!i><gray><l10n:lore.backrooms.material.consumable>"
+        - "<!i><dark_gray><l10n:lore.backrooms.source.mvp>"
+    texture: minecraft:item/sugar
   backrooms:dead_battery:
     material: paper
     data:

@@ -21,6 +21,8 @@ categories:
     icon: backrooms:almond_water
     list:
       - backrooms:almond_water
+      - backrooms:royal_almond_water
+      - backrooms:memory_salt
       - backrooms:dead_battery
       - backrooms:charged_battery
       - backrooms:scrap_metal

@@ -1,5 +1,83 @@
 # 开发记录
 
+## Step 038 - CraftEngine 具体资产 verifier 与缺失 item 镜像补齐
+
+### 本次完成
+
+- 新增 `/br verify craftengine`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify runtime`
+  - `/br verify craftengine`
+- CraftEngine verifier 检查：
+  - item definitions 数量。
+  - block definitions 数量。
+  - BackroomsCore item 是否都有 CE item 镜像。
+  - `categories.yml` 是否缺失 item 或引用未知 item。
+  - `translations.yml` 是否覆盖 `en` / `zh_cn` server-side l10n。
+  - `lang.yml` 是否覆盖 `en_us` / `zh_cn` item 与 block client-side lang。
+  - 预制 static model path 是否存在。
+  - 旧 `faithfulbackrooms:` namespace 是否仍残留在模型 JSON 中。
+- 首次验证发现缺失 CE 镜像：
+  - `backrooms:royal_almond_water`
+  - `backrooms:memory_salt`
+- 已补齐这两个 CraftEngine item，并加入 materials 分类、translations 和 lang。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/categories.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/translations.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/lang.yml`
+
+### 设计原因
+
+- `/br verify runtime` 只能确认 CraftEngine 目录和资源文件数量存在，不能发现具体 id、分类、翻译和模型引用缺口。
+- CraftEngine 配置经常由多文件组成；把静态一致性检查放进服务器命令，可以在同步配置后直接用 RCON 验证实际测试服目录。
+- BackroomsCore 与 CraftEngine 暂时不硬绑定 API，但核心 item id 应保持镜像，便于 `/ce item get`、客户端资源包展示和后续 CE item 识别接入。
+
+### 下一步建议
+
+- 玩家进服后对比 `/ce item get backrooms:almond_water`、`/ce item get backrooms:royal_almond_water`、`/ce item get backrooms:memory_salt` 与 `/br item give ...` 的显示和交互。
+- 继续验证 Faithful 方块模型、tooltip、语言切换、碰撞、灯光与 storage 行为。
+- 后续如果新增 BackroomsCore item，应先补 CE 镜像，再跑 `/br verify craftengine`。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行首次 `br verify craftengine`，确认缺失：
+  - `backrooms:royal_almond_water`
+  - `backrooms:memory_salt`
+- 已同步 CraftEngine 配置到测试服：
+  - `materials.yml`
+  - `categories.yml`
+  - `translations.yml`
+  - `lang.yml`
+- 已通过 RCON 执行 `ce reload all`。
+- CraftEngine 日志确认：
+  - translations 数量增加。
+  - lang 数量增加。
+  - items 数量增加。
+  - 资源包重新生成、验证、压缩并上传成功。
+- 已再次通过 RCON 执行 `br verify craftengine`，当前全 PASS：
+  - CraftEngine item definitions = 73。
+  - CraftEngine block definitions = 57。
+  - BackroomsCore items mirrored in CE = 10 mirrored。
+  - category coverage：missing=0, unknown=0。
+  - server l10n：en+zh_cn item keys covered。
+  - client lang：en_us+zh_cn item/block keys covered。
+  - static model refs：all preauthored model refs present。
+  - legacy faithful namespace refs = 0。
+- 已通过 RCON 执行 `br verify runtime`，runtime verifier 仍全 PASS。
+
 ## Step 037 - VectorDisplays 与 PacketEvents 实机依赖安装
 
 ### 本次完成

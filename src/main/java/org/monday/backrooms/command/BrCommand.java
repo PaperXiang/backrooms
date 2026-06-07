@@ -1,17 +1,24 @@
 package org.monday.backrooms.command;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
@@ -144,7 +151,11 @@ public final class BrCommand implements TabExecutor {
                 sendRuntimeVerification(sender);
                 return true;
             }
-            plugin.messages().send(sender, "verify-runtime-usage");
+            if (is(args[1], "craftengine")) {
+                sendCraftEngineVerification(sender);
+                return true;
+            }
+            plugin.messages().send(sender, "verify-usage");
             return true;
         }
 
@@ -558,7 +569,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime"), args[1]);
+            return filter(List.of("runtime", "craftengine"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1172,6 +1183,60 @@ public final class BrCommand implements TabExecutor {
                         + ", baseClaims=" + plugin.bases().claimCount());
     }
 
+    private void sendCraftEngineVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        File pluginsDir = plugin.getDataFolder().getParentFile();
+        File craftEngineBackrooms = new File(pluginsDir, "CraftEngine/resources/backrooms");
+        File configuration = new File(craftEngineBackrooms, "configuration");
+        File resourcepackAssets = new File(craftEngineBackrooms, "resourcepack/assets/backrooms");
+        messages.send(sender, "verify-craftengine-header");
+
+        Map<String, ConfigurationSection> itemDefinitions = loadCraftEngineDefinitions(new File(configuration, "items"), "items");
+        itemDefinitions.putAll(loadCraftEngineDefinitions(new File(configuration, "blocks"), "items"));
+        Map<String, ConfigurationSection> blockDefinitions = loadCraftEngineDefinitions(new File(configuration, "blocks"), "blocks");
+        sendVerifyLine(sender, itemDefinitions.isEmpty() ? "fail" : "pass", "CraftEngine item definitions", String.valueOf(itemDefinitions.size()));
+        sendVerifyLine(sender, blockDefinitions.isEmpty() ? "warn" : "pass", "CraftEngine block definitions", String.valueOf(blockDefinitions.size()));
+
+        Set<String> coreItems = new LinkedHashSet<>(plugin.items().all().stream().map(BackroomsItemDefinition::id).toList());
+        Set<String> missingCoreItems = new LinkedHashSet<>(coreItems);
+        missingCoreItems.removeAll(itemDefinitions.keySet());
+        sendVerifyLine(sender, missingCoreItems.isEmpty() ? "pass" : "warn", "BackroomsCore items mirrored in CE",
+                missingCoreItems.isEmpty() ? coreItems.size() + " mirrored" : "missing CE ids: " + describeList(new ArrayList<>(missingCoreItems)));
+
+        YamlConfiguration categories = YamlConfiguration.loadConfiguration(new File(configuration, "categories.yml"));
+        Set<String> categoryItems = collectCategoryItemRefs(categories);
+        Set<String> missingFromCategories = new LinkedHashSet<>(itemDefinitions.keySet());
+        missingFromCategories.removeAll(categoryItems);
+        Set<String> unknownCategoryRefs = new LinkedHashSet<>(categoryItems);
+        unknownCategoryRefs.removeAll(itemDefinitions.keySet());
+        sendVerifyLine(sender, missingFromCategories.isEmpty() && unknownCategoryRefs.isEmpty() ? "pass" : "warn", "CraftEngine category coverage",
+                "missing=" + missingFromCategories.size() + ", unknown=" + unknownCategoryRefs.size()
+                        + detailList(" missingIds=", missingFromCategories) + detailList(" unknownIds=", unknownCategoryRefs));
+
+        YamlConfiguration translations = YamlConfiguration.loadConfiguration(new File(configuration, "translations.yml"));
+        List<String> missingServerL10n = missingServerL10n(itemDefinitions.keySet(), translations);
+        sendVerifyLine(sender, missingServerL10n.isEmpty() ? "pass" : "warn", "CraftEngine server l10n",
+                missingServerL10n.isEmpty() ? "en+zh_cn item keys covered" : describeList(missingServerL10n));
+
+        YamlConfiguration lang = YamlConfiguration.loadConfiguration(new File(configuration, "lang.yml"));
+        List<String> missingClientLang = missingClientLang(itemDefinitions.keySet(), blockDefinitions.keySet(), lang);
+        sendVerifyLine(sender, missingClientLang.isEmpty() ? "pass" : "warn", "CraftEngine client lang",
+                missingClientLang.isEmpty() ? "en_us+zh_cn item/block keys covered" : describeList(missingClientLang));
+
+        List<String> missingModels = missingStaticModelFiles(resourcepackAssets, itemDefinitions.values(), blockDefinitions.values());
+        sendVerifyLine(sender, missingModels.isEmpty() ? "pass" : "warn", "CraftEngine static model refs",
+                missingModels.isEmpty() ? "all preauthored model refs present" : describeList(missingModels));
+
+        long staleNamespaceRefs = countFilesContaining(new File(resourcepackAssets, "models"), "faithfulbackrooms:");
+        sendVerifyLine(sender, staleNamespaceRefs == 0 ? "pass" : "warn", "Legacy faithful namespace refs",
+                String.valueOf(staleNamespaceRefs));
+    }
+
     private void sendPluginCheck(CommandSender sender, String label, String pluginName, boolean required) {
         var dependency = Bukkit.getPluginManager().getPlugin(pluginName);
         boolean loaded = dependency != null && dependency.isEnabled();
@@ -1218,6 +1283,166 @@ public final class BrCommand implements TabExecutor {
             }
         }
         return count;
+    }
+
+    private Map<String, ConfigurationSection> loadCraftEngineDefinitions(File root, String sectionName) {
+        Map<String, ConfigurationSection> definitions = new java.util.LinkedHashMap<>();
+        List<File> files = new ArrayList<>();
+        collectYamlFiles(root, files);
+        for (File file : files) {
+            ConfigurationSection section = YamlConfiguration.loadConfiguration(file).getConfigurationSection(sectionName);
+            if (section == null) {
+                continue;
+            }
+            for (String key : section.getKeys(false)) {
+                ConfigurationSection definition = section.getConfigurationSection(key);
+                if (definition != null) {
+                    definitions.put(key, definition);
+                }
+            }
+        }
+        return definitions;
+    }
+
+    private void collectYamlFiles(File root, List<File> files) {
+        File[] children = root.listFiles();
+        if (children == null) {
+            return;
+        }
+        for (File child : children) {
+            if (child.isDirectory()) {
+                collectYamlFiles(child, files);
+            } else {
+                String name = child.getName().toLowerCase(Locale.ROOT);
+                if (name.endsWith(".yml") || name.endsWith(".yaml")) {
+                    files.add(child);
+                }
+            }
+        }
+    }
+
+    private Set<String> collectCategoryItemRefs(YamlConfiguration categories) {
+        Set<String> ids = new LinkedHashSet<>();
+        ConfigurationSection section = categories.getConfigurationSection("categories");
+        if (section == null) {
+            return ids;
+        }
+        for (String key : section.getKeys(false)) {
+            for (String entry : section.getStringList(key + ".list")) {
+                if (!entry.startsWith("#")) {
+                    ids.add(entry);
+                }
+            }
+        }
+        return ids;
+    }
+
+    private List<String> missingServerL10n(Set<String> itemIds, YamlConfiguration translations) {
+        List<String> missing = new ArrayList<>();
+        ConfigurationSection en = translations.getConfigurationSection("translations.en");
+        ConfigurationSection zh = translations.getConfigurationSection("translations.zh_cn");
+        for (String id : itemIds) {
+            String key = itemTranslationKey(id);
+            if (en == null || !en.isSet(key)) {
+                missing.add("en:" + key);
+            }
+            if (zh == null || !zh.isSet(key)) {
+                missing.add("zh_cn:" + key);
+            }
+        }
+        return missing;
+    }
+
+    private List<String> missingClientLang(Set<String> itemIds, Set<String> blockIds, YamlConfiguration lang) {
+        List<String> missing = new ArrayList<>();
+        ConfigurationSection en = lang.getConfigurationSection("lang.en_us");
+        ConfigurationSection zh = lang.getConfigurationSection("lang.zh_cn");
+        for (String id : itemIds) {
+            String key = itemTranslationKey(id);
+            if (en == null || !en.isSet(key)) {
+                missing.add("en_us:" + key);
+            }
+            if (zh == null || !zh.isSet(key)) {
+                missing.add("zh_cn:" + key);
+            }
+        }
+        for (String id : blockIds) {
+            String key = "block_name:" + id;
+            if (en == null || !en.isSet(key)) {
+                missing.add("en_us:" + key);
+            }
+            if (zh == null || !zh.isSet(key)) {
+                missing.add("zh_cn:" + key);
+            }
+        }
+        return missing;
+    }
+
+    private List<String> missingStaticModelFiles(File resourcepackAssets, Iterable<ConfigurationSection> itemDefinitions,
+                                                Iterable<ConfigurationSection> blockDefinitions) {
+        List<String> missing = new ArrayList<>();
+        for (ConfigurationSection section : itemDefinitions) {
+            addMissingStaticModel(resourcepackAssets, missing, section, "model");
+        }
+        for (ConfigurationSection section : blockDefinitions) {
+            addMissingStaticModel(resourcepackAssets, missing, section, "state.model");
+        }
+        return missing;
+    }
+
+    private void addMissingStaticModel(File resourcepackAssets, List<String> missing, ConfigurationSection section, String pathPrefix) {
+        if (section.isConfigurationSection(pathPrefix + ".generation")) {
+            return;
+        }
+        String modelPath = section.getString(pathPrefix + ".path", "");
+        if (!modelPath.startsWith("backrooms:")) {
+            return;
+        }
+        File modelFile = namespacedAssetFile(resourcepackAssets, modelPath, "models", ".json");
+        if (!modelFile.isFile()) {
+            missing.add(modelPath + "->" + modelFile.getPath());
+        }
+    }
+
+    private File namespacedAssetFile(File resourcepackAssets, String namespacedPath, String folder, String suffix) {
+        String path = namespacedPath.substring(namespacedPath.indexOf(':') + 1).replace('/', File.separatorChar);
+        return new File(new File(resourcepackAssets, folder), path + suffix);
+    }
+
+    private long countFilesContaining(File root, String pattern) {
+        File[] files = root.listFiles();
+        if (files == null) {
+            return 0;
+        }
+        long count = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                count += countFilesContaining(file, pattern);
+                continue;
+            }
+            if (!file.getName().toLowerCase(Locale.ROOT).endsWith(".json")) {
+                continue;
+            }
+            try {
+                if (Files.readString(file.toPath(), StandardCharsets.UTF_8).contains(pattern)) {
+                    count++;
+                }
+            } catch (IOException ignored) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String itemTranslationKey(String id) {
+        return "item." + id.replace(':', '.');
+    }
+
+    private String detailList(String label, Set<String> ids) {
+        if (ids.isEmpty()) {
+            return "";
+        }
+        return label + describeList(new ArrayList<>(ids));
     }
 
     private void sendLootTables(CommandSender sender) {
