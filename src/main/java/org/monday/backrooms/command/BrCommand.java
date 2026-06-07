@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -253,6 +255,15 @@ public final class BrCommand implements TabExecutor {
                 return true;
             }
 
+            if (is(args[1], "sample")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "loot-sample-usage");
+                    return true;
+                }
+                sampleLootTable(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
             plugin.messages().send(sender, "unknown-command");
             return true;
         }
@@ -297,6 +308,15 @@ public final class BrCommand implements TabExecutor {
                     return true;
                 }
                 sendResourceInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "sample")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "resource-sample-usage");
+                    return true;
+                }
+                sampleResource(sender, args[2], args.length >= 4 ? args[3] : null);
                 return true;
             }
 
@@ -569,6 +589,7 @@ public final class BrCommand implements TabExecutor {
             }
             if (sender.hasPermission(LOOT_ROLL_PERMISSION)) {
                 options.add("roll");
+                options.add("sample");
             }
             if (sender.hasPermission(LOOT_SOURCE_LIST_PERMISSION)) {
                 options.add("sources");
@@ -605,6 +626,10 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 3 && is(args[0], "loot") && canCompleteLootIds(sender, args[1])) {
             return filter(plugin.lootTables().all().stream().map(LootTableDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "loot") && is(args[1], "sample") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+            return filter(List.of("1", "5", "10", "25", "50"), args[3]);
         }
 
         if (args.length == 3 && is(args[0], "loot") && is(args[1], "source")) {
@@ -670,12 +695,17 @@ public final class BrCommand implements TabExecutor {
             }
             if (sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
                 options.add("info");
+                options.add("sample");
             }
             return filter(options, args[1]);
         }
 
-        if (args.length == 3 && is(args[0], "resource") && is(args[1], "info") && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+        if (args.length == 3 && is(args[0], "resource") && (is(args[1], "info") || is(args[1], "sample")) && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
             return filter(plugin.resources().all().stream().map(ResourceBlockDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "resource") && is(args[1], "sample") && sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+            return filter(List.of("1", "5", "10", "25", "50"), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "worldgen")) {
@@ -2008,6 +2038,108 @@ public final class BrCommand implements TabExecutor {
         }, () -> messages.send(sender, "loot-table-not-found", messages.text("id", id)));
     }
 
+    private void sampleLootTable(CommandSender sender, String id, String rollsInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int rolls = parseSampleRolls(rollsInput);
+        plugin.lootTables().get(id).ifPresentOrElse(table -> {
+            if (!table.enabled()) {
+                messages.send(sender, "loot-table-disabled", messages.text("id", table.id()));
+                return;
+            }
+
+            List<ItemStack> generated = new ArrayList<>();
+            for (int i = 0; i < rolls; i++) {
+                generated.addAll(plugin.lootTables().roll(table));
+            }
+            sendSampleResult(sender, "loot-sample-success", "loot-sample-empty", table.id(), rolls, generated);
+        }, () -> messages.send(sender, "loot-table-not-found", messages.text("id", id)));
+    }
+
+    private void sampleResource(CommandSender sender, String id, String rollsInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(RESOURCE_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int rolls = parseSampleRolls(rollsInput);
+        plugin.resources().all().stream()
+                .filter(resource -> resource.id().equalsIgnoreCase(id))
+                .findFirst()
+                .ifPresentOrElse(resource -> {
+                    List<ItemStack> generated = new ArrayList<>();
+                    ThreadLocalRandom random = ThreadLocalRandom.current();
+                    for (int i = 0; i < rolls; i++) {
+                        for (String tableId : resource.lootTables()) {
+                            plugin.lootTables().get(tableId).ifPresent(table -> generated.addAll(plugin.lootTables().roll(table)));
+                        }
+                        for (ResourceDrop drop : resource.drops()) {
+                            if (random.nextDouble() > drop.chance()) {
+                                continue;
+                            }
+                            int min = Math.max(1, drop.min());
+                            int max = Math.max(min, drop.max());
+                            int amount = random.nextInt(min, max + 1);
+                            createResourceSampleStack(drop, amount).ifPresent(generated::add);
+                        }
+                    }
+                    sendSampleResult(sender, "resource-sample-success", "resource-sample-empty", resource.id(), rolls, generated);
+                }, () -> messages.send(sender, "resource-not-found", messages.text("id", id)));
+    }
+
+    private java.util.Optional<ItemStack> createResourceSampleStack(ResourceDrop drop, int amount) {
+        if (drop.customItem()) {
+            return plugin.items().create(drop.itemId(), amount);
+        }
+        return java.util.Optional.of(new ItemStack(drop.material(), amount));
+    }
+
+    private void sendSampleResult(CommandSender sender, String successKey, String emptyKey, String id, int rolls, List<ItemStack> generated) {
+        MessageService messages = plugin.messages();
+        if (generated.isEmpty()) {
+            messages.send(sender, emptyKey,
+                    messages.text("id", id),
+                    messages.text("rolls", String.valueOf(rolls))
+            );
+            return;
+        }
+
+        int amount = generated.stream().mapToInt(ItemStack::getAmount).sum();
+        messages.send(sender, successKey,
+                messages.text("id", id),
+                messages.text("rolls", String.valueOf(rolls)),
+                messages.text("stacks", String.valueOf(generated.size())),
+                messages.text("amount", String.valueOf(amount)),
+                messages.text("summary", summarizeStacks(generated))
+        );
+    }
+
+    private String summarizeStacks(List<ItemStack> stacks) {
+        Map<String, Integer> totals = new LinkedHashMap<>();
+        for (ItemStack stack : stacks) {
+            if (stack == null || stack.getType().isAir()) {
+                continue;
+            }
+            String key = plugin.items().fromStack(stack)
+                    .map(BackroomsItemDefinition::id)
+                    .orElse(stack.getType().name());
+            totals.merge(key, stack.getAmount(), Integer::sum);
+        }
+        if (totals.isEmpty()) {
+            return "none";
+        }
+        List<String> parts = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : totals.entrySet()) {
+            parts.add(entry.getKey() + "x" + entry.getValue());
+        }
+        return describeList(parts);
+    }
+
     private boolean giveRolledItems(Player target, List<ItemStack> items) {
         Map<Integer, ItemStack> leftovers = target.getInventory().addItem(items.toArray(ItemStack[]::new));
         for (ItemStack item : leftovers.values()) {
@@ -2364,7 +2496,8 @@ public final class BrCommand implements TabExecutor {
 
     private boolean canCompleteLootIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(LOOT_INFO_PERMISSION))
-                || (is(subcommand, "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION));
+                || (is(subcommand, "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION))
+                || (is(subcommand, "sample") && sender.hasPermission(LOOT_ROLL_PERMISSION));
     }
 
     private boolean canCompleteItemIds(CommandSender sender, String subcommand) {
@@ -2381,6 +2514,10 @@ public final class BrCommand implements TabExecutor {
         } catch (NumberFormatException ignored) {
             return fallback;
         }
+    }
+
+    private int parseSampleRolls(String input) {
+        return Math.min(100, parsePositiveInt(input, 1));
     }
 
     private boolean isPositiveInt(String input) {

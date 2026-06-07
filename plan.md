@@ -808,3 +808,12 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify loot`；当前 PASS：configured vs loaded definitions、loot table entries、loot source links、resource reward links、loot table coverage。
 - 已同步执行 `br verify runtime`、`br verify craftengine` 和 `br verify map`，三者仍全 PASS。
 - 下一步重点：继续把玩家进服才能确认的交互路径收敛掉，包括右键资源点 cooldown/掉落、打开容器 one-time 注入、杏仁水/理智 HUD、Base terminal claim 与 Faithful 方块模型/碰撞/灯光/storage 表现。
+
+### 12.37 Step 041 Loot/Resource 产物 dry-run 抽样状态
+
+- 已新增 `/br loot sample <id> [rolls]`，复用 `backrooms.command.loot.roll` 权限，无需在线玩家即可抽样指定 Loot Table，并汇总实际创建出的 Backrooms item id / Bukkit material。
+- 已新增 `/br resource sample <id> [rolls]`，复用 `backrooms.command.resource.info` 权限，无需交互方块即可抽样指定 Resource 的 loot table 与内联 drops 产物。
+- 两个 sample 命令都不发放物品、不修改世界，只用于 RCON/控制台验证实际 ItemStack 创建链路。
+- 已通过 RCON 抽样 `level0_basic_supplies`、`level1_scrap_cache`、`level0_loose_carpet`、`level1_scrap_ore`，均能产出并汇总 Backrooms 自定义物品与原版物品。
+- 已再次执行 `br verify loot` 和 `br verify runtime`，两者仍全 PASS。
+- 下一步重点：玩家进服后做无法由控制台替代的交互验证：容器 one-time 标记、资源点 cooldown、杏仁水右键消耗与 HUD 变化、基地 terminal claim、Faithful 方块视觉/碰撞/灯光/storage。

@@ -1,5 +1,60 @@
 # 开发记录
 
+## Step 041 - Loot/Resource 产物 dry-run 抽样命令
+
+### 本次完成
+
+- 新增 `/br loot sample <id> [rolls]`。
+  - 复用 `backrooms.command.loot.roll` 权限。
+  - 无需在线玩家即可抽样指定 Loot Table。
+  - 调用实际 `LootTableService#roll(...)`，验证 Backrooms 自定义物品 ItemStack 创建路径。
+- 新增 `/br resource sample <id> [rolls]`。
+  - 复用 `backrooms.command.resource.info` 权限。
+  - 无需真实交互方块即可抽样指定 Resource 的 loot table 与内联 drops。
+- sample 输出会汇总：
+  - rolls 次数。
+  - 产出的 stack 数。
+  - 产出的 item amount 总量。
+  - Backrooms item id 或 Bukkit material 汇总。
+- 两个 sample 命令都不发放物品、不修改世界，仅用于 RCON/控制台 dry-run。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br loot roll <id> [player]` 需要在线玩家，测试服无人在线时无法通过 RCON 验证实际产物。
+- `/br verify loot` 能检查引用和数值范围，但不执行实际 ItemStack 创建；sample 命令补上“配置引用有效 -> 实际物品可创建”的验证层。
+- Resource 的真实交互还需要玩家和地图方块，先提供 dry-run 可以在没有玩家时确认 loot table 叠加和内联 drops 都能产出有效物品。
+
+### 下一步建议
+
+- 玩家进服后打开 Level 0/1 容器，确认 one-time PDC 标记实际防重复生成。
+- 玩家右键/破坏资源点，确认 cooldown、掉落位置和保护规则事件取消符合预期。
+- 玩家右键杏仁水，观察理智恢复、稳定时间和 VectorDisplays HUD 数值变化。
+- 玩家右键 base terminal，占领基地并确认 `base-claims.yml` 持久化。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br loot sample level0_basic_supplies 10`：
+  - 成功汇总 `backrooms:field_note`、`backrooms:dead_battery`、`BREAD`、`backrooms:memory_salt`。
+- 已通过 RCON 执行 `br loot sample level1_scrap_cache 10`：
+  - 成功汇总 `backrooms:scrap_metal`、`backrooms:copper_wire`、`backrooms:fuse`、`backrooms:toolbox`。
+- 已通过 RCON 执行 `br resource sample level0_loose_carpet 10`：
+  - 成功汇总 `backrooms:field_note`、`backrooms:almond_water`、`BREAD`、`STRING`、`backrooms:dead_battery`、`backrooms:memory_salt`。
+- 已通过 RCON 执行 `br resource sample level1_scrap_ore 10`：
+  - 成功汇总 `backrooms:scrap_metal`、`backrooms:fuse`、`backrooms:toolbox`、`backrooms:copper_wire`。
+- 已通过 RCON 执行 `br verify loot`，当前全 PASS。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 040 - Loot/Resource 配置 verifier
 
 ### 本次完成
