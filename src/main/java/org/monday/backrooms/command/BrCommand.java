@@ -1342,6 +1342,10 @@ public final class BrCommand implements TabExecutor {
         sendVerifyLine(sender, missingModels.isEmpty() ? "pass" : "warn", "CraftEngine static model refs",
                 missingModels.isEmpty() ? "all preauthored model refs present" : describeList(missingModels));
 
+        verifyFaithfulBlockBehavior(sender, blockDefinitions);
+        verifyFaithfulLighting(sender, blockDefinitions);
+        verifyFaithfulStorage(sender, blockDefinitions);
+
         long staleNamespaceRefs = countFilesContaining(new File(resourcepackAssets, "models"), "faithfulbackrooms:");
         sendVerifyLine(sender, staleNamespaceRefs == 0 ? "pass" : "warn", "Legacy faithful namespace refs",
                 String.valueOf(staleNamespaceRefs));
@@ -2591,6 +2595,110 @@ public final class BrCommand implements TabExecutor {
             addMissingStaticModel(resourcepackAssets, missing, section, "state.model");
         }
         return missing;
+    }
+
+    private void verifyFaithfulBlockBehavior(CommandSender sender, Map<String, ConfigurationSection> blockDefinitions) {
+        int faithfulBlocks = 0;
+        int noteBlock = 0;
+        int lowerTripwire = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        for (Map.Entry<String, ConfigurationSection> entry : blockDefinitions.entrySet()) {
+            String id = entry.getKey();
+            if (!id.startsWith("backrooms:faithful_")) {
+                continue;
+            }
+            faithfulBlocks++;
+            ConfigurationSection section = entry.getValue();
+            String autoState = section.getString("state.auto_state", "");
+            if (autoState.equalsIgnoreCase("note_block")) {
+                noteBlock++;
+            } else if (autoState.equalsIgnoreCase("lower_tripwire")) {
+                lowerTripwire++;
+                if (section.getBoolean("settings.overrides.is_suffocating", true)) {
+                    issues.add(id + ":suffocating");
+                }
+                if (section.getBoolean("settings.overrides.is_view_blocking", true)) {
+                    issues.add(id + ":view_blocking");
+                }
+                if (section.getBoolean("settings.overrides.can_occlude", true)) {
+                    issues.add(id + ":occluding");
+                }
+            } else if (autoState.isBlank()) {
+                issues.add(id + ":missing auto_state");
+            }
+            String normalized = autoState.toLowerCase(Locale.ROOT);
+            if (normalized.equals("solid") || normalized.startsWith("mushroom")) {
+                issues.add(id + ":auto_state=" + autoState);
+            }
+        }
+        if (faithfulBlocks < 40) {
+            warnings.add("faithful block count below expected: " + faithfulBlocks);
+        }
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Faithful block behavior",
+                "blocks=" + faithfulBlocks + ", noteBlock=" + noteBlock + ", lowerTripwire=" + lowerTripwire
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyFaithfulLighting(CommandSender sender, Map<String, ConfigurationSection> blockDefinitions) {
+        int lightBlocks = 0;
+        int litBlocks = 0;
+        int intentionallyDark = 0;
+        List<String> issues = new ArrayList<>();
+        for (Map.Entry<String, ConfigurationSection> entry : blockDefinitions.entrySet()) {
+            String id = entry.getKey();
+            if (!id.startsWith("backrooms:faithful_") || !id.contains("light")) {
+                continue;
+            }
+            lightBlocks++;
+            int luminance = entry.getValue().getInt("settings.overrides.luminance", -1);
+            if (id.contains("broken")) {
+                if (luminance == 0) {
+                    intentionallyDark++;
+                } else {
+                    issues.add(id + ":broken luminance=" + luminance);
+                }
+                continue;
+            }
+            if (luminance > 0) {
+                litBlocks++;
+            } else {
+                issues.add(id + ":luminance=" + luminance);
+            }
+        }
+        sendVerifyLine(sender, issues.isEmpty() ? "pass" : "warn", "Faithful lighting",
+                "lights=" + lightBlocks + ", lit=" + litBlocks + ", dark=" + intentionallyDark
+                        + detailList(" issues=", new LinkedHashSet<>(issues)));
+    }
+
+    private void verifyFaithfulStorage(CommandSender sender, Map<String, ConfigurationSection> blockDefinitions) {
+        int crates = 0;
+        int storage = 0;
+        List<String> issues = new ArrayList<>();
+        for (Map.Entry<String, ConfigurationSection> entry : blockDefinitions.entrySet()) {
+            String id = entry.getKey();
+            if (!id.startsWith("backrooms:faithful_") || !id.contains("crate")) {
+                continue;
+            }
+            crates++;
+            ConfigurationSection section = entry.getValue();
+            if (!section.getString("behavior.type", "").equalsIgnoreCase("simple_storage_block")) {
+                issues.add(id + ":behavior=" + section.getString("behavior.type", "missing"));
+                continue;
+            }
+            storage++;
+            if (section.getInt("behavior.rows", 0) < 1) {
+                issues.add(id + ":rows=" + section.getInt("behavior.rows", 0));
+            }
+            if (!section.getBoolean("behavior.allow_input", false) || !section.getBoolean("behavior.allow_output", false)) {
+                issues.add(id + ":io disabled");
+            }
+        }
+        sendVerifyLine(sender, issues.isEmpty() ? "pass" : "warn", "Faithful storage",
+                "crates=" + crates + ", simpleStorage=" + storage
+                        + detailList(" issues=", new LinkedHashSet<>(issues)));
     }
 
     private void addMissingStaticModel(File resourcepackAssets, List<String> missing, ConfigurationSection section, String pathPrefix) {

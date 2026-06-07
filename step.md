@@ -1,5 +1,45 @@
 # 开发记录
 
+## Step 049 - Faithful CraftEngine 静态行为 verifier
+
+### 本次完成
+
+- 扩展 `/br verify craftengine`。
+- 新增三项 Faithful 静态检查：
+  - Faithful block behavior：统计 `backrooms:faithful_*` block、`note_block` / `lower_tripwire` 分配、禁止 `solid` / mushroom 系列状态，并检查 `lower_tripwire` 装饰关闭 suffocation、view blocking 和 occlusion。
+  - Faithful lighting：检查灯具 luminance，破损灯允许 `0`，其他灯具必须大于 `0`。
+  - Faithful storage：检查 crate 系列是否为 `simple_storage_block`、rows 是否有效、input/output 是否开启。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+
+### 设计原因
+
+- 原有 `/br verify craftengine` 能检查 CE 定义、分类、翻译和模型引用，但不能发现 Faithful 方块行为配置是否被误改。
+- 玩家视觉和碰撞体验仍需进服观察；静态 verifier 先把配置层的高风险项前置为 RCON 可检查。
+- 这能防止后续迁移或清理 YAML 时把装饰块改回遮挡/窒息、把灯具 luminance 清掉，或把 crate storage 行为删掉。
+
+### 下一步建议
+
+- 玩家进服后摆放 `backrooms:faithful_yellow_wallpaper`、`backrooms:faithful_old_carpet`、`backrooms:faithful_ceiling_light`、`backrooms:faithful_crate` 和 `backrooms:faithful_exit_sign`。
+- 观察客户端模型、碰撞/遮挡、灯光强度和 crate storage 打开体验。
+- 后续如果接 CraftEngine API，可继续把 runtime block registry 状态纳入 verifier。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify craftengine`，当前全 PASS：
+  - Faithful block behavior：`blocks=47, noteBlock=24, lowerTripwire=23`。
+  - Faithful lighting：`lights=6, lit=5, dark=1`。
+  - Faithful storage：`crates=5, simpleStorage=5`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 048 - Resource harvest 命令
 
 ### 本次完成

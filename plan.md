@@ -875,3 +875,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br resource harvest level1_scrap_ore`：首次 `checked=1, harvested=1, items=2, removed=1`，确认 break 资源点会替换为 AIR；测试后已用 `setblock` 恢复 `IRON_ORE` 占位锚点。
 - 已再次执行 `br verify loot`、`br verify runtime` 和 `br verify map`，当前仍全 PASS。
 - 下一步重点：玩家进服后实测右键/破坏手感、客户端掉落可见性和 Level 保护事件取消；真实地图制作后替换资源点坐标。
+
+### 12.45 Step 049 Faithful CraftEngine 静态行为 verifier 状态
+
+- 已扩展 `/br verify craftengine`，新增 Faithful block behavior、Faithful lighting、Faithful storage 三项静态检查。
+- 检查内容包括：`backrooms:faithful_*` block 数量、`note_block` / `lower_tripwire` state allocation、禁止回退到 `solid` / mushroom 系列、`lower_tripwire` 装饰关闭 suffocation/view blocking/occlusion、灯具 luminance、破损灯为 0 luminance、crate 系列 `simple_storage_block`、rows 和 input/output。
+- 已通过 RCON 执行 `br verify craftengine`；当前 PASS：Faithful block behavior `blocks=47, noteBlock=24, lowerTripwire=23`，Faithful lighting `lights=6, lit=5, dark=1`，Faithful storage `crates=5, simpleStorage=5`。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后实际摆放 `faithful_*` 方块，确认客户端模型、真实碰撞手感、灯光效果和 storage 打开体验与静态配置一致。
