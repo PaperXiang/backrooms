@@ -1,5 +1,11 @@
 package org.monday.backrooms;
 
+import io.papermc.paper.command.brigadier.BasicCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import java.util.Collection;
+import java.util.List;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.monday.backrooms.command.BrCommand;
 import org.monday.backrooms.config.ConfigFileService;
 import org.monday.backrooms.level.LevelConfigLoader;
@@ -14,7 +20,6 @@ import org.monday.backrooms.room.RoomGenerationService;
 import org.monday.backrooms.rule.LevelRuleListener;
 import org.monday.backrooms.transition.TransitionListener;
 import org.monday.backrooms.transition.TransitionService;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Backrooms extends JavaPlugin {
 
@@ -161,15 +166,31 @@ public final class Backrooms extends JavaPlugin {
 
     private void registerCommands() {
         BrCommand brCommand = new BrCommand(this);
+        registerCommand("br", "Backrooms main command", List.of("backrooms"), new PaperBrCommand(brCommand));
+        getLogger().info("Registered Paper command handler: /br.");
+    }
 
-        var command = getCommand("br");
-        if (command == null) {
-            getLogger().severe("Command 'br' is not declared in paper-plugin.yml; command registration failed.");
-            return;
+    private static final class PaperBrCommand implements BasicCommand {
+
+        private final BrCommand delegate;
+
+        private PaperBrCommand(BrCommand delegate) {
+            this.delegate = delegate;
         }
 
-        command.setExecutor(brCommand);
-        command.setTabCompleter(brCommand);
-        getLogger().info("Registered command: /br.");
+        @Override
+        public void execute(CommandSourceStack stack, String[] args) {
+            delegate.execute(stack.getSender(), "br", args);
+        }
+
+        @Override
+        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+            return delegate.complete(stack.getSender(), "br", args);
+        }
+
+        @Override
+        public boolean canUse(CommandSender sender) {
+            return sender.hasPermission(BrCommand.BASE_PERMISSION);
+        }
     }
 }

@@ -1,5 +1,40 @@
 # 开发记录
 
+## Step 016 - Paper 命令注册修复
+
+### 本次完成
+
+- 修复测试服启动时报错：Paper plugin 不支持 `paper-plugin.yml` 的 YAML command 声明，也不允许在启动期对该命令调用 `JavaPlugin#getCommand()`。
+- 将 `/br` 注册迁移到 Paper `JavaPlugin#registerCommand`。
+- 新增 Paper `BasicCommand` 适配层，复用现有 `BrCommand` 的执行逻辑和 tab completion，不重写命令分发。
+- 从 `paper-plugin.yml` 移除 `commands:` 块，保留权限声明；`/br` 与 `backrooms` 别名由 Paper command API 注册。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/paper-plugin.yml`
+
+### 设计原因
+
+- Paper plugin 模式下，命令不走 Bukkit YAML command 声明路径；继续保留 `getCommand("br")` 会导致插件启用失败。
+- 只给 `BrCommand` 增加 `execute` 和 `complete` 委托方法，保留现有权限、消息、reload、debug、level、transition、room、loot、resource 命令行为。
+- `paper-plugin.yml` 继续只负责插件元数据和权限，避免后续维护时误以为 `/br` 仍由 YAML 声明。
+
+### 下一步建议
+
+- 部署新 jar 后完整重启测试服，确认启动日志不再出现 `Paper plugins do not support YAML-based command declarations`。
+- 启动后测试 `/br`、`/br help`、`/br debug config` 和 `/br` tab completion。
+- 继续按 README 的顺序验证 CraftEngine、Loot/Resource、Transition、Room 和保护规则闭环。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 001 - 初始化计划与仓库准备
 
 ### 本次完成

@@ -6,11 +6,6 @@ prefix: Backrooms
 authors: [ DYF, Paper_Xiang ]
 description: backrooms plugin
 website: mc.monday-ovo.top
-commands:
-  br:
-    description: Backrooms main command
-    usage: /br <help|levels|level|rooms|room|resources|resource|loot|transitions|transition|debug|reload>
-    aliases: [backrooms]
 permissions:
   backrooms.command.br:
     description: Allows using the Backrooms base command

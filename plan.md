@@ -549,3 +549,10 @@ plugins/BackroomsCore/
 - README 覆盖构建部署、CraftEngine 资产测试、Loot/Resource 测试、Transition 测试、Room 占位生成测试、保护规则测试和常用排查命令。
 - README 明确当前地图生成仍是占位 Room/走廊生成器，不是最终自动迷宫系统；默认 `replace-air-only: true`，测试时应站在空旷区域。
 - 下一步继续按 README 的测试顺序重启测试服验证闭环，并把资源点与 Transition 坐标替换为真实地图坐标。
+
+### 12.13 Step 016 Paper 命令注册修复状态
+
+- 已修复 Paper 1.21.4 启动时报错：Paper plugin 不支持 `paper-plugin.yml` 的 YAML command 声明，也不能在启动期通过 `JavaPlugin#getCommand()` 获取该命令。
+- `/br` 现在通过 Paper `JavaPlugin#registerCommand` 注册 `BasicCommand`，内部复用原有 `BrCommand` 的执行和补全逻辑。
+- `paper-plugin.yml` 已移除 `commands:` 块，只保留权限声明；`/br` 和 `backrooms` 别名由 Paper command API 注册。
+- 下一步实机验证重点：部署新 jar 后完整重启测试服，确认启动阶段不再出现 `Paper plugins do not support YAML-based command declarations`，再测试 `/br`、`/br help`、tab completion 和 `/br debug config`。

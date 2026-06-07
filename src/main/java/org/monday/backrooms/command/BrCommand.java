@@ -25,7 +25,7 @@ import org.monday.backrooms.transition.TransitionDefinition;
 
 public final class BrCommand implements TabExecutor {
 
-    private static final String BASE_PERMISSION = "backrooms.command.br";
+    public static final String BASE_PERMISSION = "backrooms.command.br";
     private static final String RELOAD_PERMISSION = "backrooms.command.reload";
     private static final String LEVEL_TP_PERMISSION = "backrooms.command.level.tp";
     private static final String DEBUG_CURRENT_PERMISSION = "backrooms.command.debug.current";
@@ -51,6 +51,10 @@ public final class BrCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return execute(sender, label, args);
+    }
+
+    public boolean execute(CommandSender sender, String label, String[] args) {
         if (!sender.hasPermission(BASE_PERMISSION)) {
             plugin.messages().send(sender, "no-permission");
             return true;
@@ -264,6 +268,10 @@ public final class BrCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        return complete(sender, label, args);
+    }
+
+    public List<String> complete(CommandSender sender, String label, String[] args) {
         if (!sender.hasPermission(BASE_PERMISSION)) {
             return List.of();
         }
