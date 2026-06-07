@@ -1,5 +1,54 @@
 # 开发记录
 
+## Step 046 - Worldgen 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify worldgen`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify worldgen`
+- worldgen verifier 检查：
+  - Configured vs loaded templates：确认 `worldgen.yml` 中配置的模板均已进入运行时。
+  - Worldgen defaults：检查 cell size/height、critical path、branch/loop 参数、WorldEdit/FAWE、模板目录和 generated-regions 写入路径。
+  - Worldgen markers：检查 marker 材质是否为有效、非空气、可放置方块。
+  - Worldgen templates：检查 Level/world、schematic 文件、footprint、weight、rotation、connector 和 exit tag。
+  - Worldgen level coverage：检查已配置模板的 Level 是否有可用普通模板，并报告 exit 模板覆盖。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br verify runtime` 只能确认 schematic 文件是否存在，不能定位模板参数、marker 材质、footprint、rotation 或 Level 覆盖问题。
+- `/br worldgen generate` 会真实粘贴 schematic；先提供只读 verifier，能在不改地图的情况下发现配置风险。
+- 当前 Level 1 还没有 worldgen 模板，coverage 只检查已配置模板的 Level，避免把尚未进入 worldgen 范围的 Level 误报为缺口。
+
+### 下一步建议
+
+- 用真实 Level 0 schematic 覆盖当前 placeholder 后，继续执行 `/br verify worldgen`。
+- 玩家进服后执行 `/br worldgen generate level_0 9 <seed>`，观察旋转、开口、marker 扫描和 generated-regions 记录。
+- 后续扩展 Level 1 worldgen 时，先补 `worldgen.yml` 模板覆盖，再用该 verifier 做前置检查。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify worldgen`，当前全 PASS：
+  - Configured vs loaded templates：`templates=4`。
+  - Worldgen defaults：`enabled=true`。
+  - Worldgen markers：`configured=6`。
+  - Worldgen templates：`templates=4, enabled=4, exit=1`。
+  - Worldgen level coverage：`all configured levels have template coverage`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 045 - Room 配置 verifier
 
 ### 本次完成

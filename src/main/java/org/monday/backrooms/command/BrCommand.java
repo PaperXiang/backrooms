@@ -52,6 +52,7 @@ import org.monday.backrooms.transition.TransitionTargetType;
 import org.monday.backrooms.transition.TransitionTriggerType;
 import org.monday.backrooms.util.PaperTeleports;
 import org.monday.backrooms.worldgen.SchematicTemplateDefinition;
+import org.monday.backrooms.worldgen.TemplateMarkerType;
 import org.monday.backrooms.worldgen.WorldGenerationResult;
 
 public final class BrCommand implements TabExecutor {
@@ -189,6 +190,10 @@ public final class BrCommand implements TabExecutor {
             }
             if (is(args[1], "rooms")) {
                 sendRoomsVerification(sender);
+                return true;
+            }
+            if (is(args[1], "worldgen")) {
+                sendWorldgenVerification(sender);
                 return true;
             }
             plugin.messages().send(sender, "verify-usage");
@@ -624,7 +629,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases", "transitions", "rooms"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot", "items", "bases", "transitions", "rooms", "worldgen"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1380,6 +1385,191 @@ public final class BrCommand implements TabExecutor {
         verifyRoomConfiguredCounts(sender);
         verifyRoomDefinitions(sender);
         verifyRoomGenerationLimits(sender);
+    }
+
+    private void sendWorldgenVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-worldgen-header");
+        verifyWorldgenConfiguredCounts(sender);
+        verifyWorldgenDefaults(sender);
+        verifyWorldgenMarkers(sender);
+        verifyWorldgenTemplates(sender);
+        verifyWorldgenCoverage(sender);
+    }
+
+    private void verifyWorldgenConfiguredCounts(CommandSender sender) {
+        int configuredTemplates = configuredDefinitionCount(plugin.configFiles().worldgen(), "worldgen.templates");
+        int loadedTemplates = plugin.worldgen().templateCount();
+        sendVerifyLine(sender, configuredTemplates == loadedTemplates ? "pass" : "fail", "Configured vs loaded templates",
+                configuredTemplates == loadedTemplates
+                        ? "templates=" + loadedTemplates
+                        : "configured=" + configuredTemplates + ", loaded=" + loadedTemplates);
+    }
+
+    private void verifyWorldgenDefaults(CommandSender sender) {
+        ConfigurationSection defaults = plugin.configFiles().worldgen().getConfigurationSection("worldgen.defaults");
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        if (defaults == null) {
+            issues.add("missing defaults");
+        } else {
+            int cellSize = defaults.getInt("cell-size", 16);
+            int cellHeight = defaults.getInt("cell-height", 6);
+            int minCritical = defaults.getInt("min-critical-path-cells", 18);
+            int maxCritical = defaults.getInt("max-critical-path-cells", 30);
+            double branchRate = defaults.getDouble("branch-rate", 0.32D);
+            double loopRate = defaults.getDouble("loop-rate", 0.10D);
+            if (cellSize < 1) {
+                issues.add("cell-size=" + cellSize);
+            }
+            if (cellHeight < 1) {
+                issues.add("cell-height=" + cellHeight);
+            }
+            if (minCritical < 1 || maxCritical < minCritical) {
+                issues.add("critical-path=" + minCritical + ".." + maxCritical);
+            }
+            if (branchRate < 0.0D || branchRate > 1.0D) {
+                issues.add("branch-rate=" + branchRate);
+            }
+            if (loopRate < 0.0D || loopRate > 1.0D) {
+                issues.add("loop-rate=" + loopRate);
+            }
+            if (!plugin.worldgen().worldEditAvailable()) {
+                issues.add("WorldEdit/FastAsyncWorldEdit missing");
+            }
+            File templatesRoot = new File(plugin.getDataFolder(), plugin.configFiles().worldgen().getString("worldgen.templates-folder", "templates"));
+            File generatedRegionsFile = new File(plugin.getDataFolder(), plugin.configFiles().worldgen().getString("worldgen.generated-regions-file", "generated-regions.yml"));
+            if (!templatesRoot.isDirectory()) {
+                issues.add("templates folder missing " + templatesRoot.getPath());
+            }
+            File generatedParent = generatedRegionsFile.getParentFile();
+            if (generatedParent != null && generatedParent.exists() && !generatedParent.canWrite()) {
+                issues.add("generated-regions parent not writable " + generatedParent.getPath());
+            } else if (generatedParent != null && !generatedParent.exists()) {
+                warnings.add("generated-regions parent will be created " + generatedParent.getPath());
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Worldgen defaults",
+                "enabled=" + plugin.configFiles().worldgen().getBoolean("worldgen.enabled", true)
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyWorldgenMarkers(CommandSender sender) {
+        ConfigurationSection markers = plugin.configFiles().worldgen().getConfigurationSection("worldgen.markers");
+        List<String> issues = new ArrayList<>();
+        int configuredMarkers = 0;
+        if (markers == null) {
+            issues.add("missing markers section");
+        } else {
+            for (TemplateMarkerType type : TemplateMarkerType.values()) {
+                String materialName = markers.getString(type.configName(), "");
+                if (materialName.isBlank()) {
+                    continue;
+                }
+                configuredMarkers++;
+                Material material = Material.matchMaterial(materialName);
+                if (material == null || material.isAir() || !material.isBlock()) {
+                    issues.add(type.configName() + "=" + materialName);
+                }
+            }
+        }
+        sendVerifyLine(sender, issues.isEmpty() ? "pass" : "fail", "Worldgen markers",
+                issues.isEmpty() ? "configured=" + configuredMarkers : "configured=" + configuredMarkers + "; " + describeList(issues));
+    }
+
+    private void verifyWorldgenTemplates(CommandSender sender) {
+        int templates = 0;
+        int enabled = 0;
+        int exitTemplates = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        int defaultCellSize = plugin.configFiles().worldgen().getInt("worldgen.defaults.cell-size", 16);
+
+        for (SchematicTemplateDefinition template : plugin.worldgen().allTemplates()) {
+            templates++;
+            if (template.enabled()) {
+                enabled++;
+            }
+            if (template.hasTag("exit")) {
+                exitTemplates++;
+            }
+            plugin.levels().get(template.level()).ifPresentOrElse(level -> {
+                World world = Bukkit.getWorld(level.world());
+                if (world == null) {
+                    issues.add(template.id() + ":world missing " + level.world());
+                } else if (template.footprintY() > (world.getMaxHeight() - world.getMinHeight())) {
+                    issues.add(template.id() + ":footprintY outside world " + template.footprintY());
+                }
+            }, () -> issues.add(template.id() + ":unknown level " + template.level()));
+            if (!template.file().isFile()) {
+                issues.add(template.id() + ":file missing " + template.file().getPath());
+            }
+            if (template.cellSize() != defaultCellSize) {
+                warnings.add(template.id() + ":cellSize=" + template.cellSize() + " default=" + defaultCellSize);
+            }
+            if (template.footprintX() < 1 || template.footprintZ() < 1 || template.footprintY() < 1) {
+                issues.add(template.id() + ":footprint=" + template.footprintDescription());
+            }
+            if (template.weight() < 1) {
+                issues.add(template.id() + ":weight=" + template.weight());
+            }
+            if (template.rotations().stream().anyMatch(rotation -> Math.floorMod(rotation, 90) != 0)) {
+                issues.add(template.id() + ":invalid rotations " + template.rotations());
+            }
+            if (template.connectors().isEmpty() && !template.hasTag("exit")) {
+                warnings.add(template.id() + ":no connectors");
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Worldgen templates",
+                "templates=" + templates + ", enabled=" + enabled + ", exit=" + exitTemplates
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifyWorldgenCoverage(CommandSender sender) {
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        Set<String> templateLevels = plugin.worldgen().allTemplates().stream()
+                .map(template -> template.level().toLowerCase(Locale.ROOT))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        for (String levelId : templateLevels) {
+            long normalTemplates = plugin.worldgen().allTemplates().stream()
+                    .filter(SchematicTemplateDefinition::enabled)
+                    .filter(template -> template.appliesToLevel(levelId))
+                    .filter(template -> !template.hasTag("exit"))
+                    .count();
+            long exitTemplates = plugin.worldgen().allTemplates().stream()
+                    .filter(SchematicTemplateDefinition::enabled)
+                    .filter(template -> template.appliesToLevel(levelId))
+                    .filter(template -> template.hasTag("exit"))
+                    .count();
+            if (normalTemplates == 0 && exitTemplates == 0) {
+                warnings.add(levelId + ":no enabled templates");
+            } else if (normalTemplates == 0) {
+                issues.add(levelId + ":no non-exit templates");
+            } else if (exitTemplates == 0) {
+                warnings.add(levelId + ":no exit templates");
+            }
+        }
+        if (templateLevels.isEmpty()) {
+            issues.add("no template levels");
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Worldgen level coverage",
+                issues.isEmpty() && warnings.isEmpty()
+                        ? "all configured levels have template coverage"
+                        : detailList(" issues=", new LinkedHashSet<>(issues)) + detailList(" warnings=", new LinkedHashSet<>(warnings)));
     }
 
     private void verifyRoomConfiguredCounts(CommandSender sender) {

@@ -849,3 +849,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 执行 `br verify rooms`；当前 PASS：configured vs loaded rooms、room definitions、room generation limits。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后执行 `/br room generate ...` 做真实方块生成观察，确认 replace-air-only、无改动提示、光源覆盖、marker 放置和保护规则交互。
+
+### 12.42 Step 046 Worldgen 配置 verifier 状态
+
+- 已新增 `/br verify worldgen`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`worldgen.yml` 配置模板数量是否全部加载、defaults 中 cell/critical path/branch/loop 参数、WorldEdit/FAWE 可用性、模板目录与 generated-regions 写入路径、marker 材质合法性、template Level/world/file/footprint/weight/rotation/connector/exit tag，以及已配置 Level 的模板覆盖。
+- 已通过 RCON 执行 `br verify worldgen`；当前 PASS：configured vs loaded templates、worldgen defaults、worldgen markers、worldgen templates、worldgen level coverage。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后用真实 Level 0 schematic 覆盖当前 placeholder，再执行 `/br worldgen generate level_0 9 <seed>`，观察旋转、开口、marker 扫描和生成区域记录。
