@@ -44,3 +44,28 @@ items:
     data:
       item_name: <!i><white>Field Note
     texture: minecraft:item/paper
+  backrooms:fuse:
+    material: redstone_torch
+    data:
+      item_name: <!i><red>Electrical Fuse
+    texture: minecraft:item/redstone_torch
+  backrooms:cloth_scrap:
+    material: paper
+    data:
+      item_name: <!i><white>Cloth Scrap
+    texture: minecraft:item/string
+  backrooms:pipe_segment:
+    material: iron_bars
+    data:
+      item_name: <!i><gray>Pipe Segment
+    texture: minecraft:item/iron_bars
+  backrooms:flashlight_frame:
+    material: paper
+    data:
+      item_name: <!i><yellow>Flashlight Frame
+    texture: minecraft:item/spyglass
+  backrooms:toolbox:
+    material: paper
+    data:
+      item_name: <!i><gold>Toolbox
+    texture: minecraft:item/bundle

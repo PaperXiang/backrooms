@@ -450,6 +450,7 @@ plugins/BackroomsCore/
 - 已完成第一版 Room 生成原型：`rooms.yml` 配置 room/corridor 模板，`/br room generate <id> [level]` 可用 Bukkit 原生方块生成简单占位房间。
 - 已新增 `/br debug config` 运行时配置摘要命令，用于实机快速检查 Level 世界缺失、Transition/Room 引用问题和模块数量。
 - 已新增第一版 Loot Table MVP：`loot.yml` 配置 Bukkit Material 战利品表，`/br loot list/info/roll` 可用于测试，资源方块可通过 `loot-tables` 复用命名掉落池。
+- 已扩展第二批 CraftEngine Backrooms 测试资产，增加维护门、撤离口、基地终端、发电机核心、荧光灯等地图制作 marker / 设施方块，以及保险丝、布料、管道、手电框架、工具箱等材料物品。
 - 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
@@ -531,3 +532,12 @@ plugins/BackroomsCore/
 - 已新增 `backrooms.command.resource.list`、`backrooms.command.resource.info` 权限，并加入 `backrooms.admin`。
 - 已补充 `/br help`、tab completion、`messages.yml` 和 `paper-plugin.yml`，方便在测试服定位资源点配置与 loot table 引用问题。
 - 下一步实机验证重点：`/br resources`、`/br resource info level0_loose_carpet`、`/br resource info level1_scrap_ore`，然后把默认 `locations` 替换为真实地图坐标。
+
+### 12.11 Step 014 CraftEngine Backrooms 资产扩展状态
+
+- 已根据本地 CraftEngine wiki 与默认资源示例继续扩展 `backrooms` 资源包配置，不接入 CE Java API。
+- `materials.yml` 新增保险丝、布料、管道、手电框架、工具箱等 Backrooms 生存/基地升级材料。
+- `mvp_blocks.yml` 新增维护门标记、撤离口标记、基地 claim 终端、发电机核心、闪烁荧光灯等 block item 与 block 定义。
+- 新增方块继续复用原版 model/texture 生成，不引入自定义美术资源，保持 MVP 阶段低成本可测试。
+- 项目内 `server-configs/CraftEngine/resources/backrooms/**` 已同步到测试服 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms/**`。
+- 下一步实机验证重点：执行 CraftEngine `/ce reload all`，再用 `/ce item get` 或 `/ce item give` 检查新增物品/方块是否能生成、摆放、掉落和被资源包正确显示。

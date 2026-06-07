@@ -453,6 +453,56 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 014 - CraftEngine Backrooms 资产扩展
+
+### 本次完成
+
+- 根据本地 CraftEngine wiki 与测试服默认资源示例，继续扩展 `backrooms` CraftEngine 资源包配置。
+- 在 `materials.yml` 中新增第二批 Backrooms 材料物品：
+  - `backrooms:fuse`
+  - `backrooms:cloth_scrap`
+  - `backrooms:pipe_segment`
+  - `backrooms:flashlight_frame`
+  - `backrooms:toolbox`
+- 在 `mvp_blocks.yml` 中新增地图制作和后续系统预留用的 block item + block：
+  - `backrooms:maintenance_door_marker`
+  - `backrooms:evacuation_hatch_marker`
+  - `backrooms:base_claim_terminal`
+  - `backrooms:generator_core`
+  - `backrooms:flickering_fluorescent_light`
+- 新增模型继续使用 CraftEngine 的配置生成能力复用 Minecraft 原版材质，不引入自定义美术资源文件。
+- 已将项目内 `server-configs/CraftEngine/resources/backrooms/**` 同步到测试服 `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms/**`。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `server-configs/CraftEngine/resources/backrooms/configuration/items/materials.yml`
+- `server-configs/CraftEngine/resources/backrooms/configuration/blocks/mvp_blocks.yml`
+- 同步修改测试服外部配置：
+  - `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\items\materials.yml`
+  - `D:\dev\backrooms\devserver\plugins\CraftEngine\resources\backrooms\configuration\blocks\mvp_blocks.yml`
+
+### 设计原因
+
+- 当前 BackroomsCore 仍不直接调用 CraftEngine Java API，CE 配置先作为地图制作、资源点、切层标记和后续基地设施的资产层。
+- 维护门、撤离口、基地终端、发电机核心和荧光灯是后续 Transition、Room marker、基地 claim 和电力系统会反复用到的实体地图对象，先用 CE 方块配置落地能支持实机摆放验证。
+- 第二批材料物品服务于 Level 0/1 探索、资源点掉落和基地升级成本，为后续把 Bukkit Material loot 迁移到 CE item 预留内容。
+- 继续复用原版材质是为了先验证 CE reload、物品生成、方块摆放、掉落和资源包显示链路，后续再替换正式美术资源。
+
+### 下一步建议
+
+- 在测试服执行 `/ce reload all`。
+- 使用 `/ce item get backrooms:fuse`、`/ce item get backrooms:maintenance_door_marker`、`/ce item get backrooms:flickering_fluorescent_light` 等命令验证新增资产。
+- 在 Level 0/1 地图中摆放维护门、撤离口和荧光灯 marker，再结合 `/br transition guide <id>` 调整 `transitions.yml` 坐标。
+- 后续需要把 BackroomsCore 的 loot/resource 配置逐步接入 CE item id，而不是长期使用 Bukkit Material 占位。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 已对比项目内 `server-configs` 与测试服 CraftEngine `backrooms` 资源包配置，两边内容一致。
+- 尚未执行 `/ce reload all`，需要在测试服运行时验证 CE 是否接受这些新增配置。
+
 ## Step 013 - Resource 方块调试命令
 
 ### 本次完成

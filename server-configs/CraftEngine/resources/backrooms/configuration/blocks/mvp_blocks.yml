@@ -69,6 +69,76 @@ items:
     behavior:
       type: block_item
       block: backrooms:stairwell_marker
+  backrooms:maintenance_door_marker:
+    material: paper
+    data:
+      item_name: <!i><gray>Maintenance Door Marker
+    model:
+      type: minecraft:model
+      path: backrooms:item/maintenance_door_marker
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/iron_door
+    behavior:
+      type: block_item
+      block: backrooms:maintenance_door_marker
+  backrooms:evacuation_hatch_marker:
+    material: paper
+    data:
+      item_name: <!i><green>Evacuation Hatch Marker
+    model:
+      type: minecraft:model
+      path: backrooms:item/evacuation_hatch_marker
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/iron_trapdoor
+    behavior:
+      type: block_item
+      block: backrooms:evacuation_hatch_marker
+  backrooms:base_claim_terminal:
+    material: paper
+    data:
+      item_name: <!i><aqua>Base Claim Terminal
+    model:
+      type: minecraft:model
+      path: backrooms:item/base_claim_terminal
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/comparator
+    behavior:
+      type: block_item
+      block: backrooms:base_claim_terminal
+  backrooms:generator_core:
+    material: paper
+    data:
+      item_name: <!i><gold>Generator Core
+    model:
+      type: minecraft:model
+      path: backrooms:item/generator_core
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/copper_ingot
+    behavior:
+      type: block_item
+      block: backrooms:generator_core
+  backrooms:flickering_fluorescent_light:
+    material: paper
+    data:
+      item_name: <!i><yellow>Flickering Fluorescent Light
+    model:
+      type: minecraft:model
+      path: backrooms:item/flickering_fluorescent_light
+      generation:
+        parent: minecraft:item/generated
+        textures:
+          layer0: minecraft:item/glowstone_dust
+    behavior:
+      type: block_item
+      block: backrooms:flickering_fluorescent_light
 
 blocks:
   backrooms:loose_carpet_cache:
@@ -189,5 +259,100 @@ blocks:
           parent: minecraft:block/cube_all
           textures:
             all: minecraft:block/chiseled_deepslate
+    loot:
+      template: default:loot_table/self
+  backrooms:maintenance_door_marker:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/maintenance_door_marker
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/iron_block
+    loot:
+      template: default:loot_table/self
+  backrooms:evacuation_hatch_marker:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/evacuation_hatch_marker
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/iron_trapdoor
+    loot:
+      template: default:loot_table/self
+  backrooms:base_claim_terminal:
+    settings:
+      template:
+        - default:sound/stone
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/base_claim_terminal
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/observer_front
+    loot:
+      template: default:loot_table/self
+  backrooms:generator_core:
+    settings:
+      template:
+        - default:sound/metal
+        - default:hardness/stone
+      overrides:
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/generator_core
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/copper_block
+    loot:
+      template: default:loot_table/self
+  backrooms:flickering_fluorescent_light:
+    settings:
+      template:
+        - default:sound/glass
+        - default:hardness/glass
+      overrides:
+        luminance: 12
+        is_suffocating: false
+        is_view_blocking: false
+        is_redstone_conductor: false
+        can_occlude: false
+        tags:
+          - minecraft:mineable/pickaxe
+    state:
+      auto_state: solid
+      model:
+        path: backrooms:block/flickering_fluorescent_light
+        generation:
+          parent: minecraft:block/cube_all
+          textures:
+            all: minecraft:block/sea_lantern
     loot:
       template: default:loot_table/self
