@@ -1,5 +1,52 @@
 # 开发记录
 
+## Step 042 - Item/Sanity 配置 verifier
+
+### 本次完成
+
+- 新增 `/br verify items`。
+- 复用权限：
+  - `backrooms.command.verify.runtime`
+- 新增 help 与 tab completion：
+  - `/br verify items`
+- item/sanity verifier 检查：
+  - Configured vs loaded items：确认 `items.yml` 中配置的 Backrooms item 都进入运行时。
+  - Backrooms item stacks：确认每个 item 的 Bukkit material 可作为物品，并且能通过 `BackroomsItemService#create(...)` 创建 ItemStack。
+  - Consumable sanity items：确认右键消耗物品的 replacement、cooldown、message key 和 sanity effect。
+  - Sanity config：确认 max/default/threshold/default decay、level decay 引用、核心消息 key 和 VectorDisplays HUD provider 前置依赖。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- 玩家实测杏仁水前，应先确认 `items.yml` 的消耗、理智恢复、稳定时间和消息 key 不存在配置断点。
+- `/br verify runtime` 能确认 HUD provider 依赖链，`/br verify craftengine` 能确认 CE 镜像；但 BackroomsCore 自己的 item stack 创建和 sanity 配置还缺少集中检查。
+- verifier 可通过 RCON 运行，不依赖在线玩家，适合作为每次改 `items.yml` 后的前置检查。
+
+### 下一步建议
+
+- 玩家进服后执行 `/br item give backrooms:almond_water <player> 1` 并右键使用，确认恢复理智、冷却和 `GLASS_BOTTLE` replacement。
+- 玩家继续测试 `backrooms:royal_almond_water` 与 `backrooms:memory_salt`。
+- 观察 VectorDisplays HUD 在理智恢复和稳定时间变化时的刷新、位置和清理行为。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br verify items`，当前全 PASS：
+  - Configured vs loaded items：`items=10`。
+  - Backrooms item stacks：`checked=10, customModelData=0`。
+  - Consumable sanity items：`consumables=3, sanityEffects=3`。
+  - Sanity config：`enabled=true, max=100.0, default=100.0, thresholds=15.0/35.0, levelDecayRules=2`。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 041 - Loot/Resource 产物 dry-run 抽样命令
 
 ### 本次完成

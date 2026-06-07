@@ -168,6 +168,10 @@ public final class BrCommand implements TabExecutor {
                 sendLootVerification(sender);
                 return true;
             }
+            if (is(args[1], "items")) {
+                sendItemsVerification(sender);
+                return true;
+            }
             plugin.messages().send(sender, "verify-usage");
             return true;
         }
@@ -601,7 +605,7 @@ public final class BrCommand implements TabExecutor {
         }
 
         if (args.length == 2 && is(args[0], "verify") && sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
-            return filter(List.of("runtime", "craftengine", "map", "loot"), args[1]);
+            return filter(List.of("runtime", "craftengine", "map", "loot", "items"), args[1]);
         }
 
         if (args.length == 2 && is(args[0], "base")) {
@@ -1305,6 +1309,157 @@ public final class BrCommand implements TabExecutor {
         verifyLootSourceLinks(sender);
         verifyResourceRewardLinks(sender);
         verifyLootCoverage(sender);
+    }
+
+    private void sendItemsVerification(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(VERIFY_RUNTIME_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        messages.send(sender, "verify-items-header");
+        verifyItemConfiguredCounts(sender);
+        verifyItemStackCreation(sender);
+        verifyConsumableItems(sender);
+        verifySanityConfig(sender);
+    }
+
+    private void verifyItemConfiguredCounts(CommandSender sender) {
+        int configuredItems = configuredDefinitionCount(plugin.configFiles().items(), "items.definitions");
+        int loadedItems = plugin.items().definitionCount();
+        sendVerifyLine(sender, configuredItems == loadedItems ? "pass" : "fail", "Configured vs loaded items",
+                configuredItems == loadedItems
+                        ? "items=" + loadedItems
+                        : "configured=" + configuredItems + ", loaded=" + loadedItems);
+    }
+
+    private void verifyItemStackCreation(CommandSender sender) {
+        int checked = 0;
+        int customModelData = 0;
+        List<String> issues = new ArrayList<>();
+        for (BackroomsItemDefinition item : plugin.items().all()) {
+            checked++;
+            if (item.hasCustomModelData()) {
+                customModelData++;
+            }
+            if (item.material() == null || item.material().isAir() || !item.material().isItem()) {
+                issues.add(item.id() + ":material=" + (item.material() == null ? "null" : item.material().name()));
+                continue;
+            }
+            if (plugin.items().create(item.id(), 1).isEmpty()) {
+                issues.add(item.id() + ":stack creation failed");
+            }
+        }
+        sendVerifyLine(sender, issues.isEmpty() ? "pass" : "fail", "Backrooms item stacks",
+                issues.isEmpty()
+                        ? "checked=" + checked + ", customModelData=" + customModelData
+                        : describeList(issues));
+    }
+
+    private void verifyConsumableItems(CommandSender sender) {
+        int consumables = 0;
+        int sanityItems = 0;
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (BackroomsItemDefinition item : plugin.items().all()) {
+            if (item.sanity().hasEffect()) {
+                sanityItems++;
+            }
+            if (!item.consumeOnRightClick()) {
+                continue;
+            }
+            consumables++;
+            if (item.consumeReplacement() != null && !item.consumeReplacement().isAir() && !item.consumeReplacement().isItem()) {
+                issues.add(item.id() + ":replacement=" + item.consumeReplacement().name());
+            }
+            if (item.useCooldownSeconds() < 0) {
+                issues.add(item.id() + ":negative cooldown");
+            }
+            if (!item.sanity().hasEffect()) {
+                warnings.add(item.id() + ":consumable without sanity effect");
+            }
+            String messageKey = item.hasConsumeMessage() ? item.consumeMessage() : "item-used";
+            if (!plugin.messages().has(messageKey)) {
+                issues.add(item.id() + ":missing message " + messageKey);
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Consumable sanity items",
+                "consumables=" + consumables + ", sanityEffects=" + sanityItems
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
+    }
+
+    private void verifySanityConfig(CommandSender sender) {
+        ConfigurationSection section = plugin.configFiles().items().getConfigurationSection("sanity");
+        if (section == null) {
+            sendVerifyLine(sender, "fail", "Sanity config", "missing sanity section");
+            return;
+        }
+
+        List<String> issues = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        double max = section.getDouble("max", 100.0D);
+        double defaultValue = section.getDouble("default", max);
+        double low = section.getDouble("thresholds.low", 35.0D);
+        double critical = section.getDouble("thresholds.critical", 15.0D);
+        double defaultDecay = section.getDouble("decay.default-per-second", 0.015D);
+        if (max <= 0.0D) {
+            issues.add("max=" + max);
+        }
+        if (defaultValue < 0.0D || defaultValue > max) {
+            issues.add("default=" + defaultValue);
+        }
+        if (critical < 0.0D || low < 0.0D || critical > low || low > max) {
+            issues.add("thresholds critical=" + critical + ", low=" + low);
+        }
+        if (defaultDecay < 0.0D) {
+            issues.add("defaultDecay=" + defaultDecay);
+        }
+
+        int levelDecayRules = 0;
+        ConfigurationSection levels = section.getConfigurationSection("decay.levels");
+        if (levels != null) {
+            for (String levelId : levels.getKeys(false)) {
+                levelDecayRules++;
+                if (plugin.levels().get(levelId).isEmpty()) {
+                    issues.add("decay unknown level " + levelId);
+                }
+                if (levels.getDouble(levelId) < 0.0D) {
+                    issues.add("decay " + levelId + "=" + levels.getDouble(levelId));
+                }
+            }
+        }
+
+        for (String key : List.of("item-used", "item-cooldown", "sanity-low", "sanity-critical")) {
+            if (!plugin.messages().has(key)) {
+                issues.add("missing message " + key);
+            }
+        }
+        boolean hudEnabled = section.getBoolean("hud.enabled", true);
+        String provider = section.getString("hud.provider", "NONE");
+        if (hudEnabled && "VECTOR_DISPLAYS".equalsIgnoreCase(provider)) {
+            boolean vectorDisplaysLoaded = Bukkit.getPluginManager().getPlugin("VectorDisplays") != null
+                    && Bukkit.getPluginManager().getPlugin("VectorDisplays").isEnabled();
+            boolean packetEventsLoaded = Bukkit.getPluginManager().getPlugin("packetevents") != null
+                    && Bukkit.getPluginManager().getPlugin("packetevents").isEnabled();
+            if (!vectorDisplaysLoaded || !packetEventsLoaded) {
+                warnings.add("HUD provider dependencies VectorDisplays=" + vectorDisplaysLoaded + ", PacketEvents=" + packetEventsLoaded);
+            }
+        }
+
+        sendVerifyLine(sender, issues.isEmpty() && warnings.isEmpty() ? "pass" : (issues.isEmpty() ? "warn" : "fail"),
+                "Sanity config",
+                "enabled=" + section.getBoolean("enabled", true)
+                        + ", max=" + max
+                        + ", default=" + defaultValue
+                        + ", thresholds=" + critical + "/" + low
+                        + ", levelDecayRules=" + levelDecayRules
+                        + detailList(" issues=", new LinkedHashSet<>(issues))
+                        + detailList(" warnings=", new LinkedHashSet<>(warnings)));
     }
 
     private void verifyLootResourceConfiguredCounts(CommandSender sender) {

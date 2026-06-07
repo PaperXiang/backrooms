@@ -817,3 +817,11 @@ plugins/BackroomsCore/
 - 已通过 RCON 抽样 `level0_basic_supplies`、`level1_scrap_cache`、`level0_loose_carpet`、`level1_scrap_ore`，均能产出并汇总 Backrooms 自定义物品与原版物品。
 - 已再次执行 `br verify loot` 和 `br verify runtime`，两者仍全 PASS。
 - 下一步重点：玩家进服后做无法由控制台替代的交互验证：容器 one-time 标记、资源点 cooldown、杏仁水右键消耗与 HUD 变化、基地 terminal claim、Faithful 方块视觉/碰撞/灯光/storage。
+
+### 12.38 Step 042 Item/Sanity 配置 verifier 状态
+
+- 已新增 `/br verify items`，复用 `backrooms.command.verify.runtime` 权限。
+- 检查内容包括：`items.yml` 配置定义数量是否全部加载、每个 Backrooms item 是否能创建 ItemStack、材质是否为可作为物品的 Bukkit material、右键消耗物品的 replacement/cooldown/message/sanity effect、sanity max/default/threshold/decay 配置、decay level 引用、核心消息 key，以及 VectorDisplays HUD provider 前置依赖。
+- 已通过 RCON 执行 `br verify items`；当前 PASS：configured vs loaded items、Backrooms item stacks、consumable sanity items、sanity config。
+- 已再次执行 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后实测杏仁水/皇家杏仁水/记忆盐右键消耗、冷却、replacement、理智恢复/稳定时间与 VectorDisplays HUD 显示变化。
