@@ -16,6 +16,7 @@ public record ResourceBlockDefinition(
         boolean removeBlock,
         Material replacement,
         long cooldownSeconds,
+        List<String> lootTables,
         List<ResourceDrop> drops
 ) {
 

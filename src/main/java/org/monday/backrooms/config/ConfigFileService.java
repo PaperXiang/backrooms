@@ -13,6 +13,7 @@ public final class ConfigFileService {
     private final Backrooms plugin;
     private FileConfiguration messages;
     private FileConfiguration settings;
+    private FileConfiguration loot;
     private FileConfiguration resources;
     private FileConfiguration transitions;
     private FileConfiguration rooms;
@@ -24,6 +25,7 @@ public final class ConfigFileService {
 
     public void ensureDefaultFiles() {
         saveDefault("messages.yml");
+        saveDefault("loot.yml");
         saveDefault("resources.yml");
         saveDefault("transitions.yml");
         saveDefault("rooms.yml");
@@ -35,6 +37,7 @@ public final class ConfigFileService {
     public void reload() {
         this.messages = loadFile("messages.yml");
         this.settings = loadFile("settings/config.yml");
+        this.loot = loadFile("loot.yml");
         this.resources = loadFile("resources.yml");
         this.transitions = loadFile("transitions.yml");
         this.rooms = loadFile("rooms.yml");
@@ -42,6 +45,7 @@ public final class ConfigFileService {
 
         warnIgnoredLegacySection("messages", "messages.yml");
         warnIgnoredLegacySection("level-title", "settings/config.yml");
+        warnIgnoredLegacySection("loot-tables", "loot.yml");
         warnIgnoredLegacySection("resource-blocks", "resources.yml");
         warnIgnoredLegacySection("transitions", "transitions.yml");
         warnIgnoredLegacySection("rooms", "rooms.yml");
@@ -54,6 +58,10 @@ public final class ConfigFileService {
 
     public FileConfiguration settings() {
         return settings;
+    }
+
+    public FileConfiguration loot() {
+        return loot;
     }
 
     public FileConfiguration resources() {

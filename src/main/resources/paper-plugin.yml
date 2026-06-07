@@ -9,7 +9,7 @@ website: mc.monday-ovo.top
 commands:
   br:
     description: Backrooms main command
-    usage: /br <help|levels|level|rooms|room|transitions|transition|debug|reload>
+    usage: /br <help|levels|level|rooms|room|loot|transitions|transition|debug|reload>
     aliases: [backrooms]
 permissions:
   backrooms.command.br:
@@ -48,6 +48,15 @@ permissions:
   backrooms.command.room.generate:
     description: Allows generating Backrooms room prototypes
     default: op
+  backrooms.command.loot.list:
+    description: Allows listing configured Backrooms loot tables
+    default: op
+  backrooms.command.loot.info:
+    description: Allows viewing Backrooms loot table details
+    default: op
+  backrooms.command.loot.roll:
+    description: Allows manually rolling Backrooms loot tables
+    default: op
   backrooms.transition.use:
     description: Allows using configured Backrooms transitions
     default: true
@@ -73,6 +82,9 @@ permissions:
       backrooms.command.room.list: true
       backrooms.command.room.info: true
       backrooms.command.room.generate: true
+      backrooms.command.loot.list: true
+      backrooms.command.loot.info: true
+      backrooms.command.loot.roll: true
       backrooms.transition.use: true
       backrooms.transition.bypass.cooldown: true
       backrooms.bypass.build: true

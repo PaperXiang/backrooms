@@ -453,6 +453,74 @@
 - 已运行 `./gradlew.bat build`，构建通过。
 - 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
 
+## Step 012 - Loot Table MVP 与资源点掉落池
+
+### 本次完成
+
+- 新增 `loot.yml`，使用 `loot-tables.definitions` 配置命名 Loot Table。
+- 新增 Loot Table 基础模型与服务：
+  - `LootEntry`
+  - `LootTableDefinition`
+  - `LootTableService`
+- `LootTableService` 支持：
+  - `/br reload` 热重载。
+  - 重复 id 检查。
+  - 无效 Material 跳过并输出 warning。
+  - `rolls.min/max` 随机 roll 次数。
+  - entry `chance/min/max` 随机产出 Bukkit `ItemStack`。
+- `ConfigFileService` 新增 `loot.yml` 默认释放、加载和 legacy `loot-tables` section 提醒。
+- `Backrooms` 主类新增 `LootTableService` 生命周期，启动日志、重载日志和 `/br reload` 文案都显示 Loot Table 数量。
+- Resource 方块定义新增可选 `loot-tables` 字段：
+  - 资源点触发时会 roll 引用的命名 Loot Table。
+  - 原有内联 `drops` 保持兼容，并与 `loot-tables` 叠加。
+  - 配置引用不存在的 Loot Table 时会在控制台 warning。
+- 新增 Loot Table 管理/测试命令：
+  - `/br loot list`
+  - `/br loot info <id>`
+  - `/br loot roll <id> [player]`
+- `/br loot roll` 会把物品加入目标玩家背包，背包满时把剩余物品自然掉落在玩家位置，避免静默吞物品。
+- 新增 Loot 命令权限：
+  - `backrooms.command.loot.list`
+  - `backrooms.command.loot.info`
+  - `backrooms.command.loot.roll`
+- `/br debug config` 新增 Loot Table 数量显示。
+
+### 修改文件
+
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/Backrooms.java`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/java/org/monday/backrooms/config/ConfigFileService.java`
+- `src/main/java/org/monday/backrooms/loot/LootEntry.java`
+- `src/main/java/org/monday/backrooms/loot/LootTableDefinition.java`
+- `src/main/java/org/monday/backrooms/loot/LootTableService.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockDefinition.java`
+- `src/main/java/org/monday/backrooms/resource/ResourceBlockService.java`
+- `src/main/resources/loot.yml`
+- `src/main/resources/messages.yml`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/resources.yml`
+
+### 设计原因
+
+- 战利品是后室探索循环的核心，但第一版只做 Bukkit `Material` + `ItemStack`，避免过早耦合 CraftEngine Java API、NBT 或数据库。
+- 命名 Loot Table 能让资源方块、未来容器、尸体和事件奖励复用同一套掉落池，而不是在每个 source 内重复写掉落列表。
+- 现有 Resource `drops` 继续保留，减少配置迁移风险；`loot-tables` 作为可选叠加字段先进入实机验证。
+- `/br loot roll` 作为管理员测试入口，能在不破坏地图资源点的情况下验证战利品表概率、物品和背包溢出行为。
+
+### 下一步建议
+
+- 重启测试服加载新 jar 后执行 `/br reload`，确认聊天和控制台都显示 Loot Table 数量。
+- 执行 `/br loot list`、`/br loot info level0_basic_supplies`、`/br loot roll level0_basic_supplies <player>` 验证命令和权限。
+- 在真实 Level 0/1 资源点坐标更新后，验证 `resources.yml` 中 `loot-tables` 会随资源触发掉落。
+- 后续再把 Loot Table 接入原版容器、CE 容器方块、尸体方块和事件奖励，不在当前步骤引入额外监听器或外部 API。
+
+### 测试与验证
+
+- 已运行 `./gradlew.bat build`，构建通过。
+- 构建仍提示 `TransitionService` 中传送 API 过时，当前不影响 Paper 1.21.4 编译运行，后续可集中迁移到现代传送 API。
+
 ## Step 011 - 运行时安全审查与保护加固
 
 ### 本次完成

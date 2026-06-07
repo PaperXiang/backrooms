@@ -3,6 +3,7 @@ package org.monday.backrooms.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -11,8 +12,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.monday.backrooms.Backrooms;
 import org.monday.backrooms.level.BackroomsLevel;
+import org.monday.backrooms.loot.LootTableDefinition;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelState;
 import org.monday.backrooms.room.RoomDefinition;
@@ -33,6 +36,9 @@ public final class BrCommand implements TabExecutor {
     private static final String ROOM_LIST_PERMISSION = "backrooms.command.room.list";
     private static final String ROOM_INFO_PERMISSION = "backrooms.command.room.info";
     private static final String ROOM_GENERATE_PERMISSION = "backrooms.command.room.generate";
+    private static final String LOOT_LIST_PERMISSION = "backrooms.command.loot.list";
+    private static final String LOOT_INFO_PERMISSION = "backrooms.command.loot.info";
+    private static final String LOOT_ROLL_PERMISSION = "backrooms.command.loot.roll";
 
     private final Backrooms plugin;
 
@@ -64,6 +70,34 @@ public final class BrCommand implements TabExecutor {
 
         if (is(args[0], "rooms")) {
             sendRooms(sender);
+            return true;
+        }
+
+        if (is(args[0], "loot")) {
+            if (args.length < 2 || is(args[1], "list")) {
+                sendLootTables(sender);
+                return true;
+            }
+
+            if (is(args[1], "info")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "loot-info-usage");
+                    return true;
+                }
+                sendLootInfo(sender, args[2]);
+                return true;
+            }
+
+            if (is(args[1], "roll")) {
+                if (args.length < 3) {
+                    plugin.messages().send(sender, "loot-roll-usage");
+                    return true;
+                }
+                rollLootTable(sender, args[2], args.length >= 4 ? args[3] : null);
+                return true;
+            }
+
+            plugin.messages().send(sender, "unknown-command");
             return true;
         }
 
@@ -190,6 +224,7 @@ public final class BrCommand implements TabExecutor {
             boolean reloaded = plugin.reloadRuntimeConfig();
             plugin.messages().send(sender, reloaded ? "reload" : "reload-failed",
                     plugin.messages().text("count", String.valueOf(plugin.levels().size())),
+                    plugin.messages().text("loot_count", String.valueOf(plugin.lootTables().definitionCount())),
                     plugin.messages().text("transition_count", String.valueOf(plugin.transitions().definitionCount())),
                     plugin.messages().text("room_count", String.valueOf(plugin.rooms().definitionCount()))
             );
@@ -224,6 +259,11 @@ public final class BrCommand implements TabExecutor {
                     || sender.hasPermission(ROOM_INFO_PERMISSION)
                     || sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
                 options.add("room");
+            }
+            if (sender.hasPermission(LOOT_LIST_PERMISSION)
+                    || sender.hasPermission(LOOT_INFO_PERMISSION)
+                    || sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+                options.add("loot");
             }
             if (sender.hasPermission(TRANSITION_INFO_PERMISSION)
                     || sender.hasPermission(TRANSITION_TRIGGER_PERMISSION)
@@ -275,6 +315,28 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "room") && is(args[1], "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
             return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[3]);
+        }
+
+        if (args.length == 2 && is(args[0], "loot")) {
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(LOOT_LIST_PERMISSION)) {
+                options.add("list");
+            }
+            if (sender.hasPermission(LOOT_INFO_PERMISSION)) {
+                options.add("info");
+            }
+            if (sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+                options.add("roll");
+            }
+            return filter(options, args[1]);
+        }
+
+        if (args.length == 3 && is(args[0], "loot") && canCompleteLootIds(sender, args[1])) {
+            return filter(plugin.lootTables().all().stream().map(LootTableDefinition::id).toList(), args[2]);
+        }
+
+        if (args.length == 4 && is(args[0], "loot") && is(args[1], "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[3]);
         }
 
         if (args.length == 2 && is(args[0], "debug")) {
@@ -370,6 +432,100 @@ public final class BrCommand implements TabExecutor {
                     messages.text("levels", room.levels().isEmpty() ? "any" : String.join(",", room.levels()))
             );
         }
+    }
+
+    private void sendLootTables(CommandSender sender) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_LIST_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        if (plugin.lootTables().all().isEmpty()) {
+            messages.send(sender, "loot-tables-empty");
+            return;
+        }
+
+        messages.send(sender, "loot-tables-header");
+        for (LootTableDefinition table : plugin.lootTables().all()) {
+            messages.send(sender, "loot-table-line",
+                    messages.text("id", table.id()),
+                    messages.mini("display", table.displayName()),
+                    messages.bool("enabled", table.enabled()),
+                    messages.text("rolls", table.rollsDescription()),
+                    messages.text("entries", String.valueOf(table.entries().size()))
+            );
+        }
+    }
+
+    private void sendLootInfo(CommandSender sender, String id) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_INFO_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        plugin.lootTables().get(id).ifPresentOrElse(table -> messages.send(sender, "loot-info",
+                messages.text("id", table.id()),
+                messages.mini("display", table.displayName()),
+                messages.bool("enabled", table.enabled()),
+                messages.text("rolls", table.rollsDescription()),
+                messages.text("entries", String.valueOf(table.entries().size()))
+        ), () -> messages.send(sender, "loot-table-not-found", messages.text("id", id)));
+    }
+
+    private void rollLootTable(CommandSender sender, String id, String targetName) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(LOOT_ROLL_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        Player target;
+        if (targetName == null || targetName.isBlank()) {
+            if (!(sender instanceof Player player)) {
+                messages.send(sender, "loot-roll-usage");
+                return;
+            }
+            target = player;
+        } else {
+            target = Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                messages.send(sender, "player-not-found", messages.text("player", targetName));
+                return;
+            }
+        }
+
+        plugin.lootTables().get(id).ifPresentOrElse(table -> {
+            if (!table.enabled()) {
+                messages.send(sender, "loot-table-disabled", messages.text("id", table.id()));
+                return;
+            }
+
+            List<ItemStack> items = plugin.lootTables().roll(table);
+            if (items.isEmpty()) {
+                messages.send(sender, "loot-roll-empty", messages.text("id", table.id()));
+                return;
+            }
+
+            boolean droppedLeftovers = giveRolledItems(target, items);
+            messages.send(sender, "loot-roll-success",
+                    messages.text("id", table.id()),
+                    messages.text("player", target.getName()),
+                    messages.text("items", String.valueOf(items.size()))
+            );
+            if (droppedLeftovers) {
+                messages.send(sender, "loot-roll-leftovers-dropped");
+            }
+        }, () -> messages.send(sender, "loot-table-not-found", messages.text("id", id)));
+    }
+
+    private boolean giveRolledItems(Player target, List<ItemStack> items) {
+        Map<Integer, ItemStack> leftovers = target.getInventory().addItem(items.toArray(ItemStack[]::new));
+        for (ItemStack item : leftovers.values()) {
+            target.getWorld().dropItemNaturally(target.getLocation(), item);
+        }
+        return !leftovers.isEmpty();
     }
 
     private void sendRoomInfo(CommandSender sender, String id) {
@@ -678,6 +834,7 @@ public final class BrCommand implements TabExecutor {
                 messages.text("levels_enabled", String.valueOf(plugin.levels().enabledCount())),
                 messages.text("levels_disabled", String.valueOf(plugin.levels().disabledCount())),
                 messages.text("missing_worlds", describeList(missingLevelWorlds)),
+                messages.text("loot_tables", String.valueOf(plugin.lootTables().definitionCount())),
                 messages.text("resource_blocks", String.valueOf(plugin.resources().definitionCount())),
                 messages.text("transitions", String.valueOf(plugin.transitions().definitionCount())),
                 messages.text("transitions_disabled", String.valueOf(disabledTransitions)),
@@ -701,6 +858,11 @@ public final class BrCommand implements TabExecutor {
     private boolean canCompleteRoomIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(ROOM_INFO_PERMISSION))
                 || (is(subcommand, "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION));
+    }
+
+    private boolean canCompleteLootIds(CommandSender sender, String subcommand) {
+        return (is(subcommand, "info") && sender.hasPermission(LOOT_INFO_PERMISSION))
+                || (is(subcommand, "roll") && sender.hasPermission(LOOT_ROLL_PERMISSION));
     }
 
     private String describeList(List<String> values) {

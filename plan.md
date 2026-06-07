@@ -449,7 +449,8 @@ plugins/BackroomsCore/
 - 已新增 Transition 触发指引命令 `/br transition guide <id>`，用于在地图中临时显示 region / block 触发位置，方便摆放 CraftEngine 楼梯井标记。
 - 已完成第一版 Room 生成原型：`rooms.yml` 配置 room/corridor 模板，`/br room generate <id> [level]` 可用 Bukkit 原生方块生成简单占位房间。
 - 已新增 `/br debug config` 运行时配置摘要命令，用于实机快速检查 Level 世界缺失、Transition/Room 引用问题和模块数量。
-- 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
+- 已新增第一版 Loot Table MVP：`loot.yml` 配置 Bukkit Material 战利品表，`/br loot list/info/roll` 可用于测试，资源方块可通过 `loot-tables` 复用命名掉落池。
+- 下一阶段最高优先级：重启测试服实机验证 `/br debug config`、`/br loot roll`、资源点 loot table、Room 原型、Transition guide 和 CE 楼梯井标记摆放闭环；之后再评估 WorldEdit/FAWE schematic 与 marker 扫描。
 
 ### 12.2 为什么当前仍是第一阶段 MVP
 
@@ -513,3 +514,12 @@ plugins/BackroomsCore/
 - `/br reload` 现在会根据实际重载结果反馈成功或失败，避免配置被拒绝时仍显示成功。
 - 当前仍保留同步 `Player#teleport`，Paper 1.21.4 可编译运行，但后续应集中迁移到现代异步传送 API。
 - 下一步最高优先级仍是重启测试服实机验证 `/br reload`、`/br debug config`、资源点坐标、房间生成和 Transition 闭环。
+
+### 12.9 Step 012 Loot Table MVP 状态
+
+- 已新增 `loot.yml` 独立配置文件，采用 `loot-tables.definitions` 管理命名战利品表，当前只使用 Bukkit `Material` 与 `ItemStack`，不接入 CraftEngine Java API 或 NBT。
+- 已新增 Loot Table 运行时服务，支持 `/br reload` 热重载、重复 id 检查、无效 Material 跳过、rolls min/max 和按 chance 随机产出。
+- 已新增 `/br loot list`、`/br loot info <id>`、`/br loot roll <id> [player]` 管理命令，用于实机测试战利品表；背包满时会把剩余物品掉落到玩家位置。
+- Resource 方块新增可选 `loot-tables` 字段，现有 `drops` 保留并与命名 loot table 叠加，便于逐步从内联掉落迁移到可复用战利品池。
+- `/br debug config`、启动日志和 `/br reload` 反馈已包含 Loot Table 数量。
+- 下一步实机验证重点：`/br loot list`、`/br loot info level0_basic_supplies`、`/br loot roll level0_basic_supplies <player>`、资源点触发 loot table，并确认 `/br reload` 后数量稳定。

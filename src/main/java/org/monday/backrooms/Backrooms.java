@@ -5,6 +5,7 @@ import org.monday.backrooms.config.ConfigFileService;
 import org.monday.backrooms.level.LevelConfigLoader;
 import org.monday.backrooms.level.LevelRegistry;
 import org.monday.backrooms.level.LevelTitleService;
+import org.monday.backrooms.loot.LootTableService;
 import org.monday.backrooms.message.MessageService;
 import org.monday.backrooms.player.PlayerLevelListener;
 import org.monday.backrooms.player.PlayerLevelTracker;
@@ -23,6 +24,7 @@ public final class Backrooms extends JavaPlugin {
     private LevelConfigLoader levelConfigLoader;
     private LevelTitleService levelTitleService;
     private PlayerLevelTracker playerLevelTracker;
+    private LootTableService lootTableService;
     private ResourceBlockService resourceBlockService;
     private TransitionService transitionService;
     private RoomGenerationService roomGenerationService;
@@ -40,6 +42,7 @@ public final class Backrooms extends JavaPlugin {
         this.levelConfigLoader = new LevelConfigLoader(this);
         this.levelTitleService = new LevelTitleService(this);
         this.playerLevelTracker = new PlayerLevelTracker(this);
+        this.lootTableService = new LootTableService(this);
         this.resourceBlockService = new ResourceBlockService(this);
         this.transitionService = new TransitionService(this);
         this.roomGenerationService = new RoomGenerationService(this);
@@ -52,6 +55,7 @@ public final class Backrooms extends JavaPlugin {
         getLogger().info("BackroomsCore enabled successfully: levels=" + levelRegistry.size()
                 + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
+                + ", lootTables=" + lootTableService.definitionCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
                 + ", rooms=" + roomGenerationService.definitionCount() + ".");
@@ -85,6 +89,7 @@ public final class Backrooms extends JavaPlugin {
             }
 
             levelRegistry = loadedLevels;
+            lootTableService.reload();
             resourceBlockService.reload();
             transitionService.reload();
             roomGenerationService.reload();
@@ -103,6 +108,7 @@ public final class Backrooms extends JavaPlugin {
         getLogger().info("Runtime config reloaded in " + (System.currentTimeMillis() - startMillis) + "ms: levels="
                 + levelRegistry.size() + ", enabled=" + levelRegistry.enabledCount()
                 + ", disabled=" + levelRegistry.disabledCount()
+                + ", lootTables=" + lootTableService.definitionCount()
                 + ", resourceBlocks=" + resourceBlockService.definitionCount()
                 + ", transitions=" + transitionService.definitionCount()
                 + ", rooms=" + roomGenerationService.definitionCount()
@@ -128,6 +134,10 @@ public final class Backrooms extends JavaPlugin {
 
     public PlayerLevelTracker playerLevels() {
         return playerLevelTracker;
+    }
+
+    public LootTableService lootTables() {
+        return lootTableService;
     }
 
     public ResourceBlockService resources() {

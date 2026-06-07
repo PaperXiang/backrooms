@@ -129,6 +129,13 @@ public final class ResourceBlockService {
 
         Location dropLocation = block.getLocation().add(0.5D, 0.5D, 0.5D);
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (String lootTableId : definition.lootTables()) {
+            plugin.lootTables().get(lootTableId).ifPresent(table -> {
+                for (ItemStack item : plugin.lootTables().roll(table)) {
+                    block.getWorld().dropItemNaturally(dropLocation, item);
+                }
+            });
+        }
         for (ResourceDrop drop : definition.drops()) {
             if (random.nextDouble() > drop.chance()) {
                 continue;
@@ -180,8 +187,9 @@ public final class ResourceBlockService {
                 .orElse(Material.AIR);
 
         List<ResourceDrop> drops = loadDrops(section.getMapList("drops"), id);
+        List<String> lootTables = loadLootTables(section.getStringList("loot-tables"), id);
         boolean removeBlock = section.getBoolean("remove-block", false);
-        if (drops.isEmpty() && !removeBlock) {
+        if (drops.isEmpty() && lootTables.isEmpty() && !removeBlock) {
             plugin.getLogger().warning("Resource block '" + id + "' has no drops and does not remove the block; interaction will have no reward.");
         }
 
@@ -195,8 +203,21 @@ public final class ResourceBlockService {
                 removeBlock,
                 replacement,
                 section.getLong("cooldown-seconds", 0L),
+                lootTables,
                 drops
         ));
+    }
+
+    private List<String> loadLootTables(List<String> tableIds, String definitionId) {
+        List<String> lootTables = new ArrayList<>();
+        for (String tableId : tableIds) {
+            String normalized = tableId.toLowerCase(Locale.ROOT);
+            lootTables.add(normalized);
+            if (plugin.lootTables().get(normalized).isEmpty()) {
+                plugin.getLogger().warning("Resource block '" + definitionId + "' references unknown loot table '" + tableId + "'.");
+            }
+        }
+        return List.copyOf(lootTables);
     }
 
     private Set<ResourceBlockPosition> loadPositions(List<Map<?, ?>> maps, String definitionId) {
