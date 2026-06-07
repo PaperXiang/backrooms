@@ -423,6 +423,15 @@ public final class BrCommand implements TabExecutor {
                 return true;
             }
 
+            if (is(args[1], "generate-at")) {
+                if (args.length < 7) {
+                    plugin.messages().send(sender, "room-generate-at-usage");
+                    return true;
+                }
+                generateRoomAt(sender, args[2], args[3], args[4], args[5], args[6]);
+                return true;
+            }
+
             plugin.messages().send(sender, "unknown-command");
             return true;
         }
@@ -637,6 +646,7 @@ public final class BrCommand implements TabExecutor {
             }
             if (sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
                 options.add("generate");
+                options.add("generate-at");
             }
             return filter(options, args[1]);
         }
@@ -647,6 +657,19 @@ public final class BrCommand implements TabExecutor {
 
         if (args.length == 4 && is(args[0], "room") && is(args[1], "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
             return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[3]);
+        }
+
+        if (args.length == 4 && is(args[0], "room") && is(args[1], "generate-at") && sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+            return filter(plugin.levels().all().stream().map(BackroomsLevel::id).toList(), args[3]);
+        }
+
+        if (args.length >= 5 && args.length <= 7 && is(args[0], "room") && is(args[1], "generate-at") && sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+            List<String> suggestions = switch (args.length) {
+                case 5 -> List.of("96", "120", "144");
+                case 6 -> List.of("80");
+                default -> List.of("96", "120", "144");
+            };
+            return filter(suggestions, args[args.length - 1]);
         }
 
         if (args.length == 2 && is(args[0], "loot")) {
@@ -3288,6 +3311,44 @@ public final class BrCommand implements TabExecutor {
         }, () -> messages.send(sender, "room-not-found", messages.text("id", roomId)));
     }
 
+    private void generateRoomAt(CommandSender sender, String roomId, String levelId, String xInput, String yInput, String zInput) {
+        MessageService messages = plugin.messages();
+        if (!sender.hasPermission(ROOM_GENERATE_PERMISSION)) {
+            messages.send(sender, "no-permission");
+            return;
+        }
+
+        int x;
+        int y;
+        int z;
+        try {
+            x = Integer.parseInt(xInput);
+            y = Integer.parseInt(yInput);
+            z = Integer.parseInt(zInput);
+        } catch (NumberFormatException exception) {
+            messages.send(sender, "room-generate-at-usage");
+            return;
+        }
+
+        plugin.rooms().get(roomId).ifPresentOrElse(room -> plugin.levels().get(levelId).ifPresentOrElse(level -> {
+            if (!level.enabled()) {
+                messages.send(sender, "level-disabled", messages.text("id", level.id()));
+                return;
+            }
+            World world = Bukkit.getWorld(level.world());
+            if (world == null) {
+                messages.send(sender, "level-world-not-loaded",
+                        messages.text("id", level.id()),
+                        messages.text("world", level.world())
+                );
+                return;
+            }
+
+            RoomGenerationResult result = plugin.rooms().generate(room, level, new Location(world, x, y, z));
+            sendRoomGenerationResult(sender, result);
+        }, () -> messages.send(sender, "level-not-found", messages.text("id", levelId))), () -> messages.send(sender, "room-not-found", messages.text("id", roomId)));
+    }
+
     private BackroomsLevel resolveRoomGenerationLevel(Player player, String levelId) {
         if (levelId != null && !levelId.isBlank()) {
             return plugin.levels().get(levelId).orElse(null);
@@ -3574,7 +3635,7 @@ public final class BrCommand implements TabExecutor {
 
     private boolean canCompleteRoomIds(CommandSender sender, String subcommand) {
         return (is(subcommand, "info") && sender.hasPermission(ROOM_INFO_PERMISSION))
-                || (is(subcommand, "generate") && sender.hasPermission(ROOM_GENERATE_PERMISSION));
+                || ((is(subcommand, "generate") || is(subcommand, "generate-at")) && sender.hasPermission(ROOM_GENERATE_PERMISSION));
     }
 
     private boolean canCompleteLootIds(CommandSender sender, String subcommand) {

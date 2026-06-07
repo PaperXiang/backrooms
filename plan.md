@@ -893,3 +893,13 @@ plugins/BackroomsCore/
 - 已执行 `br base unclaim level1_utility_room_a`、`br reload`、`br verify bases`，确认已清理回 `runtimeClaims=0, storedClaims=0`。
 - 已再次执行 `br verify runtime`，当前仍全 PASS。
 - 下一步重点：玩家进服后右键 Base terminal 做真实 claim，并测试 owner 区域内建造放行、非 owner 和区域外保护拦截。
+
+### 12.47 Step 051 Room 坐标生成命令状态
+
+- 已新增 `/br room generate-at <id> <level> <x> <y> <z>`，复用 `backrooms.command.room.generate` 权限。
+- 命令不依赖在线玩家，按指定 Level 的 world 和显式坐标调用现有 `RoomGenerationService#generate(...)`，仍遵守 room enabled、level enabled、level allowlist、world height、`max-blocks-per-generate` 和 `replace-air-only`。
+- 已通过 RCON 执行 `br room generate-at level0_basic_room level_0 96 80 96`，成功改变 364 个方块。
+- 已通过 RCON 执行 `br room generate-at level0_corridor level_0 120 80 96`，成功改变 341 个方块。
+- 已通过 RCON 执行 `br room generate-at level1_utility_room level_1 96 80 96`，成功改变 532 个方块。
+- 已再次执行 `br verify rooms` 与 `br verify runtime`，当前仍全 PASS。
+- 下一步重点：玩家进服后观察生成结果、marker/光源位置和保护规则交互；后续用真实 schematic/marker 流程替换当前占位 Room 生成。

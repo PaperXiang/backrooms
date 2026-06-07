@@ -1,5 +1,56 @@
 # 开发记录
 
+## Step 051 - Room 坐标生成命令
+
+### 本次完成
+
+- 新增 `/br room generate-at <id> <level> <x> <y> <z>`。
+- 复用权限：
+  - `backrooms.command.room.generate`
+- 新增 help、usage 与 tab completion。
+- 命令从 RCON/控制台即可执行，不再要求 sender 是玩家。
+- 命令复用 `RoomGenerationService#generate(...)`，仍遵守：
+  - Room enabled。
+  - Level enabled。
+  - Room Level allowlist。
+  - world height。
+  - `max-blocks-per-generate`。
+  - `replace-air-only`。
+
+### 修改文件
+
+- `README.md`
+- `plan.md`
+- `step.md`
+- `src/main/java/org/monday/backrooms/command/BrCommand.java`
+- `src/main/resources/messages.yml`
+
+### 设计原因
+
+- `/br room generate <id> [level]` 依赖玩家当前位置，RCON 无法验证真实方块生成。
+- 坐标版命令让测试服可以在固定远端坐标生成占位 Room，验证方块写入、光源、marker、replace-air-only 和越界保护。
+- 生成逻辑仍在 Room service 中，避免玩家命令和 RCON 命令出现两套生成规则。
+
+### 下一步建议
+
+- 玩家进服后观察 `level_0 96 80 96`、`level_0 120 80 96` 和 `level_1 96 80 96` 附近生成结果。
+- 后续用真实 schematic 替换当前占位 Room 前，继续保留 `generate-at` 作为固定坐标回归测试入口。
+- 若需要反复测试同一区域，再补充受控清理命令或测试区域重置流程。
+
+### 测试与验证
+
+- 已运行 `.\gradlew.bat build`，构建通过。
+- 已运行 `.\gradlew.bat deployDevServerAll build`，jar 部署、YAML 同步和构建均通过。
+- 已用 Java 21 重启测试服。
+- 已通过 RCON 执行 `br room generate-at level0_basic_room level_0 96 80 96`：
+  - 成功改变 364 个方块。
+- 已通过 RCON 执行 `br room generate-at level0_corridor level_0 120 80 96`：
+  - 成功改变 341 个方块。
+- 已通过 RCON 执行 `br room generate-at level1_utility_room level_1 96 80 96`：
+  - 成功改变 532 个方块。
+- 已通过 RCON 执行 `br verify rooms`，当前全 PASS。
+- 已通过 RCON 执行 `br verify runtime`，当前全 PASS。
+
 ## Step 050 - Base claim 管理员持久化命令
 
 ### 本次完成
